@@ -39,7 +39,6 @@ func (p *zpool) GetPayouts(testnet bool) []payouts.Payout {
 		payouts.NewLBCPayout(),
 		payouts.NewLTCPayout(),
 		payouts.NewPPCPayout(),
-		payouts.NewRVCPayout(),
 		payouts.NewXVGPayout(),
 		payouts.NewZECPayout(),
 	}
