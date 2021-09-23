@@ -208,15 +208,14 @@ func (w *Wallet) PrepareSweep(addr string) ([]*wire.MsgTx, error) {
 		// fee := uint64(vSizeInt * 100)
 
 		// Dogecoin fee calculation //
-		// Base fee is 1 DOGE
-		fee := uint64(1)
-		// Each additional 1000 bytes incurs 1 DOGE added fee
-		fee += uint64(math.Floor(float64(vSizeInt) / float64(1000)))
+		// 0.001 DOGE fee per 1000 bytes
+		// Base fee is 0.01 DOGE
+		fee_doge := math.Max(float64(0.01), float64(0.001) * (float64(vSizeInt) / float64(1000)))
 		// 1 DOGE added fee if total transaction amount is dust
-		if (totalIn - fee*100000000) < 100000000 { // UTXO Amount is in Satoshis
-			fee += 1
+		if (totalIn - uint64(math.Ceil(fee_doge * 100000000))) < 100000000 { // UTXO Amount is in Satoshis
+			fee_doge += 1
 		}
-		fee *= 100000000 // Convert fee from DOGE to Satoshis
+		fee := uint64(math.Ceil(fee_doge * float64(100000000))) // Convert fee from DOGE to Satoshis
 
 		logging.Debugf("Setting fee to %d\n", fee)
 
