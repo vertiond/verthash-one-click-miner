@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/vertiond/verthash-one-click-miner/payouts"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
@@ -16,6 +17,28 @@ type Zergpool struct {
 
 func NewZergpool() *Zergpool {
 	return &Zergpool{}
+}
+
+func (p *Zergpool) GetPayouts(testnet bool) []payouts.Payout {
+	if testnet {
+		return []payouts.Payout{
+			payouts.NewVTCPayout(),
+		}
+	}
+	return []payouts.Payout{
+		payouts.NewDOGEPayout(),
+		payouts.NewVTCPayout(),
+		payouts.NewBTCPayout(),
+		payouts.NewBCHPayout(),
+		payouts.NewDASHPayout(),
+		payouts.NewDGBPayout(),
+		payouts.NewETHPayout(),
+		payouts.NewFIROPayout(),
+		payouts.NewGRSPayout(),
+		payouts.NewLTCPayout(),
+		payouts.NewXMRPayout(),
+		payouts.NewRVNPayout(),
+	}
 }
 
 func (p *Zergpool) GetPendingPayout(addr string) uint64 {
@@ -36,8 +59,8 @@ func (p *Zergpool) GetStratumUrl() string {
 	return "stratum+tcp://verthash.mine.zergpool.com:4534"
 }
 
-func (p *Zergpool) GetPassword() string {
-	return "x"
+func (p *Zergpool) GetPassword(payoutTicker string) string {
+	return fmt.Sprintf("c=%s,mc=VTC", payoutTicker)
 }
 
 func (p *Zergpool) GetID() int {

@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/vertiond/verthash-one-click-miner/logging"
-	"github.com/vertiond/verthash-one-click-miner/networks"
 
+	"github.com/vertiond/verthash-one-click-miner/payouts"
+	"github.com/vertiond/verthash-one-click-miner/ping"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
@@ -16,16 +17,39 @@ type P2Pool struct {
 	LastFetchedPayout time.Time
 	LastPayout        uint64
 	LastFetchedFee    time.Time
+	LastFee           float64
 }
 
 func NewP2Pool() *P2Pool {
 	return &P2Pool{}
 }
 
+func (p *P2Pool) GetPayouts(testnet bool) []payouts.Payout {
+	if testnet {
+		return []payouts.Payout{
+			payouts.NewVTCPayout(),
+		}
+	}
+	return []payouts.Payout{
+		payouts.NewDOGEPayout(),
+		payouts.NewVTCPayout(),
+		payouts.NewBTCPayout(),
+		payouts.NewBCHPayout(),
+		payouts.NewDASHPayout(),
+		payouts.NewDGBPayout(),
+		payouts.NewETHPayout(),
+		payouts.NewFIROPayout(),
+		payouts.NewGRSPayout(),
+		payouts.NewLTCPayout(),
+		payouts.NewXMRPayout(),
+		payouts.NewRVNPayout(),
+	}
+}
+
 func (p *P2Pool) GetPendingPayout(addr string) uint64 {
 	if time.Now().Sub(p.LastFetchedPayout) > time.Minute*2 {
 		jsonPayload := map[string]interface{}{}
-		err := util.GetJson(fmt.Sprintf("%scurrent_payouts", networks.Active.P2ProxyURL), &jsonPayload)
+		err := util.GetJson(fmt.Sprintf("%scurrent_payouts", ping.Selected.P2PoolURL), &jsonPayload)
 		if err != nil {
 			logging.Warnf("Unable to fetch p2pool payouts: %s", err.Error())
 			p.LastPayout = 0
@@ -44,10 +68,10 @@ func (p *P2Pool) GetPendingPayout(addr string) uint64 {
 }
 
 func (p *P2Pool) GetStratumUrl() string {
-	return networks.Active.P2ProxyStratum
+	return ping.Selected.P2PoolStratum
 }
 
-func (p *P2Pool) GetPassword() string {
+func (p *P2Pool) GetPassword(payoutTicker string) string {
 	return "x"
 }
 
@@ -62,7 +86,7 @@ func (p *P2Pool) GetName() string {
 func (p *P2Pool) GetFee() (fee float64) {
 	if time.Now().Sub(p.LastFetchedFee) > time.Minute*30 {
 		jsonPayload := map[string]interface{}{}
-		err := util.GetJson(fmt.Sprintf("%slocal_stats", networks.Active.P2ProxyURL), &jsonPayload)
+		err := util.GetJson(fmt.Sprintf("%slocal_stats", ping.Selected.P2PoolURL), &jsonPayload)
 		if err != nil {
 			logging.Warnf("Unable to fetch p2pool fee: %s", err.Error())
 			fee = 2.0
@@ -79,10 +103,11 @@ func (p *P2Pool) GetFee() (fee float64) {
 		}
 		fee += donationFee
 		p.LastFetchedFee = time.Now()
+		p.LastFee = float64(fee)
 	}
-	return fee
+	return p.LastFee
 }
 
 func (p *P2Pool) OpenBrowserPayoutInfo(addr string) {
-	util.OpenBrowser(networks.Active.P2ProxyURL)
+	util.OpenBrowser(ping.Selected.P2PoolURL)
 }

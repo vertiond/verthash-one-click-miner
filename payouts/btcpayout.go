@@ -12,7 +12,7 @@ func (p *BTCPayout) GetID() int {
 	return 2
 }
 
-func (p *BTCPayout) GetName() string {
+func (p *BTCPayout) GetDisplayName() string {
 	return "Bitcoin"
 }
 
@@ -20,10 +20,10 @@ func (p *BTCPayout) GetTicker() string {
 	return "BTC"
 }
 
-func (p *BTCPayout) GetPassword() string {
-	return "c=BTC,mc=VTC"
-}
-
 func (p *BTCPayout) GetCoingeckoExchange() string {
 	return "bittrex"
+}
+
+func (p *BTCPayout) GetCoingeckoCoinID() string {
+	return "bitcoin"
 }

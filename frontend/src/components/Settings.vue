@@ -8,7 +8,7 @@
           <br />
           <span class="subtext">{{ $t("settings.enable_integrated_sub") }}</span>
         </p>
-        <p v-if="poolID == 5" style="text-align: left">
+        <p v-if="poolID != 6" style="text-align: left">
           {{ $t("settings.payout") }}:
           <br />
           <select style="width: 100%" name="payout" v-model="payoutID" v-on:change="clearAddress">
@@ -18,7 +18,7 @@
           </select>
         </p>
         <!-- TODO: Improve address validation -->
-        <p v-if="poolID == 5 && payoutID != 4">
+        <p v-if="poolID != 6 && payoutID != 4">
           <input type="text" style="width:90%" class="critical-input"
             v-model="customAddress"
             v-bind:placeholder="$t('settings.customAddress')"
@@ -53,7 +53,7 @@
         <p style="text-align: left">
           {{ $t("settings.pool") }}:
           <br />
-          <select style="width: 100%" name="pool" v-model="poolID">
+          <select style="width: 100%" name="pool" v-model="poolID" v-on:change="updatePoolPayouts">
             <option v-for="option in pools" v-bind:value="option.id" v-bind:key="option.id">
                 {{ option.name }}
             </option>
@@ -91,6 +91,7 @@ export default {
       payoutID: -1,
       pools: [],
       payouts: [],
+      renderPayouts: true,
       customAddress: "",
       address:"",
 
@@ -112,7 +113,7 @@ export default {
                 self.pools = result;
                 window.backend.Backend.GetPool().then(result => {
                   self.poolID = result;
-                  window.backend.Backend.GetPayouts().then(result => {
+                  window.backend.Backend.GetPayouts(self.poolID).then(result => {
                     self.payouts = result;
                     window.backend.Backend.GetPayout().then(result => {
                       self.payoutID = result;
@@ -141,6 +142,11 @@ export default {
       this.showWarning = !this.showWarning;
       var self = this;
       setTimeout(() => { self.showWarning = false; }, 5000);
+    },
+    updatePoolPayouts: function() {
+      var self = this;
+      window.backend.Backend.GetPayouts(self.poolID).then(result => { self.payouts = result; });
+      window.backend.Backend.GetKickbackPayoutID(self.poolID, self.payoutID).then(result => { self.payoutID = result; });
     },
     sanitizeAddress: function() {
       var self = this;

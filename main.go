@@ -8,10 +8,12 @@ import (
 	"runtime/debug"
 
 	_ "embed"
+
 	"github.com/marcsauter/single"
 	"github.com/vertiond/verthash-one-click-miner/backend"
 	"github.com/vertiond/verthash-one-click-miner/logging"
 	"github.com/vertiond/verthash-one-click-miner/networks"
+	//"github.com/vertiond/verthash-one-click-miner/ping"
 	"github.com/vertiond/verthash-one-click-miner/tracking"
 	"github.com/vertiond/verthash-one-click-miner/util"
 	"github.com/wailsapp/wails"
@@ -87,6 +89,7 @@ func main() {
 		panic(err)
 	}
 	networks.SetNetwork(backend.GetTestnet())
+	//ping.GetSelectedNode(backend.GetTestnet())
 
 	backend.ResetWalletAddress()
 	backend.ResetPool()

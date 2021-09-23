@@ -12,7 +12,7 @@ func (p *ETHPayout) GetID() int {
 	return 7
 }
 
-func (p *ETHPayout) GetName() string {
+func (p *ETHPayout) GetDisplayName() string {
 	return "Ethereum"
 }
 
@@ -20,10 +20,10 @@ func (p *ETHPayout) GetTicker() string {
 	return "ETH"
 }
 
-func (p *ETHPayout) GetPassword() string {
-	return "c=ETH,mc=VTC"
-}
-
 func (p *ETHPayout) GetCoingeckoExchange() string {
 	return "bittrex"
+}
+
+func (p *ETHPayout) GetCoingeckoCoinID() string {
+	return "ethereum"
 }

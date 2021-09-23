@@ -70,7 +70,7 @@ func (m *Backend) ResetPool() {
 }
 
 func (m *Backend) ResetPayout() {
-	m.payout = payouts.GetPayout(m.GetPayout(), m.GetTestnet())
+	m.payout = pools.GetPayout(m.pool, m.GetPayout(), m.GetTestnet())
 }
 
 func (m *Backend) ResetCustomAddress() {

@@ -9,7 +9,6 @@ import (
 	"github.com/tidwall/buntdb"
 	"github.com/vertiond/verthash-one-click-miner/logging"
 	"github.com/vertiond/verthash-one-click-miner/networks"
-	"github.com/vertiond/verthash-one-click-miner/payouts"
 	"github.com/vertiond/verthash-one-click-miner/pools"
 	"github.com/vertiond/verthash-one-click-miner/tracking"
 	"github.com/vertiond/verthash-one-click-miner/util"
@@ -153,15 +152,23 @@ type PayoutChoice struct {
 	Name string `json:"name"`
 }
 
-func (m *Backend) GetPayouts() []PayoutChoice {
+func (m *Backend) GetPayouts(selectedPoolID int) []PayoutChoice {
 	pc := make([]PayoutChoice, 0)
-	for _, p := range payouts.GetPayouts(m.GetTestnet()) {
+	selectedPool := pools.GetPool(selectedPoolID, m.GetTestnet())
+	logging.Debugf("Selected pool: %s\n", selectedPool.GetName())
+	for _, p := range selectedPool.GetPayouts(m.GetTestnet()) {
 		pc = append(pc, PayoutChoice{
 			ID:   p.GetID(),
-			Name: p.GetName(),
+			Name: p.GetDisplayName(),
 		})
 	}
 	return pc
+}
+
+func (m *Backend) GetKickbackPayoutID(selectedPoolID int, selectedPayoutID int) int {
+	selectedPool := pools.GetPool(selectedPoolID, m.GetTestnet())
+	selectedPayout := pools.GetPayout(selectedPool, selectedPayoutID, m.GetTestnet())
+	return selectedPayout.GetID()
 }
 
 func (m *Backend) GetCustomAddress() string {
@@ -201,20 +208,13 @@ func (m *Backend) ValidCustomAddress() bool {
 
 func (m *Backend) UseCustomPayout() bool {
 	// Use the custom payout config settings only if
-	// - Zergpool is selected
+	// - non-HashCryptos pool is selected
 	// - non-Dogecoin payout option is selected
 	// - address for payout is valid
-	if m.PoolIsZergpool() && (!m.PayoutIsDogecoin()) && m.ValidCustomAddress() {
+	if (!m.PoolIsHashCryptos()) && (!m.PayoutIsDogecoin()) && m.ValidCustomAddress() {
 		return true
 	}
 	return false
-}
-
-func (m *Backend) GetCurrentMiningAddress() string {
-	if m.UseCustomPayout() {
-		return m.customAddress
-	}
-	return m.walletAddress
 }
 
 func (m *Backend) GetTestnet() bool {

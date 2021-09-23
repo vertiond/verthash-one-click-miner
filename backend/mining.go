@@ -18,26 +18,10 @@ func (m *Backend) GetArgs() miners.BinaryArguments {
 		Name:     fmt.Sprintf("%v", m.pool.GetName()),
 	})
 
-	var username string
-	var password string
-	if m.UseCustomPayout() {
-		username = m.customAddress
-		password = m.payout.GetPassword()
-	} else {
-		// Use wallet address (Dogecoin) for payout
-		walletPayout := payouts.NewDOGEPayout()
-		username = m.walletAddress
-		if m.PoolIsHashCryptos() {
-			password = m.pool.GetPassword()
-		} else {
-			password = walletPayout.GetPassword()
-		}
-	}
-
 	return miners.BinaryArguments{
 		StratumUrl:       m.pool.GetStratumUrl(),
-		StratumUsername:  username,
-		StratumPassword:  password,
+		StratumUsername:  m.GetMiningAddress(),
+		StratumPassword:  m.GetMiningPassword(),
 		EnableIntegrated: m.getSetting("enableIntegrated"),
 	}
 }
@@ -57,8 +41,19 @@ func (m *Backend) GetPayoutTicker() string {
 	return "DOGE"
 }
 
+func (m *Backend) GetMiningAddress() string {
+	if m.UseCustomPayout() {
+		return m.customAddress
+	}
+	return m.walletAddress
+}
+
+func (m *Backend) GetMiningPassword() string {
+	return m.pool.GetPassword(m.GetPayoutTicker())
+}
+
 func (m *Backend) PayoutInformation() {
-	m.pool.OpenBrowserPayoutInfo(m.GetCurrentMiningAddress())
+	m.pool.OpenBrowserPayoutInfo(m.GetMiningAddress())
 }
 
 func (m *Backend) StartMining() bool {
@@ -123,13 +118,13 @@ func (m *Backend) StartMining() bool {
 				// Don't refresh this every time since we refresh it every second
 				// and this pulls from Insight. Every 600s is fine (~every 4 blocks)
 				nhr = util.GetNetHash()
-				if myPayout.GetName() != vtcPayout.GetName() {
-					unitVtcPerBtc = payouts.GetBitcoinPerUnitCoin(vtcPayout.GetName(), vtcPayout.GetTicker(), vtcPayout.GetCoingeckoExchange())
-					if myPayout.GetName() == btcPayout.GetName() {
+				if myPayout.GetID() != vtcPayout.GetID() {
+					unitVtcPerBtc = payouts.GetBitcoinPerUnitCoin(vtcPayout.GetCoingeckoCoinID(), vtcPayout.GetTicker(), vtcPayout.GetCoingeckoExchange())
+					if myPayout.GetID() == btcPayout.GetID() {
 						unitPayoutCoinPerBtc = 1
 					} else {
 						time.Sleep(750 * time.Millisecond) // Put time between API calls
-						unitPayoutCoinPerBtc = payouts.GetBitcoinPerUnitCoin(myPayout.GetName(), myPayout.GetTicker(), myPayout.GetCoingeckoExchange())
+						unitPayoutCoinPerBtc = payouts.GetBitcoinPerUnitCoin(myPayout.GetCoingeckoCoinID(), myPayout.GetTicker(), myPayout.GetCoingeckoExchange())
 					}
 					logging.Infof(fmt.Sprintf("Payout exchange rate: VTC/BTC=%0.10f, %s/BTC=%0.10f", unitVtcPerBtc, myPayout.GetTicker(), unitPayoutCoinPerBtc))
 				}
@@ -164,7 +159,7 @@ func (m *Backend) StartMining() bool {
 
 			// Convert average earning from Vertcoin to selected payout coin
 			avgEarningTicker := "VTC"
-			if myPayout.GetName() != vtcPayout.GetName() {
+			if myPayout.GetID() != vtcPayout.GetID() {
 				if unitVtcPerBtc != 0 && unitPayoutCoinPerBtc != 0 {
 					avgEarningTicker = myPayout.GetTicker()
 					avgEarning = avgEarning * unitVtcPerBtc / unitPayoutCoinPerBtc

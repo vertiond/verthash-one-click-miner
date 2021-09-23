@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/vertiond/verthash-one-click-miner/networks"
-
+	"github.com/vertiond/verthash-one-click-miner/payouts"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
@@ -14,6 +14,28 @@ type P2Proxy struct{}
 
 func NewP2Proxy() *P2Proxy {
 	return &P2Proxy{}
+}
+
+func (p *P2Proxy) GetPayouts(testnet bool) []payouts.Payout {
+	if testnet {
+		return []payouts.Payout{
+			payouts.NewVTCPayout(),
+		}
+	}
+	return []payouts.Payout{
+		payouts.NewDOGEPayout(),
+		payouts.NewVTCPayout(),
+		payouts.NewBTCPayout(),
+		payouts.NewBCHPayout(),
+		payouts.NewDASHPayout(),
+		payouts.NewDGBPayout(),
+		payouts.NewETHPayout(),
+		payouts.NewFIROPayout(),
+		payouts.NewGRSPayout(),
+		payouts.NewLTCPayout(),
+		payouts.NewXMRPayout(),
+		payouts.NewRVNPayout(),
+	}
 }
 
 func (p *P2Proxy) GetPendingPayout(addr string) uint64 {
@@ -34,7 +56,7 @@ func (p *P2Proxy) GetStratumUrl() string {
 	return networks.Active.P2ProxyStratum
 }
 
-func (p *P2Proxy) GetPassword() string {
+func (p *P2Proxy) GetPassword(payoutTicker string) string {
 	return "x"
 }
 

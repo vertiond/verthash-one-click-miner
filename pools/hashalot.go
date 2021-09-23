@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/vertiond/verthash-one-click-miner/payouts"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
@@ -16,6 +17,28 @@ type Hashalot struct {
 
 func NewHashalot() *Hashalot {
 	return &Hashalot{}
+}
+
+func (p *Hashalot) GetPayouts(testnet bool) []payouts.Payout {
+	if testnet {
+		return []payouts.Payout{
+			payouts.NewVTCPayout(),
+		}
+	}
+	return []payouts.Payout{
+		payouts.NewDOGEPayout(),
+		payouts.NewVTCPayout(),
+		payouts.NewBTCPayout(),
+		payouts.NewBCHPayout(),
+		payouts.NewDASHPayout(),
+		payouts.NewDGBPayout(),
+		payouts.NewETHPayout(),
+		payouts.NewFIROPayout(),
+		payouts.NewGRSPayout(),
+		payouts.NewLTCPayout(),
+		payouts.NewXMRPayout(),
+		payouts.NewRVNPayout(),
+	}
 }
 
 func (p *Hashalot) GetPendingPayout(addr string) uint64 {
@@ -36,7 +59,7 @@ func (p *Hashalot) GetStratumUrl() string {
 	return "stratum+tcp://vertcoin.hashalot.net:3950"
 }
 
-func (p *Hashalot) GetPassword() string {
+func (p *Hashalot) GetPassword(payoutTicker string) string {
 	return "x"
 }
 
