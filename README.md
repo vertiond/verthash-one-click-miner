@@ -38,6 +38,7 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
   - Ravencoin
   - Verge 
   - Zcash
+  - Additional coins may be added via PR following this [guide](https://github.com/vertiond/verthash-one-click-miner/blob/master/ADD-A-COIN.md)
 
 The Verthash One-Click Miner mines [Vertcoin](https://vertcoin.org) and is functionally the same as [upstream](https://github.com/vertcoin-project/one-click-miner-vnext) utilizing a new data directory, `verthash-ocm`.  This is essentially a fancy wrapper for [VerthashMiner](https://github.com/CryptoGraphics/VerthashMiner) which is also open source.
 
