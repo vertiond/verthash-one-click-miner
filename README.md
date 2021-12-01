@@ -7,7 +7,7 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
   - This program and the [miner](https://github.com/CryptoGraphics/VerthashMiner) it runs are completely free and have no fee
   - [Zergpool.com](https://zergpool.com/) and [zpool.ca](https://www.zpool.ca/) charge a 0.5% fee while mining
   - [HashCryptos.com](https://www.hashcryptos.com/) charges no fee (DOGE only)
-  - Standard minimum Dogecoin network fee for withdrawal from built-in wallet (usually 0.01 DOGE)
+  - Standard minimum Dogecoin network fee for withdrawal from built-in wallet (usually < 0.001 DOGE)
 
 ### When do I get paid?
 
@@ -35,6 +35,7 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
   - Litecoin
   - Monero
   - Peercoin
+  - Raptoreum
   - Ravencoin
   - Verge 
   - Zcash
