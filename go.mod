@@ -16,10 +16,9 @@ require (
 	github.com/pkg/browser v0.0.0-20210606212950-a7b7a6107d32 // indirect
 	github.com/tidwall/buntdb v1.1.0
 	github.com/vertcoin-project/one-click-miner-vnext v0.0.0-20210503061745-7f826b572d47
-	github.com/wailsapp/wails v1.16.7
+	github.com/wailsapp/wails v1.16.8
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/image v0.0.0-20210607152325-775e3b0c77b9 // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
-	golang.org/x/sys v0.0.0-20210608053332-aa57babbf139 // indirect
 	golang.org/x/text v0.3.6
 )
