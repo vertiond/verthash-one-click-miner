@@ -15,7 +15,7 @@
 
 <!--- This is normally the contents of a `debug.log` or `config.log` file. Raw text or a link to a pastebin type site are preferred. You can find the One-Click Miner's debug log in the following place:
 
-%APPDATA%\vertcoin-ocm on Windows
-$HOME/.vertcoin-ocm on Linux
+%APPDATA%\verthash-ocm on Windows
+$HOME/.verthash-ocm on Linux
 
 -->

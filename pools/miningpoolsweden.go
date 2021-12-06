@@ -4,24 +4,46 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/vertcoin-project/one-click-miner-vnext/util"
+	"github.com/vertiond/verthash-one-click-miner/payouts"
+	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
 var _ Pool = &MiningpoolSweden{}
 
 type MiningpoolSweden struct {
-	Address           string
 	LastFetchedPayout time.Time
 	LastPayout        uint64
 }
 
-func NewMiningpoolSweden(addr string) *MiningpoolSweden {
-	return &MiningpoolSweden{Address: addr}
+func NewHMiningpoolSweden() *MiningpoolSweden {
+	return &MiningpoolSweden{}
 }
 
-func (p *MiningpoolSweden) GetPendingPayout() uint64 {
+func (p *MiningpoolSweden) GetPayouts(testnet bool) []payouts.Payout {
+	if testnet {
+		return []payouts.Payout{
+			payouts.NewVTCPayout(),
+		}
+	}
+	return []payouts.Payout{
+		payouts.NewDOGEPayout(),
+		payouts.NewVTCPayout(),
+		payouts.NewBTCPayout(),
+		payouts.NewBCHPayout(),
+		payouts.NewDASHPayout(),
+		payouts.NewDGBPayout(),
+		payouts.NewETHPayout(),
+		payouts.NewFIROPayout(),
+		payouts.NewGRSPayout(),
+		payouts.NewLTCPayout(),
+		payouts.NewXMRPayout(),
+		payouts.NewRVNPayout(),
+	}
+}
+
+func (p *MiningpoolSweden) GetPendingPayout(addr string) uint64 {
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("https://api.miningpoolsweden.eu/api/pools/vert1/miners/%s", p.Address), &jsonPayload)
+	err := util.GetJson(fmt.Sprintf("https://api.miningpoolsweden.eu/api/pools/vert1/miners/%s", addr), &jsonPayload)
 	if err != nil {
 		return 0
 	}
@@ -37,11 +59,7 @@ func (p *MiningpoolSweden) GetStratumUrl() string {
 	return "stratum+tcp://vtc.miningpoolsweden.eu:3052"
 }
 
-func (p *MiningpoolSweden) GetUsername() string {
-	return p.Address
-}
-
-func (p *MiningpoolSweden) GetPassword() string {
+func (p *MiningpoolSweden) GetPassword(payoutTicker string) string {
 	return "x"
 }
 

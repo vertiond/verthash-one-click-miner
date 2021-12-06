@@ -119,7 +119,7 @@ func (m *Backend) StartMining() bool {
 				// Don't refresh this every time since we refresh it every second
 				// and this pulls from Insight. Every 600s is fine (~every 4 blocks)
 				nhr = util.GetNetHash()
-				th := util.GetTipHeight()
+				th = util.GetTipHeight()
 				if myPayout.GetID() != vtcPayout.GetID() {
 					unitVtcPerBtc = payouts.GetBitcoinPerUnitCoin(vtcPayout.GetCoingeckoCoinID(), vtcPayout.GetTicker(), vtcPayout.GetCoingeckoExchange())
 					if myPayout.GetID() == btcPayout.GetID() {
