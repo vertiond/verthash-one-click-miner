@@ -108,8 +108,8 @@ func (m *Backend) StartMining() bool {
 		}
 
 		cycles := 0
-		nhr := uint64(0)
-		th := util.GetTipHeight()
+		var nhr uint64
+		var th int64
 		continueLoop := true
 		for continueLoop {
 			if cycles >= 600 {
@@ -119,6 +119,7 @@ func (m *Backend) StartMining() bool {
 				// Don't refresh this every time since we refresh it every second
 				// and this pulls from Insight. Every 600s is fine (~every 4 blocks)
 				nhr = util.GetNetHash()
+				th := util.GetTipHeight()
 				if myPayout.GetID() != vtcPayout.GetID() {
 					unitVtcPerBtc = payouts.GetBitcoinPerUnitCoin(vtcPayout.GetCoingeckoCoinID(), vtcPayout.GetTicker(), vtcPayout.GetCoingeckoExchange())
 					if myPayout.GetID() == btcPayout.GetID() {
@@ -156,14 +157,14 @@ func (m *Backend) StartMining() bool {
 
 			m.runtime.Events.Emit("networkHashRate", fmt.Sprintf("%0.2f %s", netHash, hashrateUnit))
 
-            var coinsPerDay float64
-            if th < 1680000 {
-                coinsPerDay = 14400 // Emission per day before halving at block 1680000
-            } else {
-                coinsPerDay = 7200 // Emission per day after halving at block 1680000
-            }
+			var coinsPerDay float64
+			if th < 1680000 {
+				coinsPerDay = 14400 // Emission per day before halving at block 1680000
+			} else {
+				coinsPerDay = 7200 // Emission per day after halving at block 1680000
+			}
 
-            avgEarning := float64(hr) / float64(nhr) * float64(coinsPerDay)
+			avgEarning := float64(hr) / float64(nhr) * float64(coinsPerDay)
 
 			// Convert average earning from Vertcoin to selected payout coin
 			avgEarningTicker := "VTC"
@@ -293,7 +294,10 @@ func (m *Backend) StopMining() bool {
 	}
 	logging.Infof("Stopping mining process...")
 	for _, br := range m.minerBinaries {
-		br.Stop()
+		err := br.Stop()
+		if err != nil {
+			logging.Errorf("Error stopping miner: %s %v", br.MinerBinary.MainExecutableName, err)
+		}
 	}
 	select {
 	case m.stopBalance <- true:
