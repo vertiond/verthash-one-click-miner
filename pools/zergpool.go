@@ -41,8 +41,11 @@ func (p *Zergpool) GetPayouts(testnet bool) []payouts.Payout {
         payouts.NewKMDPayout(),
 		payouts.NewLTCPayout(),
 		payouts.NewXMRPayout(),
+	    payouts.NewMATICPayout(),
 		payouts.NewRTMPayout(),
 		payouts.NewRVNPayout(),
+		payouts.NewSHIBPayout(),
+		payouts.NewUSDTPayout(),
 	}
 }
 

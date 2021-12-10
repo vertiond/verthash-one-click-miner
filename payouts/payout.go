@@ -55,6 +55,7 @@ func GetBitcoinPerUnitCoin(coinID string, coinTicker string, exchange string) fl
 	}
 
 	result := 0.0
+	fallback_result := 0.0
 	for _, jsonTickerInfo := range jsonTickersArr {
 		jsonTickerInfoMap := jsonTickerInfo.(map[string]interface{})
 		jsonTickerBase, ok1 := jsonTickerInfoMap["base"]
@@ -62,17 +63,26 @@ func GetBitcoinPerUnitCoin(coinID string, coinTicker string, exchange string) fl
 		if !ok1 || !ok2 {
 			continue
 		}
-		if jsonTickerBase == coinTicker && jsonTickerTarget == "BTC" {
-			jsonTickerConvertedLast, ok := jsonTickerInfoMap["converted_last"].(map[string]interface{})
-			if ok {
-				jsonTickerConvertedLastBTC, ok := jsonTickerConvertedLast["btc"].(float64)
-				if ok {
-					result = jsonTickerConvertedLastBTC
-				}
-			}
-			break
-		}
-	}
+        if jsonTickerBase == coinTicker && ( jsonTickerTarget == "BTC" || fallback_result == 0.0 ) {
+            jsonTickerConvertedLast, ok := jsonTickerInfoMap["converted_last"].(map[string]interface{})
+            if ok {
+                jsonTickerConvertedLastBTC, ok := jsonTickerConvertedLast["btc"].(float64)
+                if ok {
+                    if fallback_result == 0.0 {
+                        fallback_result = jsonTickerConvertedLastBTC
+                    }
+                    if jsonTickerTarget == "BTC" {
+                        result = jsonTickerConvertedLastBTC
+                        break
+                    }
+                }
+            }
+        }
+    }
+    if result == 0.0 && fallback_result != 0.0 {
+        result = fallback_result
+    }
+
 	return result
 }
 

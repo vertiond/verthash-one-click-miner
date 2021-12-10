@@ -128,7 +128,7 @@ func (m *Backend) StartMining() bool {
 						time.Sleep(750 * time.Millisecond) // Put time between API calls
 						unitPayoutCoinPerBtc = payouts.GetBitcoinPerUnitCoin(myPayout.GetCoingeckoCoinID(), myPayout.GetTicker(), myPayout.GetCoingeckoExchange())
 					}
-					logging.Infof(fmt.Sprintf("Payout exchange rate: VTC/BTC=%0.10f, %s/BTC=%0.10f", unitVtcPerBtc, myPayout.GetTicker(), unitPayoutCoinPerBtc))
+					logging.Infof(fmt.Sprintf("Payout exchange rate: VTC/BTC=%0.16f, %s/BTC=%0.16f", unitVtcPerBtc, myPayout.GetTicker(), unitPayoutCoinPerBtc))
 				}
 			}
 			cycles++
