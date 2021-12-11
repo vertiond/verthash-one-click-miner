@@ -76,7 +76,8 @@
         "payout" : "Payout",
         "customAddress" : "Address to receive payout",
         "address_activation" : "DOGE ONLY - Click to activate address",
-        "mine_verthash_paid_doge" : "Mine: Verthash, Paid in: Dogecoin"
+        "mine_verthash_paid_doge" : "Mine: Verthash, Paid in: Dogecoin",
+        "network": "Network"
     },
     "tabbar" : {
         "wallet" : "Wallet",

@@ -27,3 +27,7 @@ func (p *LBCPayout) GetCoingeckoExchange() string {
 func (p *LBCPayout) GetCoingeckoCoinID() string {
 	return "lbry-credits"
 }
+
+func (p *LBCPayout) GetNetworks() []string {
+	return []string{}
+}

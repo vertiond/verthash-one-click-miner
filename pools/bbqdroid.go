@@ -59,7 +59,7 @@ func (p *BBQDroid) GetStratumUrl() string {
 	return "stratum+tcp://bbqdroid.org:10001"
 }
 
-func (p *BBQDroid) GetPassword(payoutTicker string) string {
+func (p *BBQDroid) GetPassword(payoutTicker string, network string) string {
 	return "x"
 }
 

@@ -71,7 +71,7 @@ func (p *P2Pool) GetStratumUrl() string {
 	return ping.Selected.P2PoolStratum
 }
 
-func (p *P2Pool) GetPassword(payoutTicker string) string {
+func (p *P2Pool) GetPassword(payoutTicker string, network string) string {
 	return "x"
 }
 

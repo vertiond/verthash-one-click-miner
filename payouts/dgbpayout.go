@@ -27,3 +27,7 @@ func (p *DGBPayout) GetCoingeckoExchange() string {
 func (p *DGBPayout) GetCoingeckoCoinID() string {
 	return "digibyte"
 }
+
+func (p *DGBPayout) GetNetworks() []string {
+	return []string{}
+}

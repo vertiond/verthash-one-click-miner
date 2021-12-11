@@ -27,3 +27,7 @@ func (p *RTMPayout) GetCoingeckoExchange() string {
 func (p *RTMPayout) GetCoingeckoCoinID() string {
 	return "raptoreum"
 }
+
+func (p *RTMPayout) GetNetworks() []string {
+	return []string{}
+}

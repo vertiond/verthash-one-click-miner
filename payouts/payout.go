@@ -13,6 +13,7 @@ type Payout interface {
 	GetTicker() string
 	GetCoingeckoExchange() string
 	GetCoingeckoCoinID() string
+	GetNetworks() []string
 }
 
 // func GetPayouts(testnet bool) []Payout {

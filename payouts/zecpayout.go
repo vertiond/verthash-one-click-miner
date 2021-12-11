@@ -27,3 +27,7 @@ func (p *ZECPayout) GetCoingeckoExchange() string {
 func (p *ZECPayout) GetCoingeckoCoinID() string {
 	return "zcash"
 }
+
+func (p *ZECPayout) GetNetworks() []string {
+	return []string{}
+}

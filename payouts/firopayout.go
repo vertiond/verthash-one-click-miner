@@ -27,3 +27,7 @@ func (p *FIROPayout) GetCoingeckoExchange() string {
 func (p *FIROPayout) GetCoingeckoCoinID() string {
 	return "zcoin"
 }
+
+func (p *FIROPayout) GetNetworks() []string {
+	return []string{}
+}

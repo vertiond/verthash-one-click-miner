@@ -27,3 +27,7 @@ func (p *ETCPayout) GetCoingeckoExchange() string {
 func (p *ETCPayout) GetCoingeckoCoinID() string {
 	return "ethereum-classic"
 }
+
+func (p *ETCPayout) GetNetworks() []string {
+	return []string{}
+}

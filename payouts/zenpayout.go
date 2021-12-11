@@ -27,3 +27,7 @@ func (p *ZENPayout) GetCoingeckoExchange() string {
 func (p *ZENPayout) GetCoingeckoCoinID() string {
 	return "zencash"
 }
+
+func (p *ZENPayout) GetNetworks() []string {
+	return []string{}
+}

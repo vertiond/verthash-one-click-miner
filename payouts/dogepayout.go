@@ -27,3 +27,7 @@ func (p *DOGEPayout) GetCoingeckoExchange() string {
 func (p *DOGEPayout) GetCoingeckoCoinID() string {
 	return "dogecoin"
 }
+
+func (p *DOGEPayout) GetNetworks() []string {
+	return []string{}
+}

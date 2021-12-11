@@ -59,7 +59,7 @@ func (p *Acidpool) GetStratumUrl() string {
 	return "stratum+tcp://vtc.acidpool.co.uk:3052"
 }
 
-func (p *Acidpool) GetPassword(payoutTicker string) string {
+func (p *Acidpool) GetPassword(payoutTicker string, network string) string {
 	return "x"
 }
 

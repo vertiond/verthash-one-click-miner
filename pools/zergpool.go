@@ -67,8 +67,8 @@ func (p *Zergpool) GetStratumUrl() string {
 	return "stratum+tcp://verthash.mine.zergpool.com:4534"
 }
 
-func (p *Zergpool) GetPassword(payoutTicker string) string {
-	return fmt.Sprintf("c=%s,mc=VTC", payoutTicker)
+func (p *Zergpool) GetPassword(payoutTicker string, network string) string {
+	return fmt.Sprintf("c=%s%s,mc=VTC", payoutTicker, network)
 }
 
 func (p *Zergpool) GetID() int {

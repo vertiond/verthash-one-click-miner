@@ -27,3 +27,7 @@ func (p *XMRPayout) GetCoingeckoExchange() string {
 func (p *XMRPayout) GetCoingeckoCoinID() string {
 	return "monero"
 }
+
+func (p *XMRPayout) GetNetworks() []string {
+	return []string{}
+}

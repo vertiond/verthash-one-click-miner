@@ -27,3 +27,7 @@ func (p *VTCPayout) GetCoingeckoExchange() string {
 func (p *VTCPayout) GetCoingeckoCoinID() string {
 	return "vertcoin"
 }
+
+func (p *VTCPayout) GetNetworks() []string {
+	return []string{}
+}

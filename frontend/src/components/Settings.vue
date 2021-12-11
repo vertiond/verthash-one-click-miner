@@ -11,8 +11,17 @@
         <p v-if="poolID != 6" style="text-align: left">
           {{ $t("settings.payout") }}:
           <br />
-          <select style="width: 100%" name="payout" v-model="payoutID" v-on:change="clearAddress">
+          <select style="width: 100%" name="payout" v-model="payoutID" v-on:change="changePayoutOptions">
             <option v-for="option in payouts" v-bind:value="option.id" v-bind:key="option.id">
+                {{ option.name }}
+            </option>
+          </select>
+        </p>
+        <p v-if="poolID == 5 && payoutID == 23" style="text-align: left">
+          {{ $t("settings.network") }}:
+          <br />
+          <select style="width: 100%" name="network" v-model="network">
+            <option v-for="option in networks" v-bind:value="option.name" v-bind:key="option.name">
                 {{ option.name }}
             </option>
           </select>
@@ -89,8 +98,10 @@ export default {
       testnet: false,
       poolID: -1,
       payoutID: -1,
+      network: "",
       pools: [],
       payouts: [],
+      networks: [],
       renderPayouts: true,
       customAddress: "",
       address:"",
@@ -117,10 +128,16 @@ export default {
                     self.payouts = result;
                     window.backend.Backend.GetPayout().then(result => {
                       self.payoutID = result;
-                      window.backend.Backend.GetCustomAddress().then(result => {
-                        self.customAddress = result;
-                        window.backend.Backend.Address().then(result => {
-                          self.address = result;
+                      window.backend.Backend.GetNetwork().then(result => {
+                        self.network = result;
+                        window.backend.Backend.GetNetworks(self.poolID, self.payoutID).then(result => {
+                          self.networks = result;
+                          window.backend.Backend.GetCustomAddress().then(result => {
+                            self.customAddress = result;
+                            window.backend.Backend.Address().then(result => {
+                              self.address = result;
+                            })
+                          })
                         })
                       })
                     })
@@ -152,9 +169,10 @@ export default {
       var self = this;
       self.customAddress = self.customAddress.trim();
     },
-    clearAddress: function() {
+    changePayoutOptions: function() {
       var self = this;
       self.customAddress = "";
+      window.backend.Backend.GetNetworks(self.poolID, self.payoutID).then(result => { self.networks = result; });
     },
     activationInformation: function() {
       window.backend.Backend.ActivationInformation();
@@ -190,7 +208,9 @@ export default {
                   window.backend.Backend.SetPool(self.poolID).then(() => {
                     window.backend.Backend.SetCustomAddress(self.customAddress).then(() => {
                       window.backend.Backend.SetPayout(self.payoutID).then(() => {
-                        self.$emit("committed");
+                        window.backend.Backend.SetNetwork(self.network).then(() => {
+                          self.$emit("committed");
+                        });
                       });
                     });
                   });

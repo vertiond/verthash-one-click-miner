@@ -27,3 +27,7 @@ func (p *FLUXPayout) GetCoingeckoExchange() string {
 func (p *FLUXPayout) GetCoingeckoCoinID() string {
 	return "zelcash"
 }
+
+func (p *FLUXPayout) GetNetworks() []string {
+	return []string{}
+}

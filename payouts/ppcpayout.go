@@ -27,3 +27,7 @@ func (p *PPCPayout) GetCoingeckoExchange() string {
 func (p *PPCPayout) GetCoingeckoCoinID() string {
 	return "peercoin"
 }
+
+func (p *PPCPayout) GetNetworks() []string {
+	return []string{}
+}

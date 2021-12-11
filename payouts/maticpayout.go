@@ -27,3 +27,7 @@ func (p *MATICPayout) GetCoingeckoExchange() string {
 func (p *MATICPayout) GetCoingeckoCoinID() string {
 	return "matic"
 }
+
+func (p *MATICPayout) GetNetworks() []string {
+	return []string{}
+}

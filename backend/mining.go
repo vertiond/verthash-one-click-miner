@@ -49,7 +49,19 @@ func (m *Backend) GetMiningAddress() string {
 }
 
 func (m *Backend) GetMiningPassword() string {
-	return m.pool.GetPassword(m.GetPayoutTicker())
+	network := m.network
+	if m.ChainNetworkApplicableToPayout() {
+		if network == "ERC20" {
+			network = ""
+		} else {
+			network = fmt.Sprintf("-%s", m.network)
+		}
+	} else {
+		network = ""
+	}
+	// We still may not use the chain network,
+	// if the pool.GetPassword does not support it.
+	return m.pool.GetPassword(m.GetPayoutTicker(), network)
 }
 
 func (m *Backend) PayoutInformation() {
