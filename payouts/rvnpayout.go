@@ -27,3 +27,7 @@ func (p *RVNPayout) GetCoingeckoExchange() string {
 func (p *RVNPayout) GetCoingeckoCoinID() string {
 	return "ravencoin"
 }
+
+func (p *RVNPayout) GetNetworks() []string {
+	return []string{}
+}

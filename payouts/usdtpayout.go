@@ -28,3 +28,10 @@ func (p *USDTPayout) GetCoingeckoExchange() string {
 func (p *USDTPayout) GetCoingeckoCoinID() string {
 	return "tether"
 }
+
+func (p *USDTPayout) GetNetworks() []string {
+	return []string{
+		"ERC20",
+		"TRC20",
+	}
+}

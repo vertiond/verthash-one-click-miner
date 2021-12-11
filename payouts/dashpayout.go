@@ -27,3 +27,7 @@ func (p *DASHPayout) GetCoingeckoExchange() string {
 func (p *DASHPayout) GetCoingeckoCoinID() string {
 	return "dash"
 }
+
+func (p *DASHPayout) GetNetworks() []string {
+	return []string{}
+}

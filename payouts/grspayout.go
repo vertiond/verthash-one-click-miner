@@ -27,3 +27,7 @@ func (p *GRSPayout) GetCoingeckoExchange() string {
 func (p *GRSPayout) GetCoingeckoCoinID() string {
 	return "groestlcoin"
 }
+
+func (p *GRSPayout) GetNetworks() []string {
+	return []string{}
+}

@@ -28,3 +28,7 @@ func (p *SHIBPayout) GetCoingeckoExchange() string {
 func (p *SHIBPayout) GetCoingeckoCoinID() string {
 	return "shiba-inu"
 }
+
+func (p *SHIBPayout) GetNetworks() []string {
+	return []string{}
+}

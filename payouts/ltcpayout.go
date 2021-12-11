@@ -27,3 +27,7 @@ func (p *LTCPayout) GetCoingeckoExchange() string {
 func (p *LTCPayout) GetCoingeckoCoinID() string {
 	return "litecoin"
 }
+
+func (p *LTCPayout) GetNetworks() []string {
+	return []string{}
+}

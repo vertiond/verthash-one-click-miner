@@ -229,6 +229,53 @@ func (m *Backend) UseCustomPayout() bool {
 	return false
 }
 
+func (m *Backend) GetNetwork() string {
+	network := m.getStringSetting("network")
+	if network == "" {
+		return "ERC20"
+	}
+	return network
+}
+
+func (m *Backend) SetNetwork(network string) {
+	logging.Infof("Setting custom payout network to [%s]\n", network)
+	m.network = network
+	m.setStringSetting("network", network)
+}
+
+type NetworkChoice struct {
+	Name string `json:"name"`
+}
+
+func (m *Backend) GetNetworks(selectedPoolID int, selectedPayoutID int) []NetworkChoice {
+	nc := make([]NetworkChoice, 0)
+	selectedPool := pools.GetPool(selectedPoolID, m.GetTestnet())
+	selectedPayout := pools.GetPayout(selectedPool, selectedPayoutID, m.GetTestnet())
+	logging.Debugf("Selected payout: %s\n", selectedPayout.GetDisplayName())
+	for _, n := range selectedPayout.GetNetworks() {
+		nc = append(nc, NetworkChoice{
+			Name: n,
+		})
+	}
+	return nc
+}
+
+func (m *Backend) ChainNetworkApplicableToPayout() bool {
+	network := m.network
+	if network == "" {
+		return false
+	}
+	network_in_payout := false
+	payout_networks := m.payout.GetNetworks()
+	for _, possible_network := range payout_networks {
+		if network == possible_network {
+			network_in_payout = true
+			break
+		}
+	}
+	return network_in_payout
+}
+
 func (m *Backend) GetTestnet() bool {
 	return false // Testnet is not necessary - return false
 	//return m.getSetting("testnet")

@@ -8,7 +8,7 @@ type Pool interface {
 	GetPayouts(testnet bool) []payouts.Payout
 	GetPendingPayout(addr string) uint64
 	GetStratumUrl() string
-	GetPassword(payoutTicker string) string
+	GetPassword(payoutTicker string, network string) string
 	GetName() string
 	GetID() int
 	GetFee() float64
@@ -30,7 +30,7 @@ func GetPools(testnet bool) []Pool {
 		//NewP2Pool(),
 		//NewBBQDroid(addr),
 		//NewAcidpool(addr),
-        //NewMiningpoolSweden(addr),
+		//NewMiningpoolSweden(addr),
 	}
 }
 

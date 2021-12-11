@@ -27,3 +27,7 @@ func (p *XVGPayout) GetCoingeckoExchange() string {
 func (p *XVGPayout) GetCoingeckoCoinID() string {
 	return "verge"
 }
+
+func (p *XVGPayout) GetNetworks() []string {
+	return []string{}
+}

@@ -27,3 +27,7 @@ func (p *ETHPayout) GetCoingeckoExchange() string {
 func (p *ETHPayout) GetCoingeckoCoinID() string {
 	return "ethereum"
 }
+
+func (p *ETHPayout) GetNetworks() []string {
+	return []string{}
+}

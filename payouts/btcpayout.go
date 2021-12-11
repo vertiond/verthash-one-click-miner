@@ -27,3 +27,7 @@ func (p *BTCPayout) GetCoingeckoExchange() string {
 func (p *BTCPayout) GetCoingeckoCoinID() string {
 	return "bitcoin"
 }
+
+func (p *BTCPayout) GetNetworks() []string {
+	return []string{}
+}

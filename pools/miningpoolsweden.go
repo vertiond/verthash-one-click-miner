@@ -59,7 +59,7 @@ func (p *MiningpoolSweden) GetStratumUrl() string {
 	return "stratum+tcp://vtc.miningpoolsweden.eu:3052"
 }
 
-func (p *MiningpoolSweden) GetPassword(payoutTicker string) string {
+func (p *MiningpoolSweden) GetPassword(payoutTicker string, network string) string {
 	return "x"
 }
 

@@ -23,6 +23,7 @@ type Backend struct {
 	rapidFailures       []*miners.BinaryRunner
 	pool                pools.Pool
 	payout              payouts.Payout
+	network             string
 	walletAddress       string
 	customAddress       string
 	refreshBalanceChan  chan bool
@@ -71,6 +72,10 @@ func (m *Backend) ResetPool() {
 
 func (m *Backend) ResetPayout() {
 	m.payout = pools.GetPayout(m.pool, m.GetPayout(), m.GetTestnet())
+}
+
+func (m *Backend) ResetNetwork() {
+	m.network = m.GetNetwork()
 }
 
 func (m *Backend) ResetCustomAddress() {
