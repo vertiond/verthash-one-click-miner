@@ -76,7 +76,7 @@
     },
     "tabbar" : {
         "wallet" : "Портфейл",
-        "send_coins" : "Изпратете монети",
+        "send_coins" : "Изпратете монети (DOGE)",
         "settings" : "Настройки"
     },
     "tracking": { 

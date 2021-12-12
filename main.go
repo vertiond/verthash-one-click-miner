@@ -72,7 +72,7 @@ func main() {
 
 	app := wails.CreateApp(&wails.AppConfig{
 		Width:  800,
-		Height: 400,
+		Height: 430,
 		Title:  "Verthash One Click Miner",
 		JS:     js,
 		CSS:    css,
