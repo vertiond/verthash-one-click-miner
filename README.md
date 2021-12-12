@@ -39,7 +39,8 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
   - Raptoreum
   - Ravencoin
   - Shiba Inu(ERC20)
-  - Tether(ERC20)
+  - Tether(ERC20, TRC20)
+  - Tron
   - Verge 
   - Zcash
   - Additional coins may be added via PR following this [guide](https://github.com/vertiond/verthash-one-click-miner/blob/master/ADD-A-COIN.md)
