@@ -20,8 +20,10 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
 
   - Dogecoin
   - Vertcoin
+  - Binance Coin
   - Bitcoin
   - Bitcoin Cash
+  - Cake
   - Dash
   - Digibyte
   - Ethereum
@@ -39,7 +41,7 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
   - Raptoreum
   - Ravencoin
   - Shiba Inu(ERC20)
-  - Tether(ERC20, TRC20)
+  - Tether(ERC20, TRC20, BEP20)
   - Tron
   - Verge 
   - Zcash
@@ -69,7 +71,7 @@ Please make sure you have [activated your address.](https://www.hashcryptos.com/
 
 ## Building
 
-The GUI of this MVP is based on [Wails](https://wails.app) and [Go](https://golang.org/).
+The GUI is based on [Wails](https://wails.app) and [Go](https://golang.org/).
 
 Install the Wails [prerequisites](https://wails.app/gettingstarted/) for your platform, and then run:
 
