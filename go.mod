@@ -13,7 +13,7 @@ require (
 	github.com/marcsauter/single v0.0.0-20181104081128-f8bf46f26ec0
 	github.com/tidwall/buntdb v1.1.0
 	github.com/vertcoin-project/one-click-miner-vnext v0.0.0-20211205124749-000fc4e08edd
-	github.com/wailsapp/wails v1.16.8
+	github.com/wailsapp/wails v1.16.9
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/text v0.3.6
 )
