@@ -100,6 +100,10 @@ func (m *Backend) OpenDownloadUrl(url string) {
 	util.OpenBrowser(url)
 }
 
+func (m *Backend) Donate() {
+	util.OpenBrowser("https://twitter.com/FedorovMykhailo/status/1498982855162175488")
+}
+
 func (m *Backend) AlreadyRunning() bool {
 	return m.alreadyRunning
 }
