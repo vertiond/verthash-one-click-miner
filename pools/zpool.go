@@ -29,6 +29,7 @@ func (p *zpool) GetPayouts(testnet bool) []payouts.Payout {
 		payouts.NewDOGEPayout(),
 		payouts.NewVTCPayout(),
 		payouts.NewBTCPayout(),
+		payouts.NewBTRMPayout(),
 		payouts.NewBCHPayout(),
 		payouts.NewDASHPayout(),
 		payouts.NewDGBPayout(),
