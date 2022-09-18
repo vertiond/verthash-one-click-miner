@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <div v-if="sendError === '' && sent === false" class="col-286">
-      <br><a class="link" @click="donate">{{ $t('sending.donate') }}</a>
       <p v-if="receivedBalance === '0.00 DOGE'">{{ $t('sending.send_all_to') }}:</p>
       <p
         v-if="receivedBalance !== '0.00 DOGE' && receivedTxCount === 1"
@@ -194,10 +193,7 @@ export default {
     },
     showTx(txid) {
       window.backend.Backend.ShowTx(txid);
-    },
-    donate: function() {
-      window.backend.Backend.Donate();
-    },
+    }
   }
 };
 </script>

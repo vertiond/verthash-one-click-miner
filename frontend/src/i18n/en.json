@@ -25,7 +25,6 @@
         "verthash" : "Verifying / creating Verthash data file..."
     },
     "mining" : {
-        "ukraine" : "Stand With Ukraine",
         "spendable_balance" : "Spendable Balance",
         "still_maturing" : "still maturing",
         "pending_pool_payout" : "pending pool payout",
@@ -41,7 +40,6 @@
     },
     "sending" : {
         "send_all_to" : "Send all your mined coins to",
-        "donate" : "Donate your Dogecoin to Ukraine!",
         "youre_sending_x_to" : "You're sending {receivedBalance} to",
         "youre_sending_x_in_y_txs_to" : "You're sending {receivedBalance} in {receivedTxCount} transactions to",
         "receiver_address" : "Receiver Address",
