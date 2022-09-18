@@ -125,7 +125,7 @@ a.button:hover {
 a.button {
   opacity: 0.6;
   line-height: 45px;
-  background: #005bbb;
+  background: #202225;
   max-width: 286px;
   height: 45px;
   margin: 0 auto;
@@ -157,7 +157,7 @@ a.inlineLink {
 
 input[type='text'], input[type='password'] {
   border: 0px;
-  background-color: #005bbb;
+  background-color: #202225;
   color: white;
   border-radius: 5px;
   line-height: 45px;

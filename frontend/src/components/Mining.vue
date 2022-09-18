@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <div class="col-286">
-      <p class="spendableBalance">{{$t('mining.ukraine')}}</p>
       <p class="header">{{$t('mining.spendable_balance')}}:</p>
       <p class="spendableBalance">
         <a class="tiny" @click="refreshBalance">
