@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-ping/ping"
 
-	"github.com/vertcoin-project/one-click-miner-vnext/logging"
-	"github.com/vertcoin-project/one-click-miner-vnext/networks"
-	"github.com/vertcoin-project/one-click-miner-vnext/util"
+	"github.com/vertiond/verthash-one-click-miner/logging"
+	"github.com/vertiond/verthash-one-click-miner/networks"
+	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
 type Conditions struct {
@@ -66,7 +66,7 @@ func selector() {
 		logging.Infof("No local node detected, selecting other public nodes\n")
 
 		NodeList := []Nodes{}
-		err = util.GetJson("https://raw.githubusercontent.com/vertcoin-project/one-click-miner-vnext/master/p2pool_nodes.json", &NodeList)
+		err = util.GetJson("https://raw.githubusercontent.com/vertcoin-project/vertiond/verthash-one-click-miner/master/p2pool_nodes.json", &NodeList)
 
 		//If there's an error fetching the node list the user will just be pointed to p2proxy
 		if err != nil {
