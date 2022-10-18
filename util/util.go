@@ -85,6 +85,28 @@ type VerthashMinerDeviceConfig struct {
 	Platform    string
 }
 
+// Returns true if backend is good
+func CheckBackendStatus(backend string) bool {
+	info := getInfoResponse{}
+	url := fmt.Sprintf("%sinfo", backend)
+	err := GetJson(url, &info)
+	if err != nil {
+		logging.Errorf("Backend server failed to respond: %v", err)
+		return false
+	}
+	// If any of the following are 0, backend server has a problem
+	if info.BackendTipHeight == 0 {
+		return false
+	}
+	if info.TipHeight == 0 {
+		return false
+	}
+	if info.Difficulty == 0 {
+		return false
+	}
+	return true
+}
+
 func GetDifficulty() float64 {
 	info := getInfoResponse{}
 	url := fmt.Sprintf("%sinfo", networks.Active.OCMBackend)
