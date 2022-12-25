@@ -76,7 +76,7 @@
     },
     "tabbar" : {
         "wallet" : "Piniginė",
-        "send_coins" : "Siųsti monetas",
+        "send_coins" : "Siųsti monetas (DOGE)",
         "settings" : "Nustatymai"
     },
     "tracking": { 
