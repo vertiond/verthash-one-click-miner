@@ -33,7 +33,6 @@ func (p *HashCryptos) GetPayouts(testnet bool) []payouts.Payout {
 		payouts.NewBCHPayout(),
 		payouts.NewDASHPayout(),
 		payouts.NewDGBPayout(),
-		payouts.NewETHPayout(),
 		payouts.NewFIROPayout(),
 		payouts.NewGRSPayout(),
 		payouts.NewLTCPayout(),

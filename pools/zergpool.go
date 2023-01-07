@@ -32,7 +32,6 @@ func (p *Zergpool) GetPayouts(testnet bool) []payouts.Payout {
 		payouts.NewBCHPayout(),
 		payouts.NewDASHPayout(),
 		payouts.NewDGBPayout(),
-		payouts.NewETHPayout(),
 		payouts.NewETCPayout(),
 		payouts.NewFIROPayout(),
 		payouts.NewFLUXPayout(),
