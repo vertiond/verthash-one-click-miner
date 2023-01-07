@@ -18,7 +18,7 @@
     "vue-i18n": "^8.15.3"
   },
   "devDependencies": {
-    "@vue/cli-service": "^4.5.15",
+    "@vue/cli-service": "^5.0.8",
     "eslint": "^5.8.0",
     "eslint-plugin-vue": "^5.2.3",
     "eventsource-polyfill": "^0.9.6",
