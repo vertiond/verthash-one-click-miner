@@ -14,7 +14,7 @@ require (
 	github.com/tidwall/buntdb v1.2.10
 	github.com/wailsapp/wails v1.16.9
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/text v0.3.6
+	golang.org/x/text v0.3.8
 )
 
 require (
@@ -46,6 +46,6 @@ require (
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
 	golang.org/x/image v0.0.0-20210607152325-775e3b0c77b9 // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
-	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
+	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
