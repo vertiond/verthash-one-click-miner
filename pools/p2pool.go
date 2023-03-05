@@ -31,18 +31,6 @@ func (p *P2Pool) GetPayouts(testnet bool) []payouts.Payout {
 		}
 	}
 	return []payouts.Payout{
-		payouts.NewDOGEPayout(),
-		payouts.NewVTCPayout(),
-		payouts.NewBTCPayout(),
-		payouts.NewBCHPayout(),
-		payouts.NewDASHPayout(),
-		payouts.NewDGBPayout(),
-		payouts.NewETHPayout(),
-		payouts.NewFIROPayout(),
-		payouts.NewGRSPayout(),
-		payouts.NewLTCPayout(),
-		payouts.NewXMRPayout(),
-		payouts.NewRVNPayout(),
 	}
 }
 

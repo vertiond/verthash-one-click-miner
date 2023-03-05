@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/vertcoin-project/one-click-miner-vnext/logging"
+	"github.com/vertiond/verthash-one-click-miner/logging"
 )
 
 type GithubRelease struct {

@@ -33,5 +33,6 @@ func (p *USDTPayout) GetNetworks() []string {
 	return []string{
 		"ERC20",
 		"TRC20",
+		"BEP20",
 	}
 }

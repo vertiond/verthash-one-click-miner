@@ -16,21 +16,16 @@ type Pool interface {
 }
 
 func GetPools(testnet bool) []Pool {
-	if testnet {
-		return []Pool{
-			NewP2Proxy(),
-		}
-	}
+// 	if testnet {
+// 		return []Pool{
+// 			NewP2Proxy(),
+// 		}
+// 	}
 	return []Pool{
 		NewZergpool(),
 		Newzpool(),
 		NewHashCryptos(),
-		//NewHashalot(),
-		//NewSuprnova(),
 		//NewP2Pool(),
-		//NewBBQDroid(addr),
-		//NewAcidpool(addr),
-		//NewMiningpoolSweden(addr),
 	}
 }
 

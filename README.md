@@ -20,8 +20,10 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
 
   - Dogecoin
   - Vertcoin
+  - Binance Coin
   - Bitcoin
   - Bitcoin Cash
+  - Cake
   - Dash
   - Digibyte
   - Ethereum
@@ -39,7 +41,7 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
   - Raptoreum
   - Ravencoin
   - Shiba Inu(ERC20)
-  - Tether(ERC20, TRC20)
+  - Tether(ERC20, TRC20, BEP20)
   - Tron
   - Verge 
   - Zcash
@@ -55,13 +57,17 @@ This software is available for Windows and Linux.
 
 Please refer to this list of [supported hardware.](https://github.com/CryptoGraphics/VerthashMiner#supported-hardware)
 
-### I have an error message that reads 'Failure to configure'
+### I have an error message that reads 'Failure to configure' or 'Checks failed'
 
-You may need to add an exclusion to your antivirus / Windows Defender.
+You may need to add an exclusion to your antivirus / Windows Defender.  The data directory is located at `%AppData%\verthash-ocm` on Windows or `~/.verthash-ocm` on Linux.
 
 ### My GPU is supported but an error messages reads 'no compatible GPUs'
 
 Update your GPU drivers to the latest version.
+
+### My GPU is not being utilized
+
+The OCM is using all of your GPU resources.  To verify, check CUDA usage for Nvidia or Compute 0/1 usage for AMD.
 
 ### I selected HashCryptos.com but Expected Earnings says zero
 
@@ -69,7 +75,7 @@ Please make sure you have [activated your address.](https://www.hashcryptos.com/
 
 ## Building
 
-The GUI of this MVP is based on [Wails](https://wails.app) and [Go](https://golang.org/).
+The GUI is based on [Wails](https://wails.app) and [Go](https://golang.org/).
 
 Install the Wails [prerequisites](https://wails.app/gettingstarted/) for your platform, and then run:
 

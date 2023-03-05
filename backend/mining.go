@@ -169,13 +169,7 @@ func (m *Backend) StartMining() bool {
 
 			m.runtime.Events.Emit("networkHashRate", fmt.Sprintf("%0.2f %s", netHash, hashrateUnit))
 
-			var coinsPerDay float64
-			if th < 2520000 {
-				coinsPerDay = 7200 // Emission per day before halving at block 2520000
-			} else {
-				coinsPerDay = 3600 // Emission per day after halving at block 2520000
-			}
-
+			coinsPerDay := util.GetCoinsPerDay(th)
 			avgEarning := float64(hr) / float64(nhr) * float64(coinsPerDay)
 
 			// Convert average earning from Vertcoin to selected payout coin

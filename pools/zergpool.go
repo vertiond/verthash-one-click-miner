@@ -32,7 +32,6 @@ func (p *Zergpool) GetPayouts(testnet bool) []payouts.Payout {
 		payouts.NewBCHPayout(),
 		payouts.NewDASHPayout(),
 		payouts.NewDGBPayout(),
-		payouts.NewETHPayout(),
 		payouts.NewETCPayout(),
 		payouts.NewFIROPayout(),
 		payouts.NewFLUXPayout(),
@@ -47,12 +46,14 @@ func (p *Zergpool) GetPayouts(testnet bool) []payouts.Payout {
 		payouts.NewSHIBPayout(),
 		payouts.NewUSDTPayout(),
         payouts.NewTRXPayout(),
+        payouts.NewBNBPayout(),
+        payouts.NewCAKEPayout(),
 	}
 }
 
 func (p *Zergpool) GetPendingPayout(addr string) uint64 {
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("http://api.zergpool.com:8080/api/walletEx?address=%s", addr), &jsonPayload)
+	err := util.GetJson(fmt.Sprintf("https://api.zergpool.com:8443/api/walletEx?address=%s", addr), &jsonPayload)
 	if err != nil {
 		return 0
 	}
