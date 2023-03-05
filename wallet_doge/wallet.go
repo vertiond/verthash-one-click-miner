@@ -253,21 +253,18 @@ type BalanceResponse struct {
 func (w *Wallet) Update() {
 	bal := BalanceResponse{}
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("%sapi/v2/get_address_balance/DOGE/%s", networks.Active.InsightURL, w.Address), &jsonPayload)
+	err := util.GetJson(fmt.Sprintf("https://dogechain.info/api/v1/address/balance/%s", w.Address), &jsonPayload)
 	json_parse_success := false
 	if err == nil {
-		jsonData, ok := jsonPayload["data"].(map[string]interface{})
-		if ok {
-			balance_confirmed_in_doge_str, ok1 := jsonData["confirmed_balance"].(string)
-			balance_unconfirmed_in_doge_str, ok2 := jsonData["unconfirmed_balance"].(string)
-			if ok1 && ok2 {
-				balance_confirmed_in_doge_float, _ := strconv.ParseFloat(balance_confirmed_in_doge_str, 64)
-				balance_unconfirmed_in_doge_float, _ := strconv.ParseFloat(balance_unconfirmed_in_doge_str, 64)
-				balance_spendable := uint64(math.Round((balance_confirmed_in_doge_float + balance_unconfirmed_in_doge_float) * float64(100000000)))
-				balance_maturing := uint64(0)
-				bal = BalanceResponse{balance_spendable, balance_maturing}
-				json_parse_success = true
-			}
+		balance_confirmed_in_doge_str, ok1 := jsonPayload["confirmed"].(string)
+		balance_unconfirmed_in_doge_str, ok2 := jsonPayload["unconfirmed"].(string)
+		if ok1 && ok2 {
+			balance_confirmed_in_doge_float, _ := strconv.ParseFloat(balance_confirmed_in_doge_str, 64)
+			balance_unconfirmed_in_doge_float, _ := strconv.ParseFloat(balance_unconfirmed_in_doge_str, 64)
+			balance_spendable := uint64(math.Round((balance_confirmed_in_doge_float + balance_unconfirmed_in_doge_float) * float64(100000000)))
+			balance_maturing := uint64(0)
+			bal = BalanceResponse{balance_spendable, balance_maturing}
+			json_parse_success = true
 		}
 	}
 	if !json_parse_success {
