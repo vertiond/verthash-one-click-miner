@@ -51,28 +51,23 @@ func NewWallet(addr string, script []byte) (*Wallet, error) {
 func (w *Wallet) Utxos() ([]Utxo, error) {
 	utxos := []Utxo{}
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("%sapi/v2/get_tx_unspent/DOGE/%s", networks.Active.InsightURL, w.Address), &jsonPayload)
+	err := util.GetJson(fmt.Sprintf("https://dogechain.info/api/v1/address/unspent/%s", w.Address), &jsonPayload)
 	json_parse_success := false
 	if err == nil {
-		jsonData, ok := jsonPayload["data"].(map[string]interface{})
+		jsonDataTxArr, ok := jsonPayload["unspent_outputs"].([]interface{})
 		if ok {
-			jsonDataTxArr, ok := jsonData["txs"].([]interface{})
-			if ok {
-				json_parse_success = true
-				for _, jsonDataTxInfo := range jsonDataTxArr {
-					jsonDataTxInfoMap := jsonDataTxInfo.(map[string]interface{})
-					utxo_txid, ok1 := jsonDataTxInfoMap["txid"].(string)
-					utxo_vout, ok2 := jsonDataTxInfoMap["output_no"].(float64)
-					tx_value_in_dogecoin_str, ok3 := jsonDataTxInfoMap["value"].(string)
-					if !ok1 || !ok2 || !ok3 {
-						json_parse_success = false
-						break
-					}
-					tx_value_in_dogecoin_float, _ := strconv.ParseFloat(tx_value_in_dogecoin_str, 64)
-					utxo_amount := uint64(math.Round(tx_value_in_dogecoin_float * float64(100000000)))
-					u := Utxo{utxo_txid, uint(utxo_vout), utxo_amount}
-					utxos = append(utxos, u)
+			json_parse_success = true
+			for _, jsonDataTxInfo := range jsonDataTxArr {
+				jsonDataTxInfoMap := jsonDataTxInfo.(map[string]interface{})
+				utxo_txid, ok1 := jsonDataTxInfoMap["tx_hash"].(string)
+				utxo_vout, ok2 := jsonDataTxInfoMap["tx_output_n"].(float64)
+				utxo_amount, ok3 := jsonDataTxInfoMap["value"].(uint64)
+				if !ok1 || !ok2 || !ok3 {
+					json_parse_success = false
+					break
 				}
+				u := Utxo{utxo_txid, uint(utxo_vout), utxo_amount}
+				utxos = append(utxos, u)
 			}
 		}
 	}
