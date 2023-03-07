@@ -51,28 +51,23 @@ func NewWallet(addr string, script []byte) (*Wallet, error) {
 func (w *Wallet) Utxos() ([]Utxo, error) {
 	utxos := []Utxo{}
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("%sapi/v2/get_tx_unspent/DOGE/%s", networks.Active.InsightURL, w.Address), &jsonPayload)
+	err := util.GetJson(fmt.Sprintf("https://dogechain.info/api/v1/address/unspent/%s", w.Address), &jsonPayload)
 	json_parse_success := false
 	if err == nil {
-		jsonData, ok := jsonPayload["data"].(map[string]interface{})
+		jsonDataTxArr, ok := jsonPayload["unspent_outputs"].([]interface{})
 		if ok {
-			jsonDataTxArr, ok := jsonData["txs"].([]interface{})
-			if ok {
-				json_parse_success = true
-				for _, jsonDataTxInfo := range jsonDataTxArr {
-					jsonDataTxInfoMap := jsonDataTxInfo.(map[string]interface{})
-					utxo_txid, ok1 := jsonDataTxInfoMap["txid"].(string)
-					utxo_vout, ok2 := jsonDataTxInfoMap["output_no"].(float64)
-					tx_value_in_dogecoin_str, ok3 := jsonDataTxInfoMap["value"].(string)
-					if !ok1 || !ok2 || !ok3 {
-						json_parse_success = false
-						break
-					}
-					tx_value_in_dogecoin_float, _ := strconv.ParseFloat(tx_value_in_dogecoin_str, 64)
-					utxo_amount := uint64(math.Round(tx_value_in_dogecoin_float * float64(100000000)))
-					u := Utxo{utxo_txid, uint(utxo_vout), utxo_amount}
-					utxos = append(utxos, u)
+			json_parse_success = true
+			for _, jsonDataTxInfo := range jsonDataTxArr {
+				jsonDataTxInfoMap := jsonDataTxInfo.(map[string]interface{})
+				utxo_txid, ok1 := jsonDataTxInfoMap["tx_hash"].(string)
+				utxo_vout, ok2 := jsonDataTxInfoMap["tx_output_n"].(float64)
+				utxo_amount, ok3 := jsonDataTxInfoMap["value"].(float64)
+				if !ok1 || !ok2 || !ok3 {
+					json_parse_success = false
+					break
 				}
+				u := Utxo{utxo_txid, uint(utxo_vout), uint64(utxo_amount)}
+				utxos = append(utxos, u)
 			}
 		}
 	}
@@ -253,21 +248,18 @@ type BalanceResponse struct {
 func (w *Wallet) Update() {
 	bal := BalanceResponse{}
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("%sapi/v2/get_address_balance/DOGE/%s", networks.Active.InsightURL, w.Address), &jsonPayload)
+	err := util.GetJson(fmt.Sprintf("https://dogechain.info/api/v1/address/balance/%s", w.Address), &jsonPayload)
 	json_parse_success := false
 	if err == nil {
-		jsonData, ok := jsonPayload["data"].(map[string]interface{})
-		if ok {
-			balance_confirmed_in_doge_str, ok1 := jsonData["confirmed_balance"].(string)
-			balance_unconfirmed_in_doge_str, ok2 := jsonData["unconfirmed_balance"].(string)
-			if ok1 && ok2 {
-				balance_confirmed_in_doge_float, _ := strconv.ParseFloat(balance_confirmed_in_doge_str, 64)
-				balance_unconfirmed_in_doge_float, _ := strconv.ParseFloat(balance_unconfirmed_in_doge_str, 64)
-				balance_spendable := uint64(math.Round((balance_confirmed_in_doge_float + balance_unconfirmed_in_doge_float) * float64(100000000)))
-				balance_maturing := uint64(0)
-				bal = BalanceResponse{balance_spendable, balance_maturing}
-				json_parse_success = true
-			}
+		balance_confirmed_in_doge_str, ok1 := jsonPayload["confirmed"].(string)
+		balance_unconfirmed_in_doge_str, ok2 := jsonPayload["unconfirmed"].(string)
+		if ok1 && ok2 {
+			balance_confirmed_in_doge_float, _ := strconv.ParseFloat(balance_confirmed_in_doge_str, 64)
+			balance_unconfirmed_in_doge_float, _ := strconv.ParseFloat(balance_unconfirmed_in_doge_str, 64)
+			balance_spendable := uint64(math.Round((balance_confirmed_in_doge_float + balance_unconfirmed_in_doge_float) * float64(100000000)))
+			balance_maturing := uint64(0)
+			bal = BalanceResponse{balance_spendable, balance_maturing}
+			json_parse_success = true
 		}
 	}
 	if !json_parse_success {
