@@ -61,12 +61,12 @@ func (w *Wallet) Utxos() ([]Utxo, error) {
 				jsonDataTxInfoMap := jsonDataTxInfo.(map[string]interface{})
 				utxo_txid, ok1 := jsonDataTxInfoMap["tx_hash"].(string)
 				utxo_vout, ok2 := jsonDataTxInfoMap["tx_output_n"].(float64)
-				utxo_amount, ok3 := jsonDataTxInfoMap["value"].(uint64)
+				utxo_amount, ok3 := jsonDataTxInfoMap["value"].(float64)
 				if !ok1 || !ok2 || !ok3 {
 					json_parse_success = false
 					break
 				}
-				u := Utxo{utxo_txid, uint(utxo_vout), utxo_amount}
+				u := Utxo{utxo_txid, uint(utxo_vout), uint64(utxo_amount)}
 				utxos = append(utxos, u)
 			}
 		}
