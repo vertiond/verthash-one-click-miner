@@ -51,20 +51,44 @@ func NewWallet(addr string, script []byte) (*Wallet, error) {
 func (w *Wallet) Utxos() ([]Utxo, error) {
 	utxos := []Utxo{}
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("%sapi/v2/get_tx_unspent/DOGE/%s", networks.Active.InsightURL, w.Address), &jsonPayload)
+	url := fmt.Sprintf("%saddresses-historical/utxo/dogecoin/mainnet/%s/unspent-outputs", networks.Active.InsightURL, w.Address)
+	
+	// Only add API key if calling CryptoAPIs directly (not through proxy)
+	// Default approach: backend proxy handles API key authentication
+	headers := make(map[string]string)
+	if strings.Contains(networks.Active.InsightURL, "cryptoapis.io") {
+		// Direct CryptoAPIs call - user must provide their own API key
+		apiKey := util.GetCryptoAPIsKey()
+		if apiKey != "" {
+			headers["x-api-key"] = apiKey
+		}
+	}
+	// If using a proxy (default), proxy handles authentication - no API key needed here
+	
+	var err error
+	if len(headers) > 0 {
+		err = util.GetJsonWithHeaders(url, headers, &jsonPayload)
+	} else {
+		err = util.GetJson(url, &jsonPayload)
+	}
 	json_parse_success := false
 	if err == nil {
 		jsonData, ok := jsonPayload["data"].(map[string]interface{})
 		if ok {
-			jsonDataTxArr, ok := jsonData["txs"].([]interface{})
+			jsonDataItemsArr, ok := jsonData["items"].([]interface{})
 			if ok {
 				json_parse_success = true
-				for _, jsonDataTxInfo := range jsonDataTxArr {
-					jsonDataTxInfoMap := jsonDataTxInfo.(map[string]interface{})
-					utxo_txid, ok1 := jsonDataTxInfoMap["txid"].(string)
-					utxo_vout, ok2 := jsonDataTxInfoMap["output_no"].(float64)
-					tx_value_in_dogecoin_str, ok3 := jsonDataTxInfoMap["value"].(string)
+				for _, jsonDataItemInfo := range jsonDataItemsArr {
+					jsonDataItemInfoMap := jsonDataItemInfo.(map[string]interface{})
+					utxo_txid, ok1 := jsonDataItemInfoMap["transactionId"].(string)
+					utxo_vout, ok2 := jsonDataItemInfoMap["index"].(float64)
+					valueObj, ok3 := jsonDataItemInfoMap["value"].(map[string]interface{})
 					if !ok1 || !ok2 || !ok3 {
+						json_parse_success = false
+						break
+					}
+					tx_value_in_dogecoin_str, ok4 := valueObj["amount"].(string)
+					if !ok4 {
 						json_parse_success = false
 						break
 					}
@@ -253,20 +277,44 @@ type BalanceResponse struct {
 func (w *Wallet) Update() {
 	bal := BalanceResponse{}
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("%sapi/v2/get_address_balance/DOGE/%s", networks.Active.InsightURL, w.Address), &jsonPayload)
+	url := fmt.Sprintf("%saddresses-latest/utxo/dogecoin/mainnet/%s/balance", networks.Active.InsightURL, w.Address)
+	
+	// Only add API key if calling CryptoAPIs directly (not through proxy)
+	// Default approach: backend proxy handles API key authentication
+	headers := make(map[string]string)
+	if strings.Contains(networks.Active.InsightURL, "cryptoapis.io") {
+		// Direct CryptoAPIs call - user must provide their own API key
+		apiKey := util.GetCryptoAPIsKey()
+		if apiKey != "" {
+			headers["x-api-key"] = apiKey
+		}
+	}
+	// If using a proxy (default), proxy handles authentication - no API key needed here
+	
+	var err error
+	if len(headers) > 0 {
+		err = util.GetJsonWithHeaders(url, headers, &jsonPayload)
+	} else {
+		err = util.GetJson(url, &jsonPayload)
+	}
+	
 	json_parse_success := false
 	if err == nil {
 		jsonData, ok := jsonPayload["data"].(map[string]interface{})
 		if ok {
-			balance_confirmed_in_doge_str, ok1 := jsonData["confirmed_balance"].(string)
-			balance_unconfirmed_in_doge_str, ok2 := jsonData["unconfirmed_balance"].(string)
-			if ok1 && ok2 {
-				balance_confirmed_in_doge_float, _ := strconv.ParseFloat(balance_confirmed_in_doge_str, 64)
-				balance_unconfirmed_in_doge_float, _ := strconv.ParseFloat(balance_unconfirmed_in_doge_str, 64)
-				balance_spendable := uint64(math.Round((balance_confirmed_in_doge_float + balance_unconfirmed_in_doge_float) * float64(100000000)))
-				balance_maturing := uint64(0)
-				bal = BalanceResponse{balance_spendable, balance_maturing}
-				json_parse_success = true
+			jsonItem, ok := jsonData["item"].(map[string]interface{})
+			if ok {
+				confirmedBalanceObj, ok := jsonItem["confirmedBalance"].(map[string]interface{})
+				if ok {
+					balance_confirmed_in_doge_str, ok1 := confirmedBalanceObj["amount"].(string)
+					if ok1 {
+						balance_confirmed_in_doge_float, _ := strconv.ParseFloat(balance_confirmed_in_doge_str, 64)
+						balance_spendable := uint64(math.Round(balance_confirmed_in_doge_float * float64(100000000)))
+						balance_maturing := uint64(0)
+						bal = BalanceResponse{balance_spendable, balance_maturing}
+						json_parse_success = true
+					}
+				}
 			}
 		}
 	}

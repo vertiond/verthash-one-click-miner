@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/txscript"
@@ -68,16 +69,39 @@ func (w *Wallet) Send(tx *wire.MsgTx) (string, error) {
 
 	r := txSendReply{}
 
+	url := fmt.Sprintf("%sbroadcast-transactions/dogecoin/mainnet", networks.Active.InsightURL)
+	
+	// Only add API key if calling CryptoAPIs directly (not through proxy)
+	// Default approach: backend proxy handles API key authentication
+	headers := make(map[string]string)
+	if strings.Contains(networks.Active.InsightURL, "cryptoapis.io") {
+		// Direct CryptoAPIs call - user must provide their own API key
+		apiKey := util.GetCryptoAPIsKey()
+		if apiKey != "" {
+			headers["x-api-key"] = apiKey
+		}
+	}
+	// If using a proxy (default), proxy handles authentication - no API key needed here
+
 	jsonPayload := map[string]interface{}{}
-	err := util.PostJson(fmt.Sprintf("%sapi/v2/send_tx/DOGE", networks.Active.InsightURL), s, &jsonPayload)
+	var err error
+	if len(headers) > 0 {
+		err = util.PostJsonWithHeaders(url, s, headers, &jsonPayload)
+	} else {
+		err = util.PostJson(url, s, &jsonPayload)
+	}
+	
 	json_parse_success := false
 	if err == nil {
 		jsonData, ok := jsonPayload["data"].(map[string]interface{})
 		if ok {
-			txid, ok := jsonData["txid"].(string)
-			r = txSendReply{txid}
+			jsonItem, ok := jsonData["item"].(map[string]interface{})
 			if ok {
-				json_parse_success = true
+				txid, ok := jsonItem["transactionId"].(string)
+				if ok {
+					r = txSendReply{txid}
+					json_parse_success = true
+				}
 			}
 		}
 	}

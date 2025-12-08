@@ -340,6 +340,15 @@ func (m *Backend) GetVersion() string {
 	return tracking.GetVersion()
 }
 
+func (m *Backend) GetCryptoAPIsKey() string {
+	return m.getStringSetting("cryptoapis_api_key")
+}
+
+func (m *Backend) SetCryptoAPIsKey(apiKey string) {
+	logging.Infof("Setting CryptoAPIs API key")
+	m.setStringSetting("cryptoapis_api_key", apiKey)
+}
+
 func (m *Backend) PrerequisiteProxyLoop() {
 	for pi := range m.prerequisiteInstall {
 		send := "0"

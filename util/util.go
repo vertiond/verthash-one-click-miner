@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/btcsuite/fastsha256"
+	"github.com/tidwall/buntdb"
 	"github.com/vertiond/verthash-one-click-miner/logging"
 	"github.com/vertiond/verthash-one-click-miner/networks"
 )
@@ -156,6 +157,37 @@ func GetCoinsPerDay(th int64) float64 {
 
 var jsonClient = &http.Client{Timeout: 60 * time.Second}
 
+// GetCryptoAPIsKey retrieves the API key for CryptoAPIs from environment variable
+// or settings database. Returns empty string if not found.
+func GetCryptoAPIsKey() string {
+	// First check environment variable (most secure for users)
+	if apiKey := os.Getenv("CRYPTOAPIS_API_KEY"); apiKey != "" {
+		return apiKey
+	}
+
+	// Then check settings database
+	settingsPath := filepath.Join(DataDirectory(), "settings.db")
+	if FileExists(settingsPath) {
+		db, err := buntdb.Open(settingsPath)
+		if err == nil {
+			defer db.Close()
+			var apiKey string
+			err = db.View(func(tx *buntdb.Tx) error {
+				val, err := tx.Get("cryptoapis_api_key")
+				if err == nil {
+					apiKey = val
+				}
+				return nil
+			})
+			if apiKey != "" {
+				return apiKey
+			}
+		}
+	}
+
+	return ""
+}
+
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
@@ -174,6 +206,26 @@ func GetJson(url string, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
+func GetJsonWithHeaders(url string, headers map[string]string, target interface{}) error {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
+
+	r, err := jsonClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	return json.NewDecoder(r.Body).Decode(target)
+}
+
 func PostJson(url string, payload interface{}, target interface{}) error {
 	var b bytes.Buffer
 	err := json.NewEncoder(&b).Encode(payload)
@@ -181,6 +233,39 @@ func PostJson(url string, payload interface{}, target interface{}) error {
 		return err
 	}
 	r, err := jsonClient.Post(url, "application/json", bytes.NewBuffer(b.Bytes()))
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	logging.Infof("POST JSON response: %s", string(bodyBytes))
+
+	buf := bytes.NewBuffer(bodyBytes)
+	return json.NewDecoder(buf).Decode(target)
+}
+
+func PostJsonWithHeaders(url string, payload interface{}, headers map[string]string, target interface{}) error {
+	var b bytes.Buffer
+	err := json.NewEncoder(&b).Encode(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(b.Bytes()))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
+
+	r, err := jsonClient.Do(req)
 	if err != nil {
 		return err
 	}
