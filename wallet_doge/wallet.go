@@ -48,7 +48,210 @@ func NewWallet(addr string, script []byte) (*Wallet, error) {
 	return &Wallet{Address: addr, Script: script, db: db}, nil
 }
 
+// isAddressSynced checks if the address has already been synced (cached in database)
+func (w *Wallet) isAddressSynced() bool {
+	synced := false
+	err := w.db.View(func(tx *buntdb.Tx) error {
+		val, err := tx.Get(fmt.Sprintf("cryptoapis_sync_%s", w.Address))
+		if err == nil && val == "1" {
+			synced = true
+		}
+		return nil
+	})
+	if err != nil {
+		logging.Debugf("Error checking sync status: %v", err)
+	}
+	return synced
+}
+
+// setAddressSynced saves the sync status to the database
+func (w *Wallet) setAddressSynced(synced bool) {
+	err := w.db.Update(func(tx *buntdb.Tx) error {
+		value := "0"
+		if synced {
+			value = "1"
+		}
+		_, _, err := tx.Set(fmt.Sprintf("cryptoapis_sync_%s", w.Address), value, nil)
+		return err
+	})
+	if err != nil {
+		logging.Warnf("Error saving sync status: %v", err)
+	}
+}
+
+// isAddressActivated checks if the address has already been activated (cached in database)
+func (w *Wallet) isAddressActivated() bool {
+	activated := false
+	err := w.db.View(func(tx *buntdb.Tx) error {
+		val, err := tx.Get(fmt.Sprintf("cryptoapis_activated_%s", w.Address))
+		if err == nil && val == "1" {
+			activated = true
+		}
+		return nil
+	})
+	if err != nil {
+		logging.Debugf("Error checking activation status: %v", err)
+	}
+	return activated
+}
+
+// setAddressActivated saves the activation status to the database
+func (w *Wallet) setAddressActivated(activated bool) {
+	err := w.db.Update(func(tx *buntdb.Tx) error {
+		value := "0"
+		if activated {
+			value = "1"
+		}
+		_, _, err := tx.Set(fmt.Sprintf("cryptoapis_activated_%s", w.Address), value, nil)
+		return err
+	})
+	if err != nil {
+		logging.Warnf("Error saving activation status: %v", err)
+	}
+}
+
+// syncAddress synchronizes the wallet address with CryptoAPIs
+// This must be called before fetching UTXOs to ensure historical data is available
+// Returns true if sync is completed, false otherwise
+// Uses database cache to avoid redundant API calls
+func (w *Wallet) syncAddress() (bool, error) {
+	// Check if already synced (cached)
+	if w.isAddressSynced() {
+		logging.Debugf("Address %s already synced (cached), skipping API call", w.Address)
+		return true, nil
+	}
+	
+	url := fmt.Sprintf("%saddresses-historical/manage/dogecoin/mainnet", networks.Active.InsightURL)
+	
+	// Prepare request payload
+	syncPayload := map[string]interface{}{
+		"context": "verthash-ocm",
+		"data": map[string]interface{}{
+			"item": map[string]interface{}{
+				"address":     w.Address,
+				"callbackUrl": "", // Optional callback URL - empty for now
+			},
+		},
+	}
+	
+	// Only add API key if calling CryptoAPIs directly (not through proxy)
+	headers := make(map[string]string)
+	if strings.Contains(networks.Active.InsightURL, "cryptoapis.io") {
+		apiKey := util.GetCryptoAPIsKey()
+		if apiKey != "" {
+			headers["x-api-key"] = apiKey
+		}
+	}
+	
+	jsonPayload := map[string]interface{}{}
+	var err error
+	if len(headers) > 0 {
+		err = util.PostJsonWithHeaders(url, syncPayload, headers, &jsonPayload)
+	} else {
+		err = util.PostJson(url, syncPayload, &jsonPayload)
+	}
+	
+	if err != nil {
+		logging.Warnf("Error syncing address with CryptoAPIs: %s", err.Error())
+		return false, err
+	}
+	
+	// Check sync status
+	syncCompleted := false
+	if jsonData, ok := jsonPayload["data"].(map[string]interface{}); ok {
+		if jsonItem, ok := jsonData["item"].(map[string]interface{}); ok {
+			if syncStatus, ok := jsonItem["syncStatus"].(string); ok {
+				logging.Debugf("Address sync status: %s", syncStatus)
+				syncCompleted = (syncStatus == "completed")
+			}
+		}
+	}
+	
+	// Cache the sync status
+	if syncCompleted {
+		w.setAddressSynced(true)
+	}
+	
+	return syncCompleted, nil
+}
+
+// activateAddress activates a previously synced address with CryptoAPIs
+// This must be called after sync is completed to resume tracking
+// Uses database cache to avoid redundant API calls
+func (w *Wallet) activateAddress() error {
+	// Check if already activated (cached)
+	if w.isAddressActivated() {
+		logging.Debugf("Address %s already activated (cached), skipping API call", w.Address)
+		return nil
+	}
+	
+	url := fmt.Sprintf("%saddresses-historical/manage/dogecoin/mainnet/%s/activate", networks.Active.InsightURL, w.Address)
+	
+	// Prepare request payload
+	activatePayload := map[string]interface{}{
+		"context": "verthash-ocm",
+	}
+	
+	// Only add API key if calling CryptoAPIs directly (not through proxy)
+	headers := make(map[string]string)
+	if strings.Contains(networks.Active.InsightURL, "cryptoapis.io") {
+		apiKey := util.GetCryptoAPIsKey()
+		if apiKey != "" {
+			headers["x-api-key"] = apiKey
+		}
+	}
+	
+	jsonPayload := map[string]interface{}{}
+	var err error
+	if len(headers) > 0 {
+		err = util.PostJsonWithHeaders(url, activatePayload, headers, &jsonPayload)
+	} else {
+		err = util.PostJson(url, activatePayload, &jsonPayload)
+	}
+	
+	if err != nil {
+		logging.Warnf("Error activating address with CryptoAPIs: %s", err.Error())
+		return err
+	}
+	
+	// Check activation status
+	activated := false
+	if jsonData, ok := jsonPayload["data"].(map[string]interface{}); ok {
+		if jsonItem, ok := jsonData["item"].(map[string]interface{}); ok {
+			if isActive, ok := jsonItem["isActive"].(bool); ok {
+				logging.Debugf("Address activation status: %v", isActive)
+				activated = isActive
+			}
+			if syncStatus, ok := jsonItem["syncStatus"].(string); ok {
+				logging.Debugf("Address sync status after activation: %s", syncStatus)
+			}
+		}
+	}
+	
+	// Cache the activation status
+	if activated {
+		w.setAddressActivated(true)
+	}
+	
+	return nil
+}
+
 func (w *Wallet) Utxos() ([]Utxo, error) {
+	// Step 1: Sync address first to ensure historical data is available
+	// We don't fail if sync fails - it might already be synced or in progress
+	syncCompleted, err := w.syncAddress()
+	if err != nil {
+		logging.Warnf("Address sync failed, continuing anyway: %s", err.Error())
+	}
+	
+	// Step 2: If sync is completed, activate the address to resume tracking
+	if syncCompleted {
+		err = w.activateAddress()
+		if err != nil {
+			logging.Warnf("Address activation failed, continuing anyway: %s", err.Error())
+		}
+	}
+	
 	utxos := []Utxo{}
 	jsonPayload := map[string]interface{}{}
 	url := fmt.Sprintf("%saddresses-historical/utxo/dogecoin/mainnet/%s/unspent-outputs", networks.Active.InsightURL, w.Address)
