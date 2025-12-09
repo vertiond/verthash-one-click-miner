@@ -268,7 +268,6 @@ func (w *Wallet) Utxos() ([]Utxo, error) {
 	}
 	// If using a proxy (default), proxy handles authentication - no API key needed here
 	
-	var err error
 	if len(headers) > 0 {
 		err = util.GetJsonWithHeaders(url, headers, &jsonPayload)
 	} else {
