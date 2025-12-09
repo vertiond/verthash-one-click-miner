@@ -2,6 +2,7 @@ package backend
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/tidwall/buntdb"
 
@@ -90,8 +91,16 @@ func (m *Backend) WailsInit(runtime *wails.Runtime) error {
 	// Save runtime
 	m.runtime = runtime
 
-	go m.PrerequisiteProxyLoop()
-	go m.UpdateLoop()
+	// Add a small delay to ensure Wails event system is fully initialized
+	// This helps prevent race conditions with WaitGroup in Wails v1.16.9
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		m.PrerequisiteProxyLoop()
+	}()
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		m.UpdateLoop()
+	}()
 
 	return nil
 }
@@ -106,4 +115,19 @@ func (m *Backend) AlreadyRunning() bool {
 
 func (m *Backend) Close() {
 	m.runtime.Window.Close()
+}
+
+// safeEmitEvent safely emits an event with nil checks and panic recovery
+// This helps prevent crashes from race conditions in Wails v1.16.9's event system
+func (m *Backend) safeEmitEvent(event string, data ...interface{}) {
+	if m.runtime == nil || m.runtime.Events == nil {
+		return
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			// Silently recover from panics in event emission
+			// This can happen due to race conditions in Wails v1.16.9
+		}
+	}()
+	m.runtime.Events.Emit(event, data...)
 }
