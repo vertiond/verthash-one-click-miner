@@ -189,6 +189,7 @@ func GetCryptoAPIsKey() string {
 	return ""
 }
 
+/* COMMENTED OUT: GetFreeCryptoAPIKey function (no longer needed with CoinEx API, backup in case we need to switch back)
 // GetFreeCryptoAPIKey retrieves the API key for freecryptoapi.com from environment variable
 // or settings database. Returns empty string if not found.
 func GetFreeCryptoAPIKey() string {
@@ -219,6 +220,7 @@ func GetFreeCryptoAPIKey() string {
 
 	return ""
 }
+*/
 
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)

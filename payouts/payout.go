@@ -3,9 +3,7 @@ package payouts
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
-	"github.com/vertiond/verthash-one-click-miner/networks"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
@@ -41,6 +39,48 @@ type Payout interface {
 // }
 
 func GetBitcoinPerUnitCoin(coinID string, coinTicker string, exchange string) float64 {
+	// Use CoinEx API (free, no API key required)
+	// coinTicker is the base coin (e.g., "DOGE"), append "BTC" to form market symbol (e.g., "DOGEBTC")
+	market := coinTicker + "BTC"
+	url := fmt.Sprintf("https://api.coinex.com/v2/spot/ticker?market=%s", market)
+	
+	jsonPayload := map[string]interface{}{}
+	err := util.GetJson(url, &jsonPayload)
+	
+	if err != nil {
+		return 0.0
+	}
+
+	// Check if code is 0 (success)
+	code, ok := jsonPayload["code"].(float64)
+	if !ok || code != 0 {
+		return 0.0
+	}
+
+	// Get data array
+	jsonDataArr, ok := jsonPayload["data"].([]interface{})
+	if !ok || len(jsonDataArr) == 0 {
+		return 0.0
+	}
+
+	// Get first item from data array
+	jsonDataItem, ok := jsonDataArr[0].(map[string]interface{})
+	if !ok {
+		return 0.0
+	}
+
+	// Extract "last" value
+	jsonLast, ok := jsonDataItem["last"].(string)
+	if ok {
+		result, err := strconv.ParseFloat(jsonLast, 64)
+		if err == nil {
+			return result
+		}
+	}
+
+	return 0.0
+
+	/* COMMENTED OUT: freecryptoapi.com implementation (backup in case CoinEx stops working)
 	// Use InsightURL from networks (points to Cloudflare Worker that handles both APIs)
 	// InsightURL is the proxy URL that routes to both CryptoAPIs and freecryptoapi.com
 	// The proxy handles API key authentication - no API key needed here
@@ -88,8 +128,10 @@ func GetBitcoinPerUnitCoin(coinID string, coinTicker string, exchange string) fl
 	}
 
 	return 0.0
+	*/
 }
 
+/* COMMENTED OUT: Old SoChain API implementation for DOGE (backup in case CoinEx stops working)
 func GetBitcoinPerUnitDOGE() float64 {
 	jsonPayload := map[string]interface{}{}
 	err := util.GetJson("https://sochain.com/api/v2/get_price/DOGE/BTC", &jsonPayload)
@@ -125,6 +167,7 @@ func GetBitcoinPerUnitDOGE() float64 {
 	}
 	return result
 }
+*/
 
 //func GetBitcoinPerUnitCoin(coinID string, coinTicker string, exchange string) float64 {
 //	jsonPayload := map[string]interface{}{}

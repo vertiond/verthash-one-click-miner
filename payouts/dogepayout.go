@@ -17,11 +17,13 @@ func (p *DOGEPayout) GetDisplayName() string {
 }
 
 func (p *DOGEPayout) GetTicker() string {
+	// Returns "DOGE" - BTC will be appended in GetBitcoinPerUnitCoin to form "DOGEBTC" for CoinEx API
 	return "DOGE"
 }
 
 func (p *DOGEPayout) GetCoingeckoExchange() string {
-	return "bittrex"
+	// Returns "binance" which is used as the exchange parameter for freecryptoapi.com API
+	return "binance"
 }
 
 func (p *DOGEPayout) GetCoingeckoCoinID() string {
