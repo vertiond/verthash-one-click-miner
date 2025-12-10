@@ -502,6 +502,9 @@ func (w *Wallet) Update() {
 	
 	json_parse_success := false
 	if err == nil {
+		// Log the response for debugging
+		logging.Debugf("Balance API response: %+v", jsonPayload)
+		
 		jsonData, ok := jsonPayload["data"].(map[string]interface{})
 		if ok {
 			jsonItem, ok := jsonData["item"].(map[string]interface{})
@@ -515,16 +518,24 @@ func (w *Wallet) Update() {
 						balance_maturing := uint64(0)
 						bal = BalanceResponse{balance_spendable, balance_maturing}
 						json_parse_success = true
+					} else {
+						logging.Debugf("Failed to extract amount from confirmedBalance: %+v", confirmedBalanceObj)
 					}
+				} else {
+					logging.Debugf("Failed to extract confirmedBalance from item: %+v", jsonItem)
 				}
+			} else {
+				logging.Debugf("Failed to extract item from data: %+v", jsonData)
 			}
+		} else {
+			logging.Debugf("Failed to extract data from response: %+v", jsonPayload)
 		}
 	}
 	if !json_parse_success {
 		if err != nil {
-			logging.Errorf("Error fetching balance from backend: %s", err.Error())
+			logging.Errorf("Error fetching balance from backend (URL: %s): %s", url, err.Error())
 		} else {
-			logging.Errorf("Error fetching balance from backend")
+			logging.Errorf("Error fetching balance from backend (URL: %s): failed to parse response", url)
 		}
 		return
 	}
