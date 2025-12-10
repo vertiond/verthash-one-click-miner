@@ -189,6 +189,37 @@ func GetCryptoAPIsKey() string {
 	return ""
 }
 
+// GetFreeCryptoAPIKey retrieves the API key for freecryptoapi.com from environment variable
+// or settings database. Returns empty string if not found.
+func GetFreeCryptoAPIKey() string {
+	// First check environment variable (most secure for users)
+	if apiKey := os.Getenv("FREECRYPTOAPI_KEY"); apiKey != "" {
+		return apiKey
+	}
+
+	// Then check settings database
+	settingsPath := filepath.Join(DataDirectory(), "settings.db")
+	if FileExists(settingsPath) {
+		db, err := buntdb.Open(settingsPath)
+		if err == nil {
+			defer db.Close()
+			var apiKey string
+			err = db.View(func(tx *buntdb.Tx) error {
+				val, err := tx.Get("freecryptoapi_key")
+				if err == nil {
+					apiKey = val
+				}
+				return nil
+			})
+			if apiKey != "" {
+				return apiKey
+			}
+		}
+	}
+
+	return ""
+}
+
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
@@ -203,6 +234,11 @@ func GetJson(url string, target interface{}) error {
 		return err
 	}
 	defer r.Body.Close()
+
+	if r.StatusCode != http.StatusOK {
+		bodyBytes, _ := ioutil.ReadAll(r.Body)
+		return fmt.Errorf("HTTP %d: %s", r.StatusCode, string(bodyBytes))
+	}
 
 	return json.NewDecoder(r.Body).Decode(target)
 }
@@ -223,6 +259,11 @@ func GetJsonWithHeaders(url string, headers map[string]string, target interface{
 		return err
 	}
 	defer r.Body.Close()
+
+	if r.StatusCode != http.StatusOK {
+		bodyBytes, _ := ioutil.ReadAll(r.Body)
+		return fmt.Errorf("HTTP %d: %s", r.StatusCode, string(bodyBytes))
+	}
 
 	return json.NewDecoder(r.Body).Decode(target)
 }

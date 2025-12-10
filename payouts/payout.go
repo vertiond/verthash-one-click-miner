@@ -3,7 +3,9 @@ package payouts
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
+	"github.com/vertiond/verthash-one-click-miner/networks"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
@@ -39,52 +41,53 @@ type Payout interface {
 // }
 
 func GetBitcoinPerUnitCoin(coinID string, coinTicker string, exchange string) float64 {
-	if coinTicker == "DOGE" {
-		return GetBitcoinPerUnitDOGE()
-	}
-
+	// Use InsightURL from networks (points to Cloudflare Worker that handles both APIs)
+	// InsightURL is the proxy URL that routes to both CryptoAPIs and freecryptoapi.com
+	// The proxy handles API key authentication - no API key needed here
+	// Note: DOGE (DOGEBTC) now uses the same freecryptoapi.com API as other coins
+	baseURL := strings.TrimSuffix(networks.Active.InsightURL, "/")
+	url := fmt.Sprintf("%s/v1/getExchange?exchange=%s", baseURL, exchange)
+	
 	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(
-		fmt.Sprintf("https://api.coingecko.com/api/v3/exchanges/%s/tickers?coin_ids=%s", exchange, coinID),
-		&jsonPayload)
+	err := util.GetJson(url, &jsonPayload)
+	
 	if err != nil {
 		return 0.0
 	}
-	jsonTickersArr, ok := jsonPayload["tickers"].([]interface{})
+
+	// Check if status is success
+	status, ok := jsonPayload["status"].(string)
+	if !ok || status != "success" {
+		return 0.0
+	}
+
+	// Get symbols array
+	jsonSymbolsArr, ok := jsonPayload["symbols"].([]interface{})
 	if !ok {
 		return 0.0
 	}
 
-	result := 0.0
-	fallback_result := 0.0
-	for _, jsonTickerInfo := range jsonTickersArr {
-		jsonTickerInfoMap := jsonTickerInfo.(map[string]interface{})
-		jsonTickerBase, ok1 := jsonTickerInfoMap["base"]
-		jsonTickerTarget, ok2 := jsonTickerInfoMap["target"]
-		if !ok1 || !ok2 {
+	// Find the symbol matching coinTicker (e.g., "DOGEBTC")
+	for _, jsonSymbolInfo := range jsonSymbolsArr {
+		jsonSymbolInfoMap := jsonSymbolInfo.(map[string]interface{})
+		jsonSymbol, ok := jsonSymbolInfoMap["symbol"].(string)
+		if !ok {
 			continue
 		}
-        if jsonTickerBase == coinTicker && ( jsonTickerTarget == "BTC" || fallback_result == 0.0 ) {
-            jsonTickerConvertedLast, ok := jsonTickerInfoMap["converted_last"].(map[string]interface{})
-            if ok {
-                jsonTickerConvertedLastBTC, ok := jsonTickerConvertedLast["btc"].(float64)
-                if ok {
-                    if fallback_result == 0.0 {
-                        fallback_result = jsonTickerConvertedLastBTC
-                    }
-                    if jsonTickerTarget == "BTC" {
-                        result = jsonTickerConvertedLastBTC
-                        break
-                    }
-                }
-            }
-        }
-    }
-    if result == 0.0 && fallback_result != 0.0 {
-        result = fallback_result
-    }
+		
+		// Match the symbol (e.g., "DOGEBTC")
+		if jsonSymbol == coinTicker {
+			jsonLast, ok := jsonSymbolInfoMap["last"].(string)
+			if ok {
+				result, err := strconv.ParseFloat(jsonLast, 64)
+				if err == nil {
+					return result
+				}
+			}
+		}
+	}
 
-	return result
+	return 0.0
 }
 
 func GetBitcoinPerUnitDOGE() float64 {
