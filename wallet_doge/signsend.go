@@ -52,10 +52,6 @@ func (w *Wallet) SignMyInputs(tx *wire.MsgTx, password string) error {
 	return nil
 }
 
-type txSend struct {
-	RawTx string `json:"tx_hex"`
-}
-
 type txSendReply struct {
 	TxId string `json:"txid"`
 }
@@ -63,11 +59,18 @@ type txSendReply struct {
 func (w *Wallet) Send(tx *wire.MsgTx) (string, error) {
 	var b bytes.Buffer
 	tx.Serialize(&b)
-	s := txSend{
-		RawTx: hex.EncodeToString(b.Bytes()),
-	}
+	txHex := hex.EncodeToString(b.Bytes())
 
-	r := txSendReply{}
+	// CryptoAPIs requires { data: { item: {...} } } structure
+	// Field name must be "signedTransactionHex" (not "transactionHex")
+	sendPayload := map[string]interface{}{
+		"context": "verthash-ocm",
+		"data": map[string]interface{}{
+			"item": map[string]interface{}{
+				"signedTransactionHex": txHex,
+			},
+		},
+	}
 
 	url := fmt.Sprintf("%sbroadcast-transactions/dogecoin/mainnet", networks.Active.InsightURL)
 	
@@ -86,29 +89,30 @@ func (w *Wallet) Send(tx *wire.MsgTx) (string, error) {
 	jsonPayload := map[string]interface{}{}
 	var err error
 	if len(headers) > 0 {
-		err = util.PostJsonWithHeaders(url, s, headers, &jsonPayload)
+		err = util.PostJsonWithHeaders(url, sendPayload, headers, &jsonPayload)
 	} else {
-		err = util.PostJson(url, s, &jsonPayload)
+		err = util.PostJson(url, sendPayload, &jsonPayload)
 	}
 	
-	json_parse_success := false
-	if err == nil {
-		jsonData, ok := jsonPayload["data"].(map[string]interface{})
+	// Try to parse the response even if there was an HTTP error
+	// (PostJsonWithHeaders decodes the response even on error status codes)
+	jsonData, ok := jsonPayload["data"].(map[string]interface{})
+	if ok {
+		jsonItem, ok := jsonData["item"].(map[string]interface{})
 		if ok {
-			jsonItem, ok := jsonData["item"].(map[string]interface{})
+			txid, ok := jsonItem["transactionId"].(string)
 			if ok {
-				txid, ok := jsonItem["transactionId"].(string)
-				if ok {
-					r = txSendReply{txid}
-					json_parse_success = true
-				}
+				// Successfully parsed transactionId - transaction was sent
+				return txid, nil
 			}
 		}
 	}
 
-	if !json_parse_success {
+	// If we couldn't parse the response, return the error
+	if err != nil {
 		return "", err
 	}
 
-	return r.TxId, err
+	// No error but couldn't parse - return generic error
+	return "", fmt.Errorf("failed to parse transaction response")
 }

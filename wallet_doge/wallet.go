@@ -124,12 +124,13 @@ func (w *Wallet) syncAddress() (bool, error) {
 	url := fmt.Sprintf("%saddresses-historical/manage/dogecoin/mainnet", networks.Active.InsightURL)
 	
 	// Prepare request payload
+	// Note: callbackUrl is optional and should only be included if a valid URL is provided
 	syncPayload := map[string]interface{}{
 		"context": "verthash-ocm",
 		"data": map[string]interface{}{
 			"item": map[string]interface{}{
-				"address":     w.Address,
-				"callbackUrl": "", // Optional callback URL - empty for now
+				"address": w.Address,
+				// callbackUrl omitted - not needed for our use case
 			},
 		},
 	}
@@ -151,9 +152,36 @@ func (w *Wallet) syncAddress() (bool, error) {
 		err = util.PostJson(url, syncPayload, &jsonPayload)
 	}
 	
+	// Check for "already_exists" error (HTTP 409) - this means address is already synced
 	if err != nil {
+		errStr := err.Error()
+		// Check if it's HTTP 409 with "already_exists" error code
+		if strings.Contains(errStr, "HTTP 409") {
+			if errorObj, ok := jsonPayload["error"].(map[string]interface{}); ok {
+				if errorCode, _ := errorObj["code"].(string); errorCode == "already_exists" {
+					logging.Debugf("Address %s already synced (already_exists), treating as success", w.Address)
+					w.setAddressSynced(true)
+					return true, nil
+				}
+			}
+		}
 		logging.Warnf("Error syncing address with CryptoAPIs: %s", err.Error())
 		return false, err
+	}
+	
+	// Check for API errors in response (non-HTTP errors)
+	if errorObj, ok := jsonPayload["error"].(map[string]interface{}); ok {
+		errorCode, _ := errorObj["code"].(string)
+		errorMsg, _ := errorObj["message"].(string)
+		// "already_exists" is actually a success case
+		if errorCode == "already_exists" {
+			logging.Debugf("Address %s already synced (already_exists), treating as success", w.Address)
+			w.setAddressSynced(true)
+			return true, nil
+		}
+		errMsg := fmt.Sprintf("API error: %s - %s", errorCode, errorMsg)
+		logging.Warnf("CryptoAPIs sync error: %s", errMsg)
+		return false, fmt.Errorf(errMsg)
 	}
 	
 	// Check sync status
@@ -187,9 +215,14 @@ func (w *Wallet) activateAddress() error {
 	
 	url := fmt.Sprintf("%saddresses-historical/manage/dogecoin/mainnet/%s/activate", networks.Active.InsightURL, w.Address)
 	
-	// Prepare request payload
+	// Prepare request payload - CryptoAPIs requires { data: { item: {...} } } structure
 	activatePayload := map[string]interface{}{
 		"context": "verthash-ocm",
+		"data": map[string]interface{}{
+			"item": map[string]interface{}{
+				// Empty item - activation doesn't require additional properties
+			},
+		},
 	}
 	
 	// Only add API key if calling CryptoAPIs directly (not through proxy)
@@ -209,9 +242,37 @@ func (w *Wallet) activateAddress() error {
 		err = util.PostJson(url, activatePayload, &jsonPayload)
 	}
 	
+	// Check for "already_exists" or "sync_address_already_active" - these mean address is already activated
 	if err != nil {
+		errStr := err.Error()
+		// Check if it's HTTP 409 with "already_exists" or "sync_address_already_active"
+		if strings.Contains(errStr, "HTTP 409") {
+			if errorObj, ok := jsonPayload["error"].(map[string]interface{}); ok {
+				errorCode, _ := errorObj["code"].(string)
+				if errorCode == "already_exists" || errorCode == "sync_address_already_active" {
+					logging.Debugf("Address %s already activated (%s), treating as success", w.Address, errorCode)
+					w.setAddressActivated(true)
+					return nil
+				}
+			}
+		}
 		logging.Warnf("Error activating address with CryptoAPIs: %s", err.Error())
 		return err
+	}
+	
+	// Check for API errors in response (non-HTTP errors)
+	if errorObj, ok := jsonPayload["error"].(map[string]interface{}); ok {
+		errorCode, _ := errorObj["code"].(string)
+		errorMsg, _ := errorObj["message"].(string)
+		// "already_exists" or "sync_address_already_active" are success cases
+		if errorCode == "already_exists" || errorCode == "sync_address_already_active" {
+			logging.Debugf("Address %s already activated (%s), treating as success", w.Address, errorCode)
+			w.setAddressActivated(true)
+			return nil
+		}
+		errMsg := fmt.Sprintf("API error: %s - %s", errorCode, errorMsg)
+		logging.Warnf("CryptoAPIs activation error: %s", errMsg)
+		return fmt.Errorf(errMsg)
 	}
 	
 	// Check activation status
@@ -238,17 +299,25 @@ func (w *Wallet) activateAddress() error {
 
 func (w *Wallet) Utxos() ([]Utxo, error) {
 	// Step 1: Sync address first to ensure historical data is available
-	// We don't fail if sync fails - it might already be synced or in progress
+	// "already_exists" (HTTP 409) is treated as success - address is already synced
 	syncCompleted, err := w.syncAddress()
 	if err != nil {
 		logging.Warnf("Address sync failed, continuing anyway: %s", err.Error())
 	}
 	
-	// Step 2: If sync is completed, activate the address to resume tracking
+	// Step 2: Always try to activate the address after sync (whether new sync or already exists)
+	// This ensures the address is active and can be queried for UTXOs
 	if syncCompleted {
 		err = w.activateAddress()
 		if err != nil {
 			logging.Warnf("Address activation failed, continuing anyway: %s", err.Error())
+		}
+	} else {
+		// Even if sync didn't complete, try activation in case address was already synced
+		// This handles the case where sync is in progress but address needs activation
+		err = w.activateAddress()
+		if err != nil {
+			logging.Debugf("Address activation attempted (sync not completed): %s", err.Error())
 		}
 	}
 	
@@ -434,9 +503,9 @@ func (w *Wallet) PrepareSweep(addr string) ([]*wire.MsgTx, error) {
 		// fee := uint64(vSizeInt * 100)
 
 		// Dogecoin fee calculation //
-		// 0.001 DOGE fee per 1000 bytes
+		// 0.01 DOGE fee per 1000 bytes
 		// Base fee is 0 DOGE
-		fee_doge := math.Max(float64(0), float64(0.001) * (float64(vSizeInt) / float64(1000)))
+		fee_doge := math.Max(float64(0), float64(0.01) * (float64(vSizeInt) / float64(1000)))
 		// Do not send if total transaction amount is below soft dust limit of 0.01 DOGE
 		if (totalIn - uint64(math.Ceil(fee_doge * 1000000))) < 1000000 { // UTXO Amount is in Satoshis
 			return nil, fmt.Errorf("insufficient_funds")

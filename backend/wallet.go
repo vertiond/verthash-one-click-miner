@@ -5,7 +5,6 @@ import (
 
 	"github.com/vertiond/verthash-one-click-miner/keyfile"
 	"github.com/vertiond/verthash-one-click-miner/logging"
-	"github.com/vertiond/verthash-one-click-miner/networks"
 	"github.com/vertiond/verthash-one-click-miner/tracking"
 	"github.com/vertiond/verthash-one-click-miner/util"
 	"github.com/vertiond/verthash-one-click-miner/wallet_doge"
@@ -68,7 +67,7 @@ func (m *Backend) SendSweep(password string) []string {
 }
 
 func (m *Backend) ShowTx(txid string) {
-	util.OpenBrowser(fmt.Sprintf("%stx/DOGE/%s", networks.Active.InsightURL, txid))
+	util.OpenBrowser(fmt.Sprintf("https://sochain.com/tx/DOGE/%s", txid))
 }
 
 type PrepareResult struct {

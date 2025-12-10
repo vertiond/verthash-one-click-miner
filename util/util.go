@@ -288,8 +288,16 @@ func PostJson(url string, payload interface{}, target interface{}) error {
 	}
 	logging.Infof("POST JSON response: %s", string(bodyBytes))
 
+	// Always decode the response, even on error status codes, so callers can check error details
 	buf := bytes.NewBuffer(bodyBytes)
-	return json.NewDecoder(buf).Decode(target)
+	decodeErr := json.NewDecoder(buf).Decode(target)
+	
+	if r.StatusCode != http.StatusOK {
+		// Return error with status code, but response is already decoded in target
+		return fmt.Errorf("HTTP %d: %s", r.StatusCode, string(bodyBytes))
+	}
+
+	return decodeErr
 }
 
 func PostJsonWithHeaders(url string, payload interface{}, headers map[string]string, target interface{}) error {
@@ -321,8 +329,16 @@ func PostJsonWithHeaders(url string, payload interface{}, headers map[string]str
 	}
 	logging.Infof("POST JSON response: %s", string(bodyBytes))
 
+	// Always decode the response, even on error status codes, so callers can check error details
 	buf := bytes.NewBuffer(bodyBytes)
-	return json.NewDecoder(buf).Decode(target)
+	decodeErr := json.NewDecoder(buf).Decode(target)
+	
+	if r.StatusCode != http.StatusOK {
+		// Return error with status code, but response is already decoded in target
+		return fmt.Errorf("HTTP %d: %s", r.StatusCode, string(bodyBytes))
+	}
+
+	return decodeErr
 }
 
 func OpenBrowser(url string) {
