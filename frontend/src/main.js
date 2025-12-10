@@ -1,7 +1,10 @@
+import "core-js/es6";
+import "core-js/es7";
+import "regenerator-runtime/runtime";
 import Vue from "vue";
 import App from "./App.vue";
 import VueI18n from "vue-i18n";
-import * as Wails from "@wailsapp/runtime"
+import * as Wails from "@wailsapp/runtime";
 
 Vue.use(VueI18n);
 Vue.config.productionTip = false;
