@@ -9,6 +9,7 @@ type Network struct {
 	P2ProxyURL         string
 	WalletDB           string
 	OCMBackend         string
+  BackendServers     []string
 }
 
 var Active Network
@@ -28,12 +29,14 @@ func SetNetwork(testnet bool) {
 		Active = Network{
 			Base58P2PKHVersion: 30,
 			Base58P2SHVersion:  22,
-			InsightURL:         "https://sochain.com/",
-			OCMBackend:         "https://ocm-backend.blkidx.org/",
+			InsightURL:         "https://verthash-ocm.vertcoinproject.org/",
 			Bech32Prefix:       "vtc",
 			P2ProxyStratum:     "stratum+tcp://p2proxy.vertcoin.org:9171",
 			P2ProxyURL:         "https://p2proxy.vertcoin.org/",
 			WalletDB:           "wallet-testnet.db",
+			BackendServers: []string{
+				"https://ocmbackend.javerity.com/",
+				"https://ocmbackend.mindcraftblocks.com/"},
 		}
 	}
 }

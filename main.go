@@ -98,7 +98,8 @@ func main() {
 		panic(err)
 	}
 	networks.SetNetwork(backend.GetTestnet())
-	//ping.GetSelectedNode(backend.GetTestnet())
+
+	backend.BackendServerSelector()
 
 	backend.ResetWalletAddress()
 	backend.ResetPool()
