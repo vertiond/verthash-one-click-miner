@@ -30,12 +30,12 @@ jobs:
         include:
           - os: windows
             runner: windows-latest
-            binary: vertcoin-ocm.exe
+            binary: verthash-ocm.exe
           - os: linux
             runner: ubuntu-latest
             # Wails v1 links against webkit2gtk-4.0, which Ubuntu dropped after 22.04
             container: ubuntu:22.04
-            binary: vertcoin-ocm
+            binary: verthash-ocm
     runs-on: ${{ matrix.runner }}
     container: ${{ matrix.container }}
     permissions:
@@ -111,7 +111,7 @@ jobs:
           OS: ${{ matrix.os }}
         run: |
           wails build -ldflags "$LDFLAGS"
-          zipname="vertcoin-ocm-${NAME}-${OS}-x64.zip"
+          zipname="verthash-ocm-${NAME}-${OS}-x64.zip"
           mkdir -p dist
           if [ "$OS" = windows ]; then
             (cd build && 7z a -tzip "../dist/${zipname}" "${BINARY}")
@@ -145,7 +145,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          pattern: vertcoin-ocm-*.zip
+          pattern: verthash-ocm-*.zip
           path: dist
           merge-multiple: true
           # The artifacts are already zips; keep them as they are
