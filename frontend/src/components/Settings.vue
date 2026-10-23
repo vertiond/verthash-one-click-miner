@@ -17,15 +17,6 @@
             </option>
           </select>
         </p>
-        <p v-if="poolID == 5 && payoutID == 23" style="text-align: left">
-          {{ $t("settings.network") }}:
-          <br />
-          <select style="width: 100%" name="network" v-model="network">
-            <option v-for="option in networks" v-bind:value="option.name" v-bind:key="option.name">
-                {{ option.name }}
-            </option>
-          </select>
-        </p>
         <!-- TODO: Improve address validation -->
         <p v-if="poolID != 6 && payoutID != 4">
           <input type="text" style="width:90%" class="critical-input"

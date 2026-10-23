@@ -98,7 +98,7 @@ func (m *Backend) GetPool() int {
 		// // a different random pool in future calls to GetPool().
 		// m.setIntSetting("pool", pool)
 		// return pool
-		return 5 // Default Zergpool
+		return 7 // Default zpool
 	}
 	return pool
 }
@@ -193,9 +193,6 @@ func (m *Backend) SetCustomAddress(newCustomAddress string) {
 	m.setStringSetting("zergpoolAddress", newCustomAddress)
 }
 
-func (m *Backend) PoolIsZergpool() bool {
-	return (m.pool.GetID() == 5)
-}
 
 func (m *Backend) PoolIsHashCryptos() bool {
 	return (m.pool.GetID() == 6)
