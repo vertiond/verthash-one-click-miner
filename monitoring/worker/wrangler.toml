@@ -1,0 +1,31 @@
+name = "verthash-ocm-monitor"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# No public HTTP endpoint, the worker only runs on its cron triggers
+workers_dev = false
+
+[triggers]
+crons = [
+  "0 */6 * * *",  # health checks, alerts when a service goes down or recovers
+  "0 12 * * 1",   # weekly "monitor is alive" message with the current status
+]
+
+# Create with: npx wrangler@4.146.0 kv namespace create STATE
+# then paste the id below. Without it the worker alerts on every run while
+# something is down, instead of only when the state changes.
+# [[kv_namespaces]]
+# binding = "STATE"
+# id = ""
+
+[vars]
+# Keep these in sync with networks/networks.go (a Go test checks that they are)
+BLOCKBOOK_URLS = "https://blockbook.doge.zelcore.io/,https://dogecoin.atomicwallet.io/"
+BACKEND_URLS = "https://ocmbackend.javerity.com/,https://ocmbackend.mindcraftblocks.com/"
+# The Dogecoin Foundation address from https://foundation.dogecoin.com/about/. It is a
+# long-lived, rarely moving address that always has UTXOs, which exercises the
+# lookup without ever pointing at anyone's personal wallet.
+PROBE_ADDRESS = "D89DhnsgKncmN12RejxudfU8AwXp3946q1"
+MINERS_JSON_URL = "https://raw.githubusercontent.com/vertiond/verthash-one-click-miner/master/miners.json"
+
+# Secret, set with: npx wrangler@4.146.0 secret put DISCORD_WEBHOOK_URL

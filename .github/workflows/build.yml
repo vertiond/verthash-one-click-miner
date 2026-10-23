@@ -130,6 +130,10 @@ jobs:
       - name: Run Go tests
         run: go test ./...
 
+      - name: Run monitor tests
+        working-directory: monitoring/worker
+        run: npm test
+
       # The frontend is bundled into the binary, so verify that every installed
       # package matches the registry's signatures before anything is attested or uploaded
       - name: Verify npm package signatures
