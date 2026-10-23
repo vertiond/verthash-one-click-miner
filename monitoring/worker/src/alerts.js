@@ -19,14 +19,15 @@ export function planAlerts(results, previous, threshold = 1) {
   const down = [];
   const recovered = [];
   for (const r of results) {
-    const was = entryOf(previous ? previous[r.name] : undefined, threshold);
+    const limit = r.alertAfter || threshold;
+    const was = entryOf(previous ? previous[r.name] : undefined, limit);
     let failures = 0;
     let alerted = false;
     if (r.status === "down") {
-      failures = Math.min(was.failures + 1, threshold);
+      failures = Math.min(was.failures + 1, limit);
       alerted = was.alerted;
       // Without stored state there is nothing to count with, alert on every failure
-      if (previous === null || (!was.alerted && failures >= threshold)) {
+      if (previous === null || (!was.alerted && failures >= limit)) {
         down.push({ ...r, failures });
         alerted = true;
       }

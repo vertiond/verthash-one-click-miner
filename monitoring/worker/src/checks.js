@@ -111,25 +111,42 @@ async function checkPrices(fetchFn) {
   }
 }
 
-export async function runChecks(env, fetchFn = fetch, now = Date.now) {
+// groups: which checks to run, "blockbook", "prices" and "backends". The services are
+// checked at different rates, each category says how many failed checks in a row it
+// takes to alert (alertAfter): backends use FAILURES_BEFORE_ALERT, Blockbook and
+// CoinPaprika use DAILY_FAILURES_BEFORE_ALERT.
+export const ALL_GROUPS = ["blockbook", "prices", "backends"];
+
+export async function runChecks(env, fetchFn = fetch, now = Date.now, groups = ALL_GROUPS) {
   const address = env.PROBE_ADDRESS;
-  const backendUrls = list(env.BACKEND_URLS);
+  const backendAlertAfter = Number(env.FAILURES_BEFORE_ALERT) || 1;
+  const dailyAlertAfter = Number(env.DAILY_FAILURES_BEFORE_ALERT) || 1;
+  const results = [];
 
-  const [blockbook, prices, ...backends] = await Promise.all([
-    Promise.all(
-      list(env.BLOCKBOOK_URLS).map((url) =>
-        probe(hostOf(url), () => checkBlockbookServer(fetchFn, url, address, now))
+  const blockbook = groups.includes("blockbook")
+    ? Promise.all(
+        list(env.BLOCKBOOK_URLS).map((url) =>
+          probe(hostOf(url), () => checkBlockbookServer(fetchFn, url, address, now))
+        )
       )
-    ),
-    probe("api.coinpaprika.com", () => checkPrices(fetchFn)),
-    ...backendUrls.map((url) => probe(hostOf(url), () => checkBackendServer(fetchFn, url)))
-  ]);
+    : null;
+  const prices = groups.includes("prices") ? probe("api.coinpaprika.com", () => checkPrices(fetchFn)) : null;
+  const backends = groups.includes("backends")
+    ? Promise.all(list(env.BACKEND_URLS).map((url) => probe(hostOf(url), () => checkBackendServer(fetchFn, url))))
+    : null;
 
-  return [
+  if (blockbook) {
     // Down only when every server fails, one is enough to keep the wallet working
-    category("Blockbook (Dogecoin wallet)", "blockbook", blockbook),
-    category("CoinPaprika (prices)", "coinpaprika", [prices]),
+    results.push({ ...category("Blockbook (Dogecoin wallet)", "blockbook", await blockbook), alertAfter: dailyAlertAfter });
+  }
+  if (prices) {
+    results.push({ ...category("CoinPaprika (prices)", "coinpaprika", [await prices]), alertAfter: dailyAlertAfter });
+  }
+  if (backends) {
     // Each backend is its own category, they have different owners
-    ...backends.map((b) => category(`OCM backend ${b.label}`, b.label, [b]))
-  ];
+    for (const b of await backends) {
+      results.push({ ...category(`OCM backend ${b.label}`, b.label, [b]), alertAfter: backendAlertAfter });
+    }
+  }
+  return results;
 }

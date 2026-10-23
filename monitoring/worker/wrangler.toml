@@ -7,8 +7,9 @@ workers_dev = false
 
 [triggers]
 crons = [
-  "* * * * *",    # health checks every minute, alerts after 5 failed checks in a row
-  "0 12 * * 1",   # weekly "monitor is alive" message with the current status
+  "* * * * *",   # OCM backends every minute, alerts after 5 failed checks in a row
+  "0 12 * * *", # Blockbook and CoinPaprika once a day, alerts after 2 failed days in a row.
+                # On Mondays this run also checks the backends and sends the weekly summary.
 ]
 
 # Create with: npx wrangler@4.152.0 kv namespace create <any name>
@@ -28,9 +29,12 @@ BACKEND_URLS = "https://ocmbackend.javerity.com/,https://ocmbackend.mindcraftblo
 # lookup without ever pointing at anyone's personal wallet.
 PROBE_ADDRESS = "D89DhnsgKncmN12RejxudfU8AwXp3946q1"
 
-# How many checks in a row have to fail before a service alerts. At one check a minute
+# How many checks in a row have to fail before an OCM backend alerts. At one check a minute
 # that is 5 minutes. A single success starts the count over.
 FAILURES_BEFORE_ALERT = "5"
+
+# The same for Blockbook and CoinPaprika, which are only checked once a day, so 2 is 48 hours
+DAILY_FAILURES_BEFORE_ALERT = "2"
 
 # Who to ping when a service is down, by Discord user id (Discord settings > Advanced >
 # Developer Mode, then right-click a user > Copy User ID). The keys are "blockbook"
