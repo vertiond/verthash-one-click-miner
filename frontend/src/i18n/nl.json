@@ -35,7 +35,9 @@
         "active_pool" : "Actieve pool",
         "pool_fee" : "Vergoeding",
         "copy_address" : "Kopieer je portemonnee adres",
-        "payout_information" : "Bekijk uitbetaling informatie"
+        "payout_information" : "Bekijk uitbetaling informatie",
+        "payout_shortage_doge" : "De pool heeft te weinig DOGE, uitbetalingen kunnen vertraagd zijn. Je saldo is veilig en wordt uitbetaald. Kies HashCryptos.com in Instellingen voor snellere DOGE-uitbetalingen.",
+        "payout_shortage_other" : "De pool heeft te weinig {ticker}, waardoor uitbetalingen vertraagd kunnen zijn. Je saldo is veilig en wordt uitbetaald. Voor snellere uitbetalingen kies je een andere uitbetalingsvaluta in Instellingen."
     },
     "sending" : {
         "send_all_to" : "Verstuur al je coins naar",
@@ -71,7 +73,13 @@
         "skipverthashverify":"Verifieer Verthash niet bij opstarten",
         "skipverthashverify_sub":"Zal het verifiëren van de bestandsintegriteit van Verthash-gegevens bij het opstarten overslaan (niet aanbevolen)",
         "save_n_restart" : "Opslaan & Herstarten",
-        "pool": "Mining pool"
+        "pool": "Mining pool",
+        "payout": "Uitbetaling",
+        "customAddress": "Adres om uitbetaling te ontvangen",
+        "address_activation": "Kopieer adres en activeer adres",
+        "doge_only": "ALLEEN DOGE",
+        "mine_verthash_paid_doge": "Minen: Verthash, Uitbetaald in: Dogecoin",
+        "network": "Netwerk"
     },
     "tabbar" : {
         "wallet" : "Portemonnee",

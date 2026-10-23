@@ -36,7 +36,9 @@
         "active_pool" : "Aktyvus pool",
         "pool_fee" : "mokestis",
         "copy_address" : "Kopijuoti jūsų piniginės adresą",
-        "payout_information" : "Peržiūrėti išmokėjimo informaciją"
+        "payout_information" : "Peržiūrėti išmokėjimo informaciją",
+        "payout_shortage_doge" : "Pool trūksta DOGE, todėl išmokėjimai gali vėluoti. Jūsų balansas saugus ir bus išmokėtas. Norėdami greitesnių DOGE išmokėjimų, nustatymuose pasirinkite HashCryptos.com.",
+        "payout_shortage_other" : "Pool trūksta {ticker}, todėl išmokėjimai gali vėluoti. Jūsų balansas saugus ir bus išmokėtas. Norėdami greitesnių išmokėjimų, nustatymuose pasirinkite kitą išmokėjimo valiutą."
     },
     "sending" : {
         "send_all_to" : "Siųsti visas jūsų iškastas monetas į",
@@ -72,7 +74,13 @@
         "skipverthashverify":"Paleidžiant netikrinti Verthash",
         "skipverthashverify_sub":"Praleisite Verthash duomenų failo patikrinimą paleidžiant programą (nerekomenduojama)",
         "save_n_restart" : "Išsaugoti ir perkrauti",
-        "pool": "Kasėjų pool"
+        "pool": "Kasėjų pool",
+        "payout": "Išmokėjimas",
+        "customAddress": "Adresas išmokėjimui gauti",
+        "address_activation": "Kopijuoti adresą ir aktyvuoti adresą",
+        "doge_only": "TIK DOGE",
+        "mine_verthash_paid_doge": "Kasti: Verthash, Išmokama: Dogecoin",
+        "network": "Tinklas"
     },
     "tabbar" : {
         "wallet" : "Piniginė",

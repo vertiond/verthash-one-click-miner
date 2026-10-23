@@ -30,7 +30,9 @@
     "waiting_for_miners": "Venter på at utvinnere starter",
     "expected_earnings_24h": "Forventet gevinst (24t)",
     "estimating": "Estimerer",
-    "stop_mining": "Stopp utvinning"
+    "stop_mining": "Stopp utvinning",
+    "payout_shortage_doge": "Poolen har for lite DOGE, så utbetalinger kan bli forsinket. Saldoen din er trygg og vil bli utbetalt. For raskere DOGE-utbetalinger kan du bytte til HashCryptos.com under Innstillinger.",
+    "payout_shortage_other": "Poolen har for lite {ticker}, så utbetalinger kan bli forsinket. Saldoen din er trygg og vil bli utbetalt. For raskere utbetalinger kan du velge en annen utbetalingsvaluta under Innstillinger."
   },
   "sending": {
     "send_all_to": "Send alle utvunnede kryptomynter til",
@@ -59,7 +61,13 @@
     "closed_source": "Bruk utvinningsprogramvare med stengt kildekode",
     "closed_source_sub": "Bedre hashrate, men ukjente utvinnerprogramvareutvikleren kan ha en avgift for å utvinne",
     "closed_source_warning": "Du har valgt å bruke utvinningsprogramvare(r) med lukket kildekode. Vertcoin støtter eller verifiserer ikke disse utvinnerne. Deres kildekode kan ikke verifiseres eller godkjennes, og de kan inneholde funksjoner som skader din datamaskin.",
-    "save_n_restart": "Lagre og start på nytt"
+    "save_n_restart": "Lagre og start på nytt",
+    "payout": "Utbetaling",
+    "customAddress": "Adresse for å motta utbetaling",
+    "address_activation": "Kopier adresse og aktiver adresse",
+    "doge_only": "KUN DOGE",
+    "mine_verthash_paid_doge": "Utvinn: Verthash, Utbetalt i: Dogecoin",
+    "network": "Nettverk"
   },
   "tabbar": {
     "wallet": "Lommebok",

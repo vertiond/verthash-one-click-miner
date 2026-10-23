@@ -36,7 +36,9 @@
         "active_pool" : "Aktiver Pool",
         "pool_fee" : "Pool-Gebühr",
         "copy_address" : "Wallet-Adresse kopieren",
-        "payout_information" : "Auszahlungsinformationen ansehen"
+        "payout_information" : "Auszahlungsinformationen ansehen",
+        "payout_shortage_doge" : "Dem Pool fehlen DOGE, Auszahlungen können sich verzögern. Ihr Guthaben ist sicher und wird ausgezahlt. Für schnellere DOGE-Auszahlungen in den Einstellungen HashCryptos.com wählen.",
+        "payout_shortage_other" : "Dem Pool fehlen {ticker}, Auszahlungen können sich verzögern. Ihr Guthaben ist sicher und wird ausgezahlt. Für schnellere Auszahlungen in den Einstellungen eine andere Währung wählen."
     },
     "sending" : {
         "send_all_to" : "Senden Sie all Ihre Coins an",
@@ -72,7 +74,13 @@
         "skipverthashverify" : "Verthash-Überprüfung beim Start überspringen",
         "skipverthashverify_sub" : "Die Prüfung der Datenintegrität der Verthash-Daten beim Start wird übersprungen (nicht empfohlen)",
         "save_n_restart" : "Speichern & Neustarten",
-        "pool" : "Mining-Pool"
+        "pool" : "Mining-Pool",
+        "payout" : "Auszahlung",
+        "customAddress" : "Adresse für Auszahlungen",
+        "address_activation" : "Adresse kopieren und aktivieren",
+        "doge_only" : "NUR DOGE",
+        "mine_verthash_paid_doge" : "Minen: Verthash, Ausgezahlt in: Dogecoin",
+        "network" : "Netzwerk"
     },
     "tabbar" : {
         "wallet" : "Wallet",

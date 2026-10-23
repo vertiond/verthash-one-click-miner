@@ -36,7 +36,9 @@
         "active_pool" : "Aktiv pool",
         "pool_fee" : "gebyr",
         "copy_address" : "Kopier din wallet adresse",
-        "payout_information" : "Se udbetalingsoplysninger"
+        "payout_information" : "Se udbetalingsoplysninger",
+        "payout_shortage_doge" : "Poolen mangler DOGE, så udbetalinger kan blive forsinket. Din saldo er sikker og bliver udbetalt. Skift til HashCryptos.com under Indstillinger for hurtigere DOGE-udbetalinger.",
+        "payout_shortage_other" : "Poolen mangler {ticker}, så udbetalinger kan blive forsinket. Din saldo er sikker og vil blive udbetalt. For hurtigere udbetalinger skal du vælge en anden udbetalingsvaluta under Indstillinger."
     },
     "sending" : {
         "send_all_to" : "Send alle dine minede coins til",
@@ -72,7 +74,13 @@
         "skipverthashverify": "Stop med at verificere Verthash data fil under opstart",
         "skipverthashverify_sub": "Spring verifikationen af verthash data filen over (ikke anbefalet)",
         "save_n_restart" : "Gem & Genstart",
-        "pool": "Mining pool"
+        "pool": "Mining pool",
+        "payout": "Udbetaling",
+        "customAddress": "Adresse til udbetaling",
+        "address_activation": "Kopier adresse og aktiver adresse",
+        "doge_only": "KUN DOGE",
+        "mine_verthash_paid_doge": "Min: Verthash, Udbetalt i: Dogecoin",
+        "network": "Netværk"
     },
     "tabbar" : {
         "wallet" : "Wallet",
