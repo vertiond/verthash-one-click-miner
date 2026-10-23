@@ -6,3 +6,7 @@ verthash-ocm.exe
 *.exe
 *.manifest
 *.syso
+.env
+.env.*
+.dev.vars
+.dev.vars.*
