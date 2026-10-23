@@ -67,8 +67,12 @@ func (m *Backend) SendSweep(password string) []string {
 
 }
 
+func explorerTxURL(txid string) string {
+	return networks.Active.ExplorerTxURL + txid
+}
+
 func (m *Backend) ShowTx(txid string) {
-	util.OpenBrowser(fmt.Sprintf("%stx/DOGE/%s", networks.Active.InsightURL, txid))
+	util.OpenBrowser(explorerTxURL(txid))
 }
 
 type PrepareResult struct {
