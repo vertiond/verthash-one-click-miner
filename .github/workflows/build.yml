@@ -74,7 +74,9 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          # go.mod says 1.18, whose cgo runtime does not link against the newer MinGW
+          # on the Windows runner (undefined reference to __imp___iob_func)
+          go-version: "1.22"
 
       - uses: actions/setup-node@v5
         with:
