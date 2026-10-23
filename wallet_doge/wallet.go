@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -49,40 +48,10 @@ func NewWallet(addr string, script []byte) (*Wallet, error) {
 }
 
 func (w *Wallet) Utxos() ([]Utxo, error) {
-	utxos := []Utxo{}
-	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("%sapi/v2/get_tx_unspent/DOGE/%s", networks.Active.InsightURL, w.Address), &jsonPayload)
-	json_parse_success := false
-	if err == nil {
-		jsonData, ok := jsonPayload["data"].(map[string]interface{})
-		if ok {
-			jsonDataTxArr, ok := jsonData["txs"].([]interface{})
-			if ok {
-				json_parse_success = true
-				for _, jsonDataTxInfo := range jsonDataTxArr {
-					jsonDataTxInfoMap := jsonDataTxInfo.(map[string]interface{})
-					utxo_txid, ok1 := jsonDataTxInfoMap["txid"].(string)
-					utxo_vout, ok2 := jsonDataTxInfoMap["output_no"].(float64)
-					tx_value_in_dogecoin_str, ok3 := jsonDataTxInfoMap["value"].(string)
-					if !ok1 || !ok2 || !ok3 {
-						json_parse_success = false
-						break
-					}
-					tx_value_in_dogecoin_float, _ := strconv.ParseFloat(tx_value_in_dogecoin_str, 64)
-					utxo_amount := uint64(math.Round(tx_value_in_dogecoin_float * float64(100000000)))
-					u := Utxo{utxo_txid, uint(utxo_vout), utxo_amount}
-					utxos = append(utxos, u)
-				}
-			}
-		}
-	}
-	if !json_parse_success {
-		if err != nil {
-			logging.Errorf("Error fetching UTXOs from DOGE Backend: %s", err.Error())
-		} else {
-			logging.Errorf("Error fetching UTXOs from DOGE Backend")
-		}
-		return utxos, err
+	utxos, _, err := blockbookUtxos(w.Address)
+	if err != nil {
+		logging.Errorf("Error fetching UTXOs from DOGE Backend: %s", err.Error())
+		return []Utxo{}, err
 	}
 	return utxos, nil
 }
@@ -251,35 +220,17 @@ type BalanceResponse struct {
 
 // Update will reload balance from the backend
 func (w *Wallet) Update() {
-	bal := BalanceResponse{}
-	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(fmt.Sprintf("%sapi/v2/get_address_balance/DOGE/%s", networks.Active.InsightURL, w.Address), &jsonPayload)
-	json_parse_success := false
-	if err == nil {
-		jsonData, ok := jsonPayload["data"].(map[string]interface{})
-		if ok {
-			balance_confirmed_in_doge_str, ok1 := jsonData["confirmed_balance"].(string)
-			balance_unconfirmed_in_doge_str, ok2 := jsonData["unconfirmed_balance"].(string)
-			if ok1 && ok2 {
-				balance_confirmed_in_doge_float, _ := strconv.ParseFloat(balance_confirmed_in_doge_str, 64)
-				balance_unconfirmed_in_doge_float, _ := strconv.ParseFloat(balance_unconfirmed_in_doge_str, 64)
-				balance_spendable := uint64(math.Round((balance_confirmed_in_doge_float + balance_unconfirmed_in_doge_float) * float64(100000000)))
-				balance_maturing := uint64(0)
-				bal = BalanceResponse{balance_spendable, balance_maturing}
-				json_parse_success = true
-			}
-		}
-	}
-	if !json_parse_success {
-		if err != nil {
-			logging.Errorf("Error fetching balance from backend: %s", err.Error())
-		} else {
-			logging.Errorf("Error fetching balance from backend")
-		}
+	utxos, immature, err := blockbookUtxos(w.Address)
+	if err != nil {
+		logging.Errorf("Error fetching balance from backend: %s", err.Error())
 		return
 	}
-	w.Spendable = bal.Spendable
-	w.Maturing = bal.Maturing
+	spendable := uint64(0)
+	for _, u := range utxos {
+		spendable += u.Amount
+	}
+	w.Spendable = spendable
+	w.Maturing = immature
 }
 
 // GetBalance will scan the utxos in the wallet and return

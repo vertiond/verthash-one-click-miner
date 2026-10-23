@@ -3,14 +3,11 @@ package wallet
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/vertiond/verthash-one-click-miner/keyfile"
-	"github.com/vertiond/verthash-one-click-miner/networks"
-	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
 // SignMyInputs finds the inputs in a transaction that came from our own wallet, and signs them with our private keys.
@@ -51,40 +48,8 @@ func (w *Wallet) SignMyInputs(tx *wire.MsgTx, password string) error {
 	return nil
 }
 
-type txSend struct {
-	RawTx string `json:"tx_hex"`
-}
-
-type txSendReply struct {
-	TxId string `json:"txid"`
-}
-
 func (w *Wallet) Send(tx *wire.MsgTx) (string, error) {
 	var b bytes.Buffer
 	tx.Serialize(&b)
-	s := txSend{
-		RawTx: hex.EncodeToString(b.Bytes()),
-	}
-
-	r := txSendReply{}
-
-	jsonPayload := map[string]interface{}{}
-	err := util.PostJson(fmt.Sprintf("%sapi/v2/send_tx/DOGE", networks.Active.InsightURL), s, &jsonPayload)
-	json_parse_success := false
-	if err == nil {
-		jsonData, ok := jsonPayload["data"].(map[string]interface{})
-		if ok {
-			txid, ok := jsonData["txid"].(string)
-			r = txSendReply{txid}
-			if ok {
-				json_parse_success = true
-			}
-		}
-	}
-
-	if !json_parse_success {
-		return "", err
-	}
-
-	return r.TxId, err
+	return blockbookSend(hex.EncodeToString(b.Bytes()))
 }

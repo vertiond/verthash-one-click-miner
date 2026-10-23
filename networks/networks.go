@@ -10,6 +10,7 @@ type Network struct {
 	WalletDB           string
 	OCMBackend         string
 	BackendServers     []string
+	BlockbookURLs      []string
 }
 
 var Active Network
@@ -34,6 +35,9 @@ func SetNetwork(testnet bool) {
 			P2ProxyStratum:     "stratum+tcp://p2proxy.vertcoin.org:9171",
 			P2ProxyURL:         "https://p2proxy.vertcoin.org/",
 			WalletDB:           "wallet-testnet.db",
+			BlockbookURLs: []string{
+				"https://blockbook.doge.zelcore.io/",
+				"https://dogecoin.atomicwallet.io/"},
 			BackendServers: []string{
 				"https://kforg.javerity.com/",
 				"https://ocmbackend.javerity.com/",
