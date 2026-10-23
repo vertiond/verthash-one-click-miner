@@ -11,12 +11,13 @@ crons = [
   "0 12 * * 1",   # weekly "monitor is alive" message with the current status
 ]
 
-# Create with: npx wrangler@4.146.0 kv namespace create STATE
+# Create with: npx wrangler@4.146.0 kv namespace create <any name>
 # then paste the id below. Without it the worker alerts on every run while
 # something is down, instead of only when the state changes.
-# [[kv_namespaces]]
-# binding = "STATE"
-# id = ""
+# The binding name has to stay STATE, the code reads env.STATE.
+[[kv_namespaces]]
+binding = "STATE"
+id = "517540d3553e4b62a1361324b81604bc"
 
 [vars]
 # Keep these in sync with networks/networks.go (a Go test checks that they are)
