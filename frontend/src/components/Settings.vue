@@ -23,12 +23,13 @@
             v-model="customAddress"
             v-bind:placeholder="$t('settings.customAddress')"
             v-on:change="sanitizeAddress"
+            v-on:keyup.enter="saveFromAddress"
           />
         </p>
         <p v-if="poolID == 6" style="text-align: left">
-          <br><a class="link" @click="activationInformation">{{ $t('settings.address_activation') }}</a>
+          {{ $t("settings.doge_only") }}
+          <br><a class="link" @click="copyAndActivate">{{ $t('settings.address_activation') }}</a>
           {{ $t("settings.mine_verthash_paid_doge") }}
-          <br><a class="link" @click="copyAddress">{{ $t('mining.copy_address') }}</a>
         </p>
       </div>
       <div class="col-settings-sub" v-bind:style="{ visibility: loaded ? 'visible' : 'hidden' }">
@@ -97,6 +98,9 @@ export default {
       renderPayouts: true,
       customAddress: "",
       address:"",
+      // Address typed for each payout, by payout ID, so changing the payout doesn't lose the others
+      savedAddresses: {},
+      lastPayoutID: -1,
       // False until the first values arrive, so half-loaded ones (empty pool list,
       // payout address box) are never shown
       loaded: false,
@@ -108,6 +112,12 @@ export default {
       for (var key in settings) {
         self[key] = settings[key];
       }
+      // Work on a copy so edits that are never saved don't leak into the cached settings
+      self.savedAddresses = Object.assign({}, settings.savedAddresses);
+      if (self.customAddress) {
+        self.savedAddresses[self.payoutID] = self.customAddress;
+      }
+      self.lastPayoutID = self.payoutID;
       self.loaded = true;
     };
 
@@ -131,18 +141,36 @@ export default {
     updatePoolPayouts: function() {
       var self = this;
       window.backend.Backend.GetPayouts(self.poolID).then(result => { self.payouts = result; });
-      window.backend.Backend.GetKickbackPayoutID(self.poolID, self.payoutID).then(result => { self.payoutID = result; });
+      window.backend.Backend.GetKickbackPayoutID(self.poolID, self.payoutID).then(result => {
+        self.payoutID = result;
+        self.switchPayoutAddress();
+      });
+    },
+    // Remember the address for the payout we're leaving and bring back the one for the new payout
+    switchPayoutAddress: function() {
+      var self = this;
+      if (self.payoutID == self.lastPayoutID) {
+        return;
+      }
+      self.savedAddresses[self.lastPayoutID] = self.customAddress;
+      self.customAddress = self.savedAddresses[self.payoutID] || "";
+      self.lastPayoutID = self.payoutID;
     },
     sanitizeAddress: function() {
       var self = this;
       self.customAddress = self.customAddress.trim();
     },
+    saveFromAddress: function() {
+      this.sanitizeAddress();
+      this.save();
+    },
     changePayoutOptions: function() {
       var self = this;
-      self.customAddress = "";
+      self.switchPayoutAddress();
       window.backend.Backend.GetNetworks(self.poolID, self.payoutID).then(result => { self.networks = result; });
     },
-    activationInformation: function() {
+    copyAndActivate: function() {
+      this.copyAddress();
       window.backend.Backend.ActivationInformation();
     },
     copyAddress: function() {
@@ -168,6 +196,8 @@ export default {
     },
     save: function() {
       var self = this;
+      self.savedAddresses[self.payoutID] = self.customAddress;
+      window.backend.Backend.SetPayoutAddresses(JSON.stringify(self.savedAddresses));
       window.backend.Backend.SetClosedSource(this.closedSourceMiner).then(() => {
           window.backend.Backend.SetDebugging(self.debugging).then(() => {
             window.backend.Backend.SetAutoStart(self.autoStart).then(() => {

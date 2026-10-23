@@ -36,7 +36,9 @@
         "active_pool" : "Active pool",
         "pool_fee" : "fee",
         "copy_address" : "Copy your wallet address",
-        "payout_information" : "View payout information"
+        "payout_information" : "View payout information",
+        "payout_shortage_doge" : "The pool is short of DOGE, so payouts may be delayed. Your balance is safe and will be paid out. For faster DOGE payouts, switch to HashCryptos.com in Settings.",
+        "payout_shortage_other" : "The pool is short of {ticker}, so payouts may be delayed. Your balance is safe and will be paid out. For faster payouts, choose another payout currency in Settings."
     },
     "sending" : {
         "send_all_to" : "Send all your mined coins to",
@@ -75,7 +77,8 @@
         "pool": "Mining pool",
         "payout" : "Payout",
         "customAddress" : "Address to receive payout",
-        "address_activation" : "DOGE ONLY - Click to activate address",
+        "address_activation" : "Copy address and activate address",
+        "doge_only" : "DOGE ONLY",
         "mine_verthash_paid_doge" : "Mine: Verthash, Paid in: Dogecoin",
         "network": "Network"
     },

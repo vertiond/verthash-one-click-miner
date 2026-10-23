@@ -25,7 +25,8 @@ export function loadSettings() {
     b.GetPayout(),
     b.GetNetwork(),
     b.GetCustomAddress(),
-    b.Address()
+    b.Address(),
+    b.GetPayoutAddresses()
   ])
     .then(function(r) {
       s.closedSourceMiner = r[0];
@@ -39,6 +40,7 @@ export function loadSettings() {
       s.network = r[8];
       s.customAddress = r[9];
       s.address = r[10];
+      s.savedAddresses = r[11];
       // These two depend on the selected pool and payout
       return Promise.all([
         b.GetPayouts(s.poolID),
