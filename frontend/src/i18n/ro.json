@@ -30,7 +30,9 @@
         "waiting_for_miners" : "Se așteaptă pornirea minerilor",
         "expected_earnings_24h" : "Câștiguri așteptate (24h)",
         "estimating" : "se estimează",
-        "stop_mining" : "Oprește minarea"
+        "stop_mining" : "Oprește minarea",
+        "payout_shortage_doge" : "Pool-ul nu are suficient DOGE, așa că plățile pot întârzia. Balanța ta este în siguranță și va fi plătită. Pentru plăți DOGE mai rapide, treci la HashCryptos.com din Setări.",
+        "payout_shortage_other" : "Pool-ul nu are suficient {ticker}, așa că plățile pot întârzia. Balanța ta este în siguranță și va fi plătită. Pentru plăți mai rapide, alege o altă monedă de plată din Setări."
     },
     "sending" : {
         "send_all_to" : "Trimite toate monedele minate către",
@@ -59,7 +61,13 @@
         "closed_source" : "Folosește mineri closed-source",
         "closed_source_sub" : "Au hashrate mai bun, dar sunt mineri neauditați care trimit o taxă către dezvoltator",
         "closed_source_warning" : "Ai ales să folosești mineri closed-source. Vertcoin nu este afiliat cu acești mineri și nu oferă suport pentru ei. Conținutul lor nu poate fi auditat și ar putea include funcționalități dăunătoare pentru calculatorul tău.",
-        "save_n_restart" : "Salvează și repornește"
+        "save_n_restart" : "Salvează și repornește",
+        "payout" : "Plată",
+        "customAddress" : "Adresa pentru primirea plății",
+        "address_activation" : "Copiază adresa și activează adresa",
+        "doge_only" : "DOAR DOGE",
+        "mine_verthash_paid_doge" : "Minează: Verthash, Plătit în: Dogecoin",
+        "network" : "Rețea"
     },
     "tabbar" : {
         "wallet" : "Portofel",

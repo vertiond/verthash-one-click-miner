@@ -30,7 +30,9 @@
         "waiting_for_miners" : "Čekanje da softver za rudarenje započne sa radom",
         "expected_earnings_24h" : "Očekivana zarada(24h)",
         "estimating" : "Vršim procjenu",
-        "stop_mining" : "Zaustavi rudarenje"
+        "stop_mining" : "Zaustavi rudarenje",
+        "payout_shortage_doge" : "Poolu nedostaje DOGE, pa isplate mogu kasniti. Vaš iznos je siguran i bit će isplaćen. Za brže DOGE isplate prebacite se na HashCryptos.com u Postavkama.",
+        "payout_shortage_other" : "Poolu nedostaje {ticker}, pa isplate mogu kasniti. Vaš iznos je siguran i bit će isplaćen. Za brže isplate odaberite drugu valutu isplate u Postavkama."
     },
     "sending" : {
         "send_all_to" : "Pošalji sve izrudarene novčiće na",
@@ -59,7 +61,13 @@
         "closed_source" : "Koristi softver za rudarenje zatvorenog koda",
         "closed_source_sub" : "Bolji hashrate, ali neocijenjeni softver za rudarenje može uključivati naknadu za razvojne inženjere",
         "closed_source_warning" : "Odlučili ste koristiti softver(e) za rudarenje zatvorenog koda. Vertcoin ne odobrava i ne podržava njihovu upotrebu. Ne može se provjeriti njihov sadržaj i potencijalno mogu sadržavati funkcije koje mogu oštetiti vaše računalo.",
-        "save_n_restart" : "Spremi i ponovno pokreni"
+        "save_n_restart" : "Spremi i ponovno pokreni",
+        "payout" : "Isplata",
+        "customAddress" : "Adresa za primanje isplate",
+        "address_activation" : "Kopiraj adresu i aktiviraj adresu",
+        "doge_only" : "SAMO DOGE",
+        "mine_verthash_paid_doge" : "Rudari: Verthash, Isplata u: Dogecoin",
+        "network" : "Mreža"
     },
     "tabbar" : {
         "wallet" : "Novčanik",

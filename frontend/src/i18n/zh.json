@@ -30,7 +30,9 @@
         "waiting_for_miners" : "等待矿工开始",
         "expected_earnings_24h" : "预期收益（24小时）",
         "estimating" : "估计中",
-        "stop_mining" : "停止挖矿"
+        "stop_mining" : "停止挖矿",
+        "payout_shortage_doge" : "矿池 DOGE 不足，支付可能会延迟。您的余额是安全的，稍后将会支付。如需更快的 DOGE 支付，请在设置中切换到 HashCryptos.com。",
+        "payout_shortage_other" : "矿池 {ticker} 不足，支付可能会延迟。您的余额是安全的，稍后将会支付。如需更快支付，请在设置中选择其他支付币种。"
     },
     "sending" : {
         "send_all_to" : "发送你所有挖矿的币到",
@@ -59,7 +61,13 @@
         "closed_source" : "使用闭源的矿工",
         "closed_source_sub" : "更好的哈希率，但是未经审核的矿工会产生开发人员的费用",
         "closed_source_warning" : "你选择使用闭源的矿工。绿币（VTC）不支持这些矿工。他们无法对其内容进行审核并且可能包含损害你的电脑的功能。",
-        "save_n_restart" : "保存及重启"
+        "save_n_restart" : "保存及重启",
+        "payout" : "支付",
+        "customAddress" : "接收支付的地址",
+        "address_activation" : "复制地址并激活地址",
+        "doge_only" : "仅限 DOGE",
+        "mine_verthash_paid_doge" : "挖矿：Verthash，支付币种：Dogecoin",
+        "network" : "网络"
     },
     "tabbar" : {
         "wallet" : "钱包",

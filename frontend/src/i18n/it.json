@@ -36,7 +36,9 @@
         "active_pool" : "Pool attiva",
         "pool_fee" : "tassa",
         "copy_address" : "Copia l'indirizzo del tuo portafoglio",
-        "payout_information" : "Visualizza le informazioni di pagamento"
+        "payout_information" : "Visualizza le informazioni di pagamento",
+        "payout_shortage_doge" : "Il pool ha poche riserve di DOGE, quindi i pagamenti potrebbero subire ritardi. Il tuo saldo è al sicuro e verrà pagato. Per pagamenti in DOGE più rapidi, passa a HashCryptos.com nelle Impostazioni.",
+        "payout_shortage_other" : "Il pool ha poche riserve di {ticker}, quindi i pagamenti potrebbero subire ritardi. Il tuo saldo è al sicuro e verrà pagato. Per pagamenti più rapidi, scegli un'altra valuta di pagamento nelle Impostazioni."
     },
     "sending" : {
         "send_all_to" : "Invia tutte le tue monete minate a",
@@ -72,7 +74,13 @@
         "skipverthashverify" : "Non verificare Verthash all'avvio",
         "skipverthashverify_sub" : "Salta la verifica di integrità del file dei dati di Verthash all'avvio (non raccomandato)",
         "save_n_restart" : "Salva e Riavvia",
-        "pool" : "Pool di mining"
+        "pool" : "Pool di mining",
+        "payout" : "Pagamento",
+        "customAddress" : "Indirizzo per ricevere i pagamenti",
+        "address_activation" : "Copia l'indirizzo e attiva l'indirizzo",
+        "doge_only" : "SOLO DOGE",
+        "mine_verthash_paid_doge" : "Mina: Verthash, Pagato in: Dogecoin",
+        "network" : "Rete"
     },
     "tabbar" : {
         "wallet" : "Portafoglio",

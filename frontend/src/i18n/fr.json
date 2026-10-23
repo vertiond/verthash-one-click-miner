@@ -30,7 +30,9 @@
         "waiting_for_miners" : "En attente de mineurs pour démarrer",
         "expected_earnings_24h" : "Bénéfices attendus (24h)",
         "estimating" : "Estimation",
-        "stop_mining" : "Arrêt du minage"
+        "stop_mining" : "Arrêt du minage",
+        "payout_shortage_doge" : "La pool manque de DOGE, les paiements peuvent être retardés. Votre solde est sécurisé et sera versé. Pour des paiements DOGE plus rapides, choisissez HashCryptos.com dans les Paramètres.",
+        "payout_shortage_other" : "La pool manque de {ticker}, les paiements peuvent être retardés. Votre solde est en sécurité et sera versé. Pour des paiements plus rapides, choisissez une autre devise dans les Paramètres."
     },
     "sending" : {
         "send_all_to" : "Envoyer toute votre cryptomonnaie minée à",
@@ -59,7 +61,13 @@
         "closed_source" : "Utiliser des logiciels de minage propriétaires",
         "closed_source_sub" : "Meilleur taux de hachage, mais logiciel de minage ne rétribuant pas les développeurs",
         "closed_source_warning" : "Vous avez choisi d'utiliser des logiciels de minage propriétaires. Vertcoin n'en assure pas le support. Leur contenu ne peut pas être audité et pourrait comporter des fonctions qui endommagent votre ordinateur.",
-        "save_n_restart" : "Enregistrer & Redémarrer"
+        "save_n_restart" : "Enregistrer & Redémarrer",
+        "payout" : "Paiement",
+        "customAddress" : "Adresse de paiement",
+        "address_activation" : "Copier l'adresse et activer l'adresse",
+        "doge_only" : "DOGE UNIQUEMENT",
+        "mine_verthash_paid_doge" : "Miner : Verthash, Payé en : Dogecoin",
+        "network" : "Réseau"
     },
     "tabbar" : {
         "wallet" : "Portefeuille",
