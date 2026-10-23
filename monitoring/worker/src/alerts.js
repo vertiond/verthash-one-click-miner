@@ -2,19 +2,38 @@
 // servers has failed ("down"), and again when it recovers. Partly failing
 // ("degraded") categories only show up as detail, the app fails over on its own.
 
-export function planAlerts(results, previous) {
+// What is remembered about a category between runs: how many checks in a row it has failed
+// (counting stops at the threshold) and whether its owner was already told.
+function entryOf(stored, threshold) {
+  if (stored && typeof stored === "object") {
+    return { failures: stored.failures || 0, alerted: stored.alerted === true };
+  }
+  // The format of the first version stored just the status
+  return stored === "down" ? { failures: threshold, alerted: true } : { failures: 0, alerted: false };
+}
+
+// threshold: how many failed checks in a row it takes to alert. A category that
+// recovers in between starts counting again from zero.
+export function planAlerts(results, previous, threshold = 1) {
   const state = {};
   const down = [];
   const recovered = [];
   for (const r of results) {
-    state[r.name] = r.status;
-    const was = previous ? previous[r.name] : undefined;
-    // Without stored state every failing category alerts again on every run
-    if (r.status === "down" && (previous === null || was !== "down")) {
-      down.push(r);
-    } else if (r.status !== "down" && was === "down") {
+    const was = entryOf(previous ? previous[r.name] : undefined, threshold);
+    let failures = 0;
+    let alerted = false;
+    if (r.status === "down") {
+      failures = Math.min(was.failures + 1, threshold);
+      alerted = was.alerted;
+      // Without stored state there is nothing to count with, alert on every failure
+      if (previous === null || (!was.alerted && failures >= threshold)) {
+        down.push({ ...r, failures });
+        alerted = true;
+      }
+    } else if (was.alerted) {
       recovered.push(r);
     }
+    state[r.name] = { failures, alerted };
   }
   return { state, down, recovered };
 }
@@ -24,10 +43,18 @@ function describe(r) {
   return lines.join("\n");
 }
 
-export function formatAlert({ down, recovered }, results) {
+// Who to ping for a category, mentions maps its key to a Discord user id
+export function mentionFor(r, mentions) {
+  const id = mentions && mentions[r.key];
+  return id ? `<@${id}>` : "";
+}
+
+export function formatAlert({ down, recovered }, results, mentions = {}) {
   const parts = [];
   for (const r of down) {
-    parts.push(`🔴 **${r.name} is down**\n${describe(r)}`);
+    const title = `🔴 **${r.name} is down** ${mentionFor(r, mentions)}`.trimEnd();
+    const streak = r.failures > 1 ? ` (failed ${r.failures} checks in a row)` : "";
+    parts.push(`${title}${streak}\n${describe(r)}`);
   }
   for (const r of recovered) {
     parts.push(`🟢 **${r.name} recovered**`);

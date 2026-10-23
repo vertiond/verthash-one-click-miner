@@ -10,3 +10,4 @@ verthash-ocm.exe
 .env.*
 .dev.vars
 .dev.vars.*
+.wrangler/

@@ -26,22 +26,24 @@ function hostOf(url) {
 
 // A server passes when run() resolves, and fails with the thrown message
 async function probe(label, run) {
+  const started = Date.now();
   try {
     await run();
-    return { label, ok: true, detail: "" };
+    return { label, ok: true, detail: "", ms: Date.now() - started };
   } catch (err) {
-    return { label, ok: false, detail: err && err.message ? err.message : String(err) };
+    return { label, ok: false, detail: err && err.message ? err.message : String(err), ms: Date.now() - started };
   }
 }
 
 // ok: every server passes. degraded: some fail. down: all of them fail.
-function category(name, servers) {
+// key: what the MENTIONS setting uses to decide who to ping
+function category(name, key, servers) {
   if (servers.length === 0) {
-    return { name, status: "down", servers: [{ label: "-", ok: false, detail: "nothing is configured to check" }] };
+    return { name, key, status: "down", servers: [{ label: "-", ok: false, detail: "nothing is configured to check" }] };
   }
   const failed = servers.filter((s) => !s.ok).length;
   const status = failed === 0 ? "ok" : failed === servers.length ? "down" : "degraded";
-  return { name, status, servers };
+  return { name, key, status, servers };
 }
 
 function list(value) {
@@ -91,57 +93,43 @@ async function checkBackendServer(fetchFn, base) {
   }
 }
 
-async function checkPrice(fetchFn, id) {
-  const data = await getJson(fetchFn, `https://api.coinpaprika.com/v1/tickers/${id}?quotes=BTC`);
+// CoinPaprika limits every IP to 60 requests an hour and Cloudflare's shared addresses
+// hit that all the time, it answers HTTP 402 or 429. A rate limited answer still means
+// the service is up, only timeouts, errors and bad data count as down.
+async function checkPrices(fetchFn) {
+  const res = await request(fetchFn, "https://api.coinpaprika.com/v1/tickers/doge-dogecoin?quotes=BTC");
+  if (res.status === 402 || res.status === 429) {
+    return;
+  }
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+  const data = await res.json();
   const price = data && data.quotes && data.quotes.BTC && data.quotes.BTC.price;
   if (!(price > 0)) {
     throw new Error("no BTC price");
   }
 }
 
-async function checkMinerDownloads(fetchFn, minersJsonUrl) {
-  let miners;
-  try {
-    miners = await getJson(fetchFn, minersJsonUrl);
-  } catch (err) {
-    return [{ label: "miners.json", ok: false, detail: err.message }];
-  }
-  const urls = [...new Set(miners.map((m) => m.url).filter(Boolean))];
-  return Promise.all(
-    urls.map((url) =>
-      probe(url.split("/").slice(-2).join("/"), async () => {
-        const res = await request(fetchFn, url, { method: "HEAD", redirect: "follow" });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-      })
-    )
-  );
-}
-
 export async function runChecks(env, fetchFn = fetch, now = Date.now) {
   const address = env.PROBE_ADDRESS;
+  const backendUrls = list(env.BACKEND_URLS);
 
-  const [blockbook, backends, prices, miners] = await Promise.all([
+  const [blockbook, prices, ...backends] = await Promise.all([
     Promise.all(
       list(env.BLOCKBOOK_URLS).map((url) =>
         probe(hostOf(url), () => checkBlockbookServer(fetchFn, url, address, now))
       )
     ),
-    Promise.all(list(env.BACKEND_URLS).map((url) => probe(hostOf(url), () => checkBackendServer(fetchFn, url)))),
-    Promise.all(
-      [
-        ["DOGE", "doge-dogecoin"],
-        ["VTC", "vtc-vertcoin"]
-      ].map(([ticker, id]) => probe(ticker, () => checkPrice(fetchFn, id)))
-    ),
-    checkMinerDownloads(fetchFn, env.MINERS_JSON_URL)
+    probe("api.coinpaprika.com", () => checkPrices(fetchFn)),
+    ...backendUrls.map((url) => probe(hostOf(url), () => checkBackendServer(fetchFn, url)))
   ]);
 
   return [
-    category("Blockbook (Dogecoin wallet)", blockbook),
-    category("OCM backends (network stats)", backends),
-    category("CoinPaprika (prices)", prices),
-    category("Miner downloads", miners)
+    // Down only when every server fails, one is enough to keep the wallet working
+    category("Blockbook (Dogecoin wallet)", "blockbook", blockbook),
+    category("CoinPaprika (prices)", "coinpaprika", [prices]),
+    // Each backend is its own category, they have different owners
+    ...backends.map((b) => category(`OCM backend ${b.label}`, b.label, [b]))
   ];
 }

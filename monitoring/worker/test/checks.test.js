@@ -6,8 +6,7 @@ const NOW = Date.parse("2026-10-23T02:00:00Z");
 const env = {
   BLOCKBOOK_URLS: "https://bb1.example/,https://bb2.example/",
   BACKEND_URLS: "https://be1.example/,https://be2.example/",
-  PROBE_ADDRESS: "DTest",
-  MINERS_JSON_URL: "https://raw.example/miners.json"
+  PROBE_ADDRESS: "DTest"
 };
 
 function json(body, status = 200) {
@@ -34,10 +33,6 @@ function fakeFetch(overrides = {}) {
       if (url === `https://${host}/info`) return json({ backendTipHeight: 5, tipHeight: 5, difficulty: 1.5 });
     }
     if (url.startsWith("https://api.coinpaprika.com/v1/tickers/")) return json({ quotes: { BTC: { price: 1e-6 } } });
-    if (url === "https://raw.example/miners.json") {
-      return json([{ url: "https://dl.example/a/Miner.zip" }, { url: "https://dl.example/a/Miner.zip" }]);
-    }
-    if (url === "https://dl.example/a/Miner.zip") return new Response(null, { status: 200 });
     throw new Error(`unexpected request ${key}`);
   };
 }
@@ -95,42 +90,34 @@ test("a broadcast endpoint that accepts garbage is not trusted", async () => {
 test("a backend that returns zeros fails like the app treats it", async () => {
   const zeros = json({ backendTipHeight: 0, difficulty: 0, tipHeight: 0 });
   const results = await runChecks(env, fakeFetch({ "GET https://be2.example/info": zeros }), () => NOW);
-  const backends = byName(results, "OCM backends");
-  assert.equal(backends.status, "degraded");
-  assert.match(backends.servers[1].detail, /backendTipHeight is 0/);
+  const backend = byName(results, "OCM backend be2.example");
+  assert.equal(backend.status, "down");
+  assert.equal(backend.key, "be2.example");
+  assert.match(backend.servers[0].detail, /backendTipHeight is 0/);
+  assert.equal(byName(results, "OCM backend be1.example").status, "ok", "the other backend is judged on its own");
 });
 
-test("a missing price fails that coin only", async () => {
-  const results = await runChecks(
-    env,
-    fakeFetch({
-      "GET https://api.coinpaprika.com/v1/tickers/vtc-vertcoin?quotes=BTC": json({ error: "id not found" }, 404)
-    }),
-    () => NOW
-  );
-  const prices = byName(results, "CoinPaprika");
-  assert.equal(prices.status, "degraded");
-  assert.equal(prices.servers.find((s) => !s.ok).label, "VTC");
+const PAPRIKA = "GET https://api.coinpaprika.com/v1/tickers/doge-dogecoin?quotes=BTC";
+
+test("CoinPaprika answering with a price is up", async () => {
+  const results = await runChecks(env, fakeFetch(), () => NOW);
+  assert.equal(byName(results, "CoinPaprika").status, "ok");
+  assert.equal(byName(results, "CoinPaprika").key, "coinpaprika");
 });
 
-test("a dead miner download is reported", async () => {
-  const results = await runChecks(
-    env,
-    fakeFetch({ "HEAD https://dl.example/a/Miner.zip": new Response(null, { status: 404 }) }),
-    () => NOW
-  );
-  const miners = byName(results, "Miner downloads");
-  assert.equal(miners.status, "down");
-  assert.equal(miners.servers.length, 1, "duplicate URLs are only checked once");
+test("CoinPaprika rate limiting Cloudflare still counts as up", async () => {
+  for (const status of [402, 429]) {
+    const results = await runChecks(env, fakeFetch({ [PAPRIKA]: json({ type: "payment_required" }, status) }), () => NOW);
+    assert.equal(byName(results, "CoinPaprika").status, "ok", `HTTP ${status}`);
+  }
 });
 
-test("an unreachable miners.json is down", async () => {
-  const results = await runChecks(
-    env,
-    fakeFetch({ "GET https://raw.example/miners.json": new Error("boom") }),
-    () => NOW
-  );
-  assert.equal(byName(results, "Miner downloads").status, "down");
+test("CoinPaprika errors, timeouts and bad data are down", async () => {
+  const bad = [json({ error: "oops" }, 500), json({ error: "bad gateway" }, 502), json({ quotes: {} }), new Error("timed out")];
+  for (const answer of bad) {
+    const results = await runChecks(env, fakeFetch({ [PAPRIKA]: answer }), () => NOW);
+    assert.equal(byName(results, "CoinPaprika").status, "down");
+  }
 });
 
 test("an empty server list is down, not ok", async () => {
