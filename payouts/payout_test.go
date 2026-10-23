@@ -47,7 +47,7 @@ func TestUnknownCoinHasNoPrice(t *testing.T) {
 	useCoinpaprika(t, func(w http.ResponseWriter, r *http.Request) {
 		t.Error("unknown coins must not be looked up")
 	})
-	if got := GetBitcoinPerUnitCoin("GRS"); got != 0 {
+	if got := GetBitcoinPerUnitCoin("NOPE"); got != 0 {
 		t.Fatalf("price = %v, want 0", got)
 	}
 }
@@ -66,8 +66,8 @@ func TestFailedLookupHasNoPrice(t *testing.T) {
 }
 
 func TestEveryPayoutCoinHasAPriceSourceOrIsKnownToLackOne(t *testing.T) {
-	// GRS is delisted on CoinPaprika. Every other payout must be mapped.
-	lacking := map[string]bool{"GRS": true}
+	// Every payout must be mapped. Add a ticker here only if CoinPaprika delists it.
+	lacking := map[string]bool{}
 	for _, p := range []Payout{
 		NewBCHPayout(), NewBNBPayout(), NewBTCPayout(), NewCAKEPayout(), NewDASHPayout(),
 		NewDGBPayout(), NewDOGEPayout(), NewETCPayout(), NewFIROPayout(), NewFLUXPayout(),

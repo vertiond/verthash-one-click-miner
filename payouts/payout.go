@@ -48,6 +48,7 @@ var coinpaprikaIDs = map[string]string{
 	"ETC":   "etc-ethereum-classic",
 	"FIRO":  "firo-firo",
 	"FLUX":  "zel-zelcash",
+	"GRS":   "grs-groestlcoin",
 	"KMD":   "kmd-komodo",
 	"LBC":   "lbc-lbry-credits",
 	"LTC":   "ltc-litecoin",
