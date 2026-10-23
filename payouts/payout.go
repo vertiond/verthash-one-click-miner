@@ -65,6 +65,9 @@ var coinpaprikaIDs = map[string]string{
 	"ZEN":   "zen-horizen",
 }
 
+// coinpaprikaURL is the CoinPaprika API base, a variable so tests can point it elsewhere.
+var coinpaprikaURL = "https://api.coinpaprika.com/v1"
+
 // GetBitcoinPerUnitCoin returns the price of one unit of the coin in BTC from
 // CoinPaprika, or 0 when the coin is unknown or the lookup fails.
 func GetBitcoinPerUnitCoin(coinTicker string) float64 {
@@ -81,7 +84,7 @@ func GetBitcoinPerUnitCoin(coinTicker string) float64 {
 			Price float64 `json:"price"`
 		} `json:"quotes"`
 	}{}
-	err := util.GetJson(fmt.Sprintf("https://api.coinpaprika.com/v1/tickers/%s?quotes=BTC", id), &payload)
+	err := util.GetJson(fmt.Sprintf("%s/tickers/%s?quotes=BTC", coinpaprikaURL, id), &payload)
 	if err != nil {
 		return 0.0
 	}
