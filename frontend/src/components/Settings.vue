@@ -1,7 +1,7 @@
 <template>
   <div class="settings-container">
     <div class="col-settings" v-if="!showWarning">
-      <div class="col-settings-sub">
+      <div class="col-settings-sub" v-bind:style="{ visibility: loaded ? 'visible' : 'hidden' }">
         <p style="text-align: left">
           <input type="checkbox" v-model="enableIntegrated" />
           {{ $t("settings.enable_integrated") }}
@@ -31,7 +31,7 @@
           <br><a class="link" @click="copyAddress">{{ $t('mining.copy_address') }}</a>
         </p>
       </div>
-      <div class="col-settings-sub">
+      <div class="col-settings-sub" v-bind:style="{ visibility: loaded ? 'visible' : 'hidden' }">
 <!--        <p style="text-align: left">-->
 <!--          <input type="checkbox" v-model="testnet" />-->
 <!--          {{ $t("settings.testnet") }}-->
@@ -96,7 +96,9 @@ export default {
       renderPayouts: true,
       customAddress: "",
       address:"",
-
+      // Settings load through a chain of backend calls, hide them until the last one
+      // arrives so half-loaded values (empty pool list, payout box) don't flash.
+      loaded: false,
     };
   },
   created() {
@@ -127,6 +129,7 @@ export default {
                             self.customAddress = result;
                             window.backend.Backend.Address().then(result => {
                               self.address = result;
+                              self.loaded = true;
                             })
                           })
                         })
@@ -140,10 +143,11 @@ export default {
         });
       });
     });
-    
-    
-   
-    
+
+    // Never leave the settings hidden if one of the backend calls fails
+    window.setTimeout(function() {
+      self.loaded = true;
+    }, 3000);
   },
   methods: {
     toggleWarning: function() {
