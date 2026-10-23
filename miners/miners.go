@@ -35,7 +35,7 @@ type MinerBinary struct {
 
 func GetMinerBinaries() []MinerBinary {
 	binaries := []MinerBinary{}
-	err := util.GetJson("https://raw.githubusercontent.com/vertiond/verthash-one-click-miner/master/miners.json", &binaries)
+	err := util.GetJson("https://raw.githubusercontent.com/vertiond/verthash-one-click-miner/refs/heads/doge-blockbook/miners.json", &binaries)
 	if err != nil {
 		logging.Errorf("Error fetching miner binaries: %v", err)
 		return binaries
