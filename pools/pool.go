@@ -15,6 +15,12 @@ type Pool interface {
 	OpenBrowserPayoutInfo(addr string)
 }
 
+// ShortageReporter is implemented by pools that can tell when they are unable
+// to pay out in a currency.
+type ShortageReporter interface {
+	PayoutShortage(ticker string) bool
+}
+
 func GetPools(testnet bool) []Pool {
 // 	if testnet {
 // 		return []Pool{

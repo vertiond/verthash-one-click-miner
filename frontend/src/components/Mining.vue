@@ -70,7 +70,10 @@
         <span style="opacity: 1">{{$t('mining.active_pool')}}: {{activePool}} <span v-if="poolFee != '0.0%'">({{$t('mining.pool_fee')}}: {{poolFee}})</span></span>
         <br><a class="link" @click="payoutInformation">{{ $t('mining.payout_information') }}</a>
       </p>
-      
+      <p class="shortage" v-if="payoutShortage">
+        {{ activePayout == 'DOGE' ? $t('mining.payout_shortage_doge') : $t('mining.payout_shortage_other', { ticker: activePayout }) }}
+      </p>
+
       <p class="spacer">&nbsp;</p>
       <p v-if="runningMiners === 0">{{$t('mining.waiting_for_miners')}}</p>
       <p v-if="runningMiners > 0" class="header">{{$t('mining.expected_earnings_24h')}}:</p>
@@ -109,6 +112,7 @@ export default {
       poolFee: "0.0%",
       activePool: "",
       activePayout: "",
+      payoutShortage: false,
       address:"",
     };
   },
@@ -136,6 +140,9 @@ export default {
       });
       window.backend.Backend.Address().then(result => {
         self.address = result;
+      });
+      window.backend.Backend.PayoutShortage().then(result => {
+        self.payoutShortage = result;
       });
     }, 5000);
     window.backend.Backend.GetPoolName().then(result => {
@@ -245,6 +252,13 @@ p.earning {
   font-size: 20px;
 }
 p.immatureBalance,
+p.shortage {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  color: #d0a000;
+}
+
 p.poolBalance,
 p.netHash {
   margin: 0;

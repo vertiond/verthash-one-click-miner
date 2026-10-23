@@ -7,6 +7,7 @@ import (
 	"github.com/vertiond/verthash-one-click-miner/logging"
 	"github.com/vertiond/verthash-one-click-miner/miners"
 	"github.com/vertiond/verthash-one-click-miner/payouts"
+	"github.com/vertiond/verthash-one-click-miner/pools"
 	"github.com/vertiond/verthash-one-click-miner/tracking"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
@@ -39,6 +40,16 @@ func (m *Backend) GetPayoutTicker() string {
 		return m.payout.GetTicker()
 	}
 	return "DOGE"
+}
+
+// PayoutShortage is true when the pool reports it is short of the payout
+// currency, so payouts in it may be delayed.
+func (m *Backend) PayoutShortage() bool {
+	reporter, ok := m.pool.(pools.ShortageReporter)
+	if !ok {
+		return false
+	}
+	return reporter.PayoutShortage(m.GetPayoutTicker())
 }
 
 func (m *Backend) GetMiningAddress() string {

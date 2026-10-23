@@ -1,9 +1,11 @@
 package backend
 
 import (
+	"encoding/json"
 	"fmt"
 	// "math/rand"
 	"strconv"
+	"strings"
 	// "time"
 
 	"github.com/tidwall/buntdb"
@@ -193,6 +195,47 @@ func (m *Backend) SetCustomAddress(newCustomAddress string) {
 	m.setStringSetting("zergpoolAddress", newCustomAddress)
 }
 
+
+const payoutAddressPrefix = "payoutAddress:"
+
+// GetPayoutAddresses returns the payout address remembered for each payout ID,
+// so switching the payout currency in settings doesn't lose the others.
+func (m *Backend) GetPayoutAddresses() map[string]string {
+	addresses := map[string]string{}
+	m.settings.View(func(tx *buntdb.Tx) error {
+		return tx.AscendKeys(payoutAddressPrefix+"*", func(key, value string) bool {
+			addresses[strings.TrimPrefix(key, payoutAddressPrefix)] = value
+			return true
+		})
+	})
+	return addresses
+}
+
+// SetPayoutAddresses takes a JSON object of payout ID to address. An empty
+// address forgets the one remembered for that payout.
+func (m *Backend) SetPayoutAddresses(addressesJson string) {
+	addresses := map[string]string{}
+	if err := json.Unmarshal([]byte(addressesJson), &addresses); err != nil {
+		logging.Errorf("Error in SetPayoutAddresses: %v", err)
+		return
+	}
+	err := m.settings.Update(func(tx *buntdb.Tx) error {
+		for payoutID, address := range addresses {
+			key := payoutAddressPrefix + payoutID
+			if address == "" {
+				tx.Delete(key)
+				continue
+			}
+			if _, _, err := tx.Set(key, address, nil); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		logging.Errorf("Error in SetPayoutAddresses: %v", err)
+	}
+}
 
 func (m *Backend) PoolIsHashCryptos() bool {
 	return (m.pool.GetID() == 6)
