@@ -68,6 +68,19 @@ func (m *Backend) PayoutInformation() {
 	m.pool.OpenBrowserPayoutInfo(m.GetMiningAddress())
 }
 
+// formatHashrate renders a rate in hashes per second with the largest fitting
+// unit, never going below kH/s.
+func formatHashrate(hashesPerSecond float64) string {
+	units := []string{"kH/s", "MH/s", "GH/s", "TH/s"}
+	rate := hashesPerSecond / 1000
+	unit := 0
+	for rate >= 1000 && unit < len(units)-1 {
+		rate /= 1000
+		unit++
+	}
+	return fmt.Sprintf("%0.2f %s", rate, units[unit])
+}
+
 func (m *Backend) StartMining() bool {
 	logging.Infof("Starting mining process...")
 
@@ -133,12 +146,12 @@ func (m *Backend) StartMining() bool {
 				nhr = util.GetNetHash()
 				th = util.GetTipHeight()
 				if myPayout.GetID() != vtcPayout.GetID() {
-					unitVtcPerBtc = payouts.GetBitcoinPerUnitCoin(vtcPayout.GetCoingeckoCoinID(), vtcPayout.GetTicker(), vtcPayout.GetCoingeckoExchange())
+					unitVtcPerBtc = payouts.GetBitcoinPerUnitCoin(vtcPayout.GetTicker())
 					if myPayout.GetID() == btcPayout.GetID() {
 						unitPayoutCoinPerBtc = 1
 					} else {
 						time.Sleep(750 * time.Millisecond) // Put time between API calls
-						unitPayoutCoinPerBtc = payouts.GetBitcoinPerUnitCoin(myPayout.GetCoingeckoCoinID(), myPayout.GetTicker(), myPayout.GetCoingeckoExchange())
+						unitPayoutCoinPerBtc = payouts.GetBitcoinPerUnitCoin(myPayout.GetTicker())
 					}
 					logging.Infof(fmt.Sprintf("Payout exchange rate: VTC/BTC=%0.16f, %s/BTC=%0.16f", unitVtcPerBtc, myPayout.GetTicker(), unitPayoutCoinPerBtc))
 				}
@@ -149,25 +162,9 @@ func (m *Backend) StartMining() bool {
 			for _, br := range m.minerBinaries {
 				hr += br.HashRate()
 			}
-			hashrate := float64(hr) / float64(1000)
-			hashrateUnit := "kH/s"
-			if hashrate > 1000 {
-				hashrate /= 1000
-				hashrateUnit = "MH/s"
-			}
-			if hashrate > 1000 {
-				hashrate /= 1000
-				hashrateUnit = "GH/s"
-			}
-			if hashrate > 1000 {
-				hashrate /= 1000
-				hashrateUnit = "TH/s"
-			}
-			m.runtime.Events.Emit("hashRate", fmt.Sprintf("%0.2f %s", hashrate, hashrateUnit))
+			m.runtime.Events.Emit("hashRate", formatHashrate(float64(hr)))
 
-			netHash := float64(nhr) / float64(1000000000)
-
-			m.runtime.Events.Emit("networkHashRate", fmt.Sprintf("%0.2f %s", netHash, hashrateUnit))
+			m.runtime.Events.Emit("networkHashRate", formatHashrate(float64(nhr)))
 
 			coinsPerDay := util.GetCoinsPerDay(th)
 			avgEarning := float64(hr) / float64(nhr) * float64(coinsPerDay)
