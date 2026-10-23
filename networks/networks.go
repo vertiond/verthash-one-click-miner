@@ -39,7 +39,6 @@ func SetNetwork(testnet bool) {
 				"https://blockbook.doge.zelcore.io/",
 				"https://dogecoin.atomicwallet.io/"},
 			BackendServers: []string{
-				"https://kforg.javerity.com/",
 				"https://ocmbackend.javerity.com/",
 				"https://ocmbackend.mindcraftblocks.com/"},
 		}
