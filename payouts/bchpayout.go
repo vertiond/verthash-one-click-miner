@@ -20,14 +20,6 @@ func (p *BCHPayout) GetTicker() string {
 	return "BCH"
 }
 
-func (p *BCHPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *BCHPayout) GetCoingeckoCoinID() string {
-	return "bitcoin-cash"
-}
-
 func (p *BCHPayout) GetNetworks() []string {
 	return []string{}
 }

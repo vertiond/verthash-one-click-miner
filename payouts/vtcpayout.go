@@ -20,14 +20,6 @@ func (p *VTCPayout) GetTicker() string {
 	return "VTC"
 }
 
-func (p *VTCPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *VTCPayout) GetCoingeckoCoinID() string {
-	return "vertcoin"
-}
-
 func (p *VTCPayout) GetNetworks() []string {
 	return []string{}
 }

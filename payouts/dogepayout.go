@@ -20,14 +20,6 @@ func (p *DOGEPayout) GetTicker() string {
 	return "DOGE"
 }
 
-func (p *DOGEPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *DOGEPayout) GetCoingeckoCoinID() string {
-	return "dogecoin"
-}
-
 func (p *DOGEPayout) GetNetworks() []string {
 	return []string{}
 }

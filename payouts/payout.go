@@ -2,7 +2,6 @@ package payouts
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
@@ -11,8 +10,6 @@ type Payout interface {
 	GetID() int
 	GetDisplayName() string
 	GetTicker() string
-	GetCoingeckoExchange() string
-	GetCoingeckoCoinID() string
 	GetNetworks() []string
 }
 
@@ -38,89 +35,57 @@ type Payout interface {
 // 	}
 // }
 
-func GetBitcoinPerUnitCoin(coinID string, coinTicker string, exchange string) float64 {
-	if coinTicker == "DOGE" {
-		return GetBitcoinPerUnitDOGE()
-	}
-
-	jsonPayload := map[string]interface{}{}
-	err := util.GetJson(
-		fmt.Sprintf("https://api.coingecko.com/api/v3/exchanges/%s/tickers?coin_ids=%s", exchange, coinID),
-		&jsonPayload)
-	if err != nil {
-		return 0.0
-	}
-	jsonTickersArr, ok := jsonPayload["tickers"].([]interface{})
-	if !ok {
-		return 0.0
-	}
-
-	result := 0.0
-	fallback_result := 0.0
-	for _, jsonTickerInfo := range jsonTickersArr {
-		jsonTickerInfoMap := jsonTickerInfo.(map[string]interface{})
-		jsonTickerBase, ok1 := jsonTickerInfoMap["base"]
-		jsonTickerTarget, ok2 := jsonTickerInfoMap["target"]
-		if !ok1 || !ok2 {
-			continue
-		}
-        if jsonTickerBase == coinTicker && ( jsonTickerTarget == "BTC" || fallback_result == 0.0 ) {
-            jsonTickerConvertedLast, ok := jsonTickerInfoMap["converted_last"].(map[string]interface{})
-            if ok {
-                jsonTickerConvertedLastBTC, ok := jsonTickerConvertedLast["btc"].(float64)
-                if ok {
-                    if fallback_result == 0.0 {
-                        fallback_result = jsonTickerConvertedLastBTC
-                    }
-                    if jsonTickerTarget == "BTC" {
-                        result = jsonTickerConvertedLastBTC
-                        break
-                    }
-                }
-            }
-        }
-    }
-    if result == 0.0 && fallback_result != 0.0 {
-        result = fallback_result
-    }
-
-	return result
+// coinpaprikaIDs maps payout tickers to their CoinPaprika coin id. Payouts that
+// are missing here have no price source and report a rate of zero.
+var coinpaprikaIDs = map[string]string{
+	"BCH":   "bch-bitcoin-cash",
+	"BNB":   "bnb-binance-coin",
+	"BTC":   "btc-bitcoin",
+	"CAKE":  "cake-pancakeswap",
+	"DASH":  "dash-dash",
+	"DGB":   "dgb-digibyte",
+	"DOGE":  "doge-dogecoin",
+	"ETC":   "etc-ethereum-classic",
+	"FIRO":  "firo-firo",
+	"FLUX":  "zel-zelcash",
+	"KMD":   "kmd-komodo",
+	"LBC":   "lbc-lbry-credits",
+	"LTC":   "ltc-litecoin",
+	"MATIC": "matic-polygon",
+	"PPC":   "ppc-peercoin",
+	"RTM":   "rtm-raptoreum",
+	"RVN":   "rvn-ravencoin",
+	"SHIB":  "shib-shiba-inu",
+	"TRX":   "trx-tron",
+	"USDT":  "usdt-tether",
+	"VTC":   "vtc-vertcoin",
+	"XMR":   "xmr-monero",
+	"XVG":   "xvg-verge",
+	"ZEC":   "zec-zcash",
+	"ZEN":   "zen-horizen",
 }
 
-func GetBitcoinPerUnitDOGE() float64 {
-	jsonPayload := map[string]interface{}{}
-	err := util.GetJson("https://sochain.com/api/v2/get_price/DOGE/BTC", &jsonPayload)
+// GetBitcoinPerUnitCoin returns the price of one unit of the coin in BTC from
+// CoinPaprika, or 0 when the coin is unknown or the lookup fails.
+func GetBitcoinPerUnitCoin(coinTicker string) float64 {
+	id, ok := coinpaprikaIDs[coinTicker]
+	if !ok {
+		return 0.0
+	}
+	if coinTicker == "BTC" {
+		return 1.0
+	}
+
+	payload := struct {
+		Quotes map[string]struct {
+			Price float64 `json:"price"`
+		} `json:"quotes"`
+	}{}
+	err := util.GetJson(fmt.Sprintf("https://api.coinpaprika.com/v1/tickers/%s?quotes=BTC", id), &payload)
 	if err != nil {
 		return 0.0
 	}
-	jsonData, ok := jsonPayload["data"].(map[string]interface{})
-	if !ok {
-		return 0.0
-	}
-	jsonPriceArr, ok := jsonData["prices"].([]interface{})
-	if !ok {
-		return 0.0
-	}
-
-	result := 0.0
-	for _, jsonPriceInfo := range jsonPriceArr {
-		jsonPriceInfoMap := jsonPriceInfo.(map[string]interface{})
-		jsonPriceBase, ok := jsonPriceInfoMap["price_base"]
-		if !ok {
-			continue
-		}
-		// Could pull from Bittrex or Binance at any given time,
-		// whichever one happens to be listed first.
-		// Doesn't matter which, as long as "price_base" is "BTC".
-		if jsonPriceBase == "BTC" {
-			jsonExchangePrice, ok := jsonPriceInfoMap["price"].(string)
-			if ok {
-				result, _ = strconv.ParseFloat(jsonExchangePrice, 64)
-			}
-			break
-		}
-	}
-	return result
+	return payload.Quotes["BTC"].Price
 }
 
 //func GetBitcoinPerUnitCoin(coinID string, coinTicker string, exchange string) float64 {

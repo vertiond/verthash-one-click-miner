@@ -20,14 +20,6 @@ func (p *ETCPayout) GetTicker() string {
 	return "ETC"
 }
 
-func (p *ETCPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *ETCPayout) GetCoingeckoCoinID() string {
-	return "ethereum-classic"
-}
-
 func (p *ETCPayout) GetNetworks() []string {
 	return []string{}
 }

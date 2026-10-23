@@ -20,14 +20,6 @@ func (p *CAKEPayout) GetTicker() string {
 	return "CAKE"
 }
 
-func (p *CAKEPayout) GetCoingeckoExchange() string {
-	return "binance"
-}
-
-func (p *CAKEPayout) GetCoingeckoCoinID() string {
-	return "pancakeswap-token"
-}
-
 func (p *CAKEPayout) GetNetworks() []string {
 	return []string{}
 }

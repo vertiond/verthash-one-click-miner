@@ -20,14 +20,6 @@ func (p *ZECPayout) GetTicker() string {
 	return "ZEC"
 }
 
-func (p *ZECPayout) GetCoingeckoExchange() string {
-	return "bitfinex"
-}
-
-func (p *ZECPayout) GetCoingeckoCoinID() string {
-	return "zcash"
-}
-
 func (p *ZECPayout) GetNetworks() []string {
 	return []string{}
 }

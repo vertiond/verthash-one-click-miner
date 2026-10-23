@@ -20,14 +20,6 @@ func (p *DASHPayout) GetTicker() string {
 	return "DASH"
 }
 
-func (p *DASHPayout) GetCoingeckoExchange() string {
-	return "binance"
-}
-
-func (p *DASHPayout) GetCoingeckoCoinID() string {
-	return "dash"
-}
-
 func (p *DASHPayout) GetNetworks() []string {
 	return []string{}
 }

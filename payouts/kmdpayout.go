@@ -20,14 +20,6 @@ func (p *KMDPayout) GetTicker() string {
 	return "KMD"
 }
 
-func (p *KMDPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *KMDPayout) GetCoingeckoCoinID() string {
-	return "komodo"
-}
-
 func (p *KMDPayout) GetNetworks() []string {
 	return []string{}
 }

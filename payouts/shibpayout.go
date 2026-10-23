@@ -21,14 +21,6 @@ func (p *SHIBPayout) GetTicker() string {
 	return "SHIB"
 }
 
-func (p *SHIBPayout) GetCoingeckoExchange() string {
-	return "binance"
-}
-
-func (p *SHIBPayout) GetCoingeckoCoinID() string {
-	return "shiba-inu"
-}
-
 func (p *SHIBPayout) GetNetworks() []string {
 	return []string{}
 }

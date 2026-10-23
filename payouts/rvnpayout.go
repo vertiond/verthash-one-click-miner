@@ -20,14 +20,6 @@ func (p *RVNPayout) GetTicker() string {
 	return "RVN"
 }
 
-func (p *RVNPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *RVNPayout) GetCoingeckoCoinID() string {
-	return "ravencoin"
-}
-
 func (p *RVNPayout) GetNetworks() []string {
 	return []string{}
 }

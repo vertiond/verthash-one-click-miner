@@ -20,14 +20,6 @@ func (p *MATICPayout) GetTicker() string {
 	return "MATIC"
 }
 
-func (p *MATICPayout) GetCoingeckoExchange() string {
-	return "binance"
-}
-
-func (p *MATICPayout) GetCoingeckoCoinID() string {
-	return "matic"
-}
-
 func (p *MATICPayout) GetNetworks() []string {
 	return []string{}
 }

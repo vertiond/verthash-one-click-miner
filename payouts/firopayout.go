@@ -20,14 +20,6 @@ func (p *FIROPayout) GetTicker() string {
 	return "FIRO"
 }
 
-func (p *FIROPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *FIROPayout) GetCoingeckoCoinID() string {
-	return "zcoin"
-}
-
 func (p *FIROPayout) GetNetworks() []string {
 	return []string{}
 }

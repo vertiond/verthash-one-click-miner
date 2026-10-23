@@ -20,14 +20,6 @@ func (p *TRXPayout) GetTicker() string {
 	return "TRX"
 }
 
-func (p *TRXPayout) GetCoingeckoExchange() string {
-	return "binance"
-}
-
-func (p *TRXPayout) GetCoingeckoCoinID() string {
-	return "tron"
-}
-
 func (p *TRXPayout) GetNetworks() []string {
 	return []string{}
 }

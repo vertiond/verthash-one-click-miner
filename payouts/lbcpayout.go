@@ -20,14 +20,6 @@ func (p *LBCPayout) GetTicker() string {
 	return "LBC"
 }
 
-func (p *LBCPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *LBCPayout) GetCoingeckoCoinID() string {
-	return "lbry-credits"
-}
-
 func (p *LBCPayout) GetNetworks() []string {
 	return []string{}
 }

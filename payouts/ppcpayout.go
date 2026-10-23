@@ -20,14 +20,6 @@ func (p *PPCPayout) GetTicker() string {
 	return "PPC"
 }
 
-func (p *PPCPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *PPCPayout) GetCoingeckoCoinID() string {
-	return "peercoin"
-}
-
 func (p *PPCPayout) GetNetworks() []string {
 	return []string{}
 }

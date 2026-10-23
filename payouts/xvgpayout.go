@@ -20,14 +20,6 @@ func (p *XVGPayout) GetTicker() string {
 	return "XVG"
 }
 
-func (p *XVGPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *XVGPayout) GetCoingeckoCoinID() string {
-	return "verge"
-}
-
 func (p *XVGPayout) GetNetworks() []string {
 	return []string{}
 }

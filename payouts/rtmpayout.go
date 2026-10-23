@@ -20,14 +20,6 @@ func (p *RTMPayout) GetTicker() string {
 	return "RTM"
 }
 
-func (p *RTMPayout) GetCoingeckoExchange() string {
-	return "coinex"
-}
-
-func (p *RTMPayout) GetCoingeckoCoinID() string {
-	return "raptoreum"
-}
-
 func (p *RTMPayout) GetNetworks() []string {
 	return []string{}
 }

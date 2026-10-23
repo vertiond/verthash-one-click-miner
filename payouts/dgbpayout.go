@@ -20,14 +20,6 @@ func (p *DGBPayout) GetTicker() string {
 	return "DGB"
 }
 
-func (p *DGBPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *DGBPayout) GetCoingeckoCoinID() string {
-	return "digibyte"
-}
-
 func (p *DGBPayout) GetNetworks() []string {
 	return []string{}
 }

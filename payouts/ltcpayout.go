@@ -20,14 +20,6 @@ func (p *LTCPayout) GetTicker() string {
 	return "LTC"
 }
 
-func (p *LTCPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *LTCPayout) GetCoingeckoCoinID() string {
-	return "litecoin"
-}
-
 func (p *LTCPayout) GetNetworks() []string {
 	return []string{}
 }

@@ -20,14 +20,6 @@ func (p *GRSPayout) GetTicker() string {
 	return "GRS"
 }
 
-func (p *GRSPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *GRSPayout) GetCoingeckoCoinID() string {
-	return "groestlcoin"
-}
-
 func (p *GRSPayout) GetNetworks() []string {
 	return []string{}
 }

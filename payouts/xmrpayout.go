@@ -20,14 +20,6 @@ func (p *XMRPayout) GetTicker() string {
 	return "XMR"
 }
 
-func (p *XMRPayout) GetCoingeckoExchange() string {
-	return "binance"
-}
-
-func (p *XMRPayout) GetCoingeckoCoinID() string {
-	return "monero"
-}
-
 func (p *XMRPayout) GetNetworks() []string {
 	return []string{}
 }

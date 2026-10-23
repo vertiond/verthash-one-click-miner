@@ -20,14 +20,6 @@ func (p *BNBPayout) GetTicker() string {
 	return "BNB"
 }
 
-func (p *BNBPayout) GetCoingeckoExchange() string {
-	return "binance"
-}
-
-func (p *BNBPayout) GetCoingeckoCoinID() string {
-	return "binancecoin"
-}
-
 func (p *BNBPayout) GetNetworks() []string {
 	return []string{}
 }

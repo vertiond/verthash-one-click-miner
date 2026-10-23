@@ -20,14 +20,6 @@ func (p *FLUXPayout) GetTicker() string {
 	return "FLUX"
 }
 
-func (p *FLUXPayout) GetCoingeckoExchange() string {
-	return "coinex"
-}
-
-func (p *FLUXPayout) GetCoingeckoCoinID() string {
-	return "zelcash"
-}
-
 func (p *FLUXPayout) GetNetworks() []string {
 	return []string{}
 }

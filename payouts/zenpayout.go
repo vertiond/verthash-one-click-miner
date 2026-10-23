@@ -20,14 +20,6 @@ func (p *ZENPayout) GetTicker() string {
 	return "ZEN"
 }
 
-func (p *ZENPayout) GetCoingeckoExchange() string {
-	return "binance"
-}
-
-func (p *ZENPayout) GetCoingeckoCoinID() string {
-	return "zencash"
-}
-
 func (p *ZENPayout) GetNetworks() []string {
 	return []string{}
 }

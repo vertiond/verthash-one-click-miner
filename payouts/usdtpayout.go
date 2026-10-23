@@ -21,14 +21,6 @@ func (p *USDTPayout) GetTicker() string {
 	return "USDT"
 }
 
-func (p *USDTPayout) GetCoingeckoExchange() string {
-	return "bittrex"
-}
-
-func (p *USDTPayout) GetCoingeckoCoinID() string {
-	return "tether"
-}
-
 func (p *USDTPayout) GetNetworks() []string {
 	return []string{
 		"ERC20",
