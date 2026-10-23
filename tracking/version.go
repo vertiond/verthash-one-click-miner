@@ -1,3 +1,6 @@
 package tracking
 
-var version = "1.0-rc1" // Fixed dev version - always updates available
+// Version of unstamped builds: development on top of the latest release. Release
+// builds get the real version stamped in through -ldflags. Bump this after every
+// release so development builds don't offer an update to the release they came from.
+var version = "2.1.5-dev"

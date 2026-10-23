@@ -101,8 +101,9 @@ jobs:
             version="${GITHUB_REF_NAME}-g${short_sha}"
           else
             name="dev-${short_sha}"
-            # Same as the source default, so dev builds always see updates
-            version="0.0-alpha1-g${short_sha}"
+            # The source default (development on top of the latest release)
+            base="$(sed -n 's/^var version = "\(.*\)"$/\1/p' tracking/version.go)"
+            version="${base}-g${short_sha}"
           fi
           echo "name=${name}" >> "$GITHUB_OUTPUT"
           echo "version=${version}" >> "$GITHUB_OUTPUT"
