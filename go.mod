@@ -1,6 +1,6 @@
 module github.com/vertiond/verthash-one-click-miner
 
-go 1.18
+go 1.22
 
 require (
 	github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a
