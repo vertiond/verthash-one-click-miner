@@ -13,7 +13,8 @@ import (
 // lists have to match the ones the app really uses.
 func workerList(t *testing.T, toml, name string) []string {
 	t.Helper()
-	m := regexp.MustCompile(`(?m)^` + name + ` = "(.*)"$`).FindStringSubmatch(toml)
+	// \r?: Git on Windows checks the file out with CRLF line endings
+	m := regexp.MustCompile(`(?m)^` + name + ` = "(.*)"\r?$`).FindStringSubmatch(toml)
 	if m == nil {
 		t.Fatalf("%s not found in monitoring/worker/wrangler.toml", name)
 	}
