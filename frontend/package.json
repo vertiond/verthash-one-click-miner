@@ -53,7 +53,7 @@
     "not ie <= 8"
   ],
   "overrides": {
-    "minimist": "1.2.3",
+    "minimist": "1.2.8",
     "mkdir": "0.5.3"
   }
 }
