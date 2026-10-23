@@ -78,6 +78,7 @@
 </template>
 
 <script>
+import { loadSettings, cachedSettings, forgetSettings } from "../settingsLoader.js";
 export default {
   data() {
     return {
@@ -96,58 +97,30 @@ export default {
       renderPayouts: true,
       customAddress: "",
       address:"",
-      // Settings load through a chain of backend calls, hide them until the last one
-      // arrives so half-loaded values (empty pool list, payout box) don't flash.
+      // False until the first values arrive, so half-loaded ones (empty pool list,
+      // payout address box) are never shown
       loaded: false,
     };
   },
   created() {
     var self = this;
-    window.backend.Backend.GetClosedSource().then(result => {
-      self.closedSourceMiner = result;
-      window.backend.Backend.GetAutoStart().then(result => {
-        self.autoStart = result;
-        window.backend.Backend.GetDebugging().then(result => {
-          self.debugging = result;
-           window.backend.Backend.GetTestnet().then(result => {
-            self.testnet = result;
-            window.backend.Backend.GetEnableIntegrated().then(result => {
-              self.enableIntegrated = result;
-              window.backend.Backend.GetPools().then(result => {
-                self.pools = result;
-                window.backend.Backend.GetPool().then(result => {
-                  self.poolID = result;
-                  window.backend.Backend.GetPayouts(self.poolID).then(result => {
-                    self.payouts = result;
-                    window.backend.Backend.GetPayout().then(result => {
-                      self.payoutID = result;
-                      window.backend.Backend.GetNetwork().then(result => {
-                        self.network = result;
-                        window.backend.Backend.GetNetworks(self.poolID, self.payoutID).then(result => {
-                          self.networks = result;
-                          window.backend.Backend.GetCustomAddress().then(result => {
-                            self.customAddress = result;
-                            window.backend.Backend.Address().then(result => {
-                              self.address = result;
-                              self.loaded = true;
-                            })
-                          })
-                        })
-                      })
-                    })
-                  })
-                })
-              })
-            })
-          });
-        });
-      });
-    });
-
-    // Never leave the settings hidden if one of the backend calls fails
-    window.setTimeout(function() {
+    var apply = function(settings) {
+      for (var key in settings) {
+        self[key] = settings[key];
+      }
       self.loaded = true;
-    }, 3000);
+    };
+
+    // Show the previous values right away and refresh them in the background
+    var cached = cachedSettings();
+    if (cached) {
+      apply(cached);
+    }
+    loadSettings()
+      .then(apply)
+      .catch(function() {
+        self.loaded = true;
+      });
   },
   methods: {
     toggleWarning: function() {
@@ -204,6 +177,7 @@ export default {
                     window.backend.Backend.SetCustomAddress(self.customAddress).then(() => {
                       window.backend.Backend.SetPayout(self.payoutID).then(() => {
                         window.backend.Backend.SetNetwork(self.network).then(() => {
+                          forgetSettings();
                           self.$emit("committed");
                         });
                       });
