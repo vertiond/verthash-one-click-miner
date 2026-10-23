@@ -3,7 +3,6 @@
   "author": "vertion<vertion@protonmail.com>",
   "private": true,
   "scripts": {
-    "preinstall": "npx npm-force-resolutions",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
@@ -48,13 +47,13 @@
       "autoprefixer": {}
     }
   },
-  "resolutions": {
-    "minimist": "1.2.3",
-    "mkdir": "0.5.3"
-  },
   "browserslist": [
     "> 1%",
     "last 2 versions",
     "not ie <= 8"
-  ]
+  ],
+  "overrides": {
+    "minimist": "1.2.3",
+    "mkdir": "0.5.3"
+  }
 }

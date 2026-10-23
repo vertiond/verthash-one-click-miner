@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Wait a week before proposing a new release, so a compromised version
+  # has time to be caught and pulled before it reaches the lockfile
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
