@@ -31,7 +31,6 @@ type Backend struct {
 	stopRunningState    chan bool
 	prerequisiteInstall chan bool
 	alreadyRunning      bool
-	p2poolNodeSelected  bool
 }
 
 func NewBackend(alreadyRunning bool) (*Backend, error) {
@@ -63,7 +62,7 @@ func NewBackend(alreadyRunning bool) (*Backend, error) {
 }
 
 func (m *Backend) ResetPool() {
-	m.pool = pools.GetPool(m.GetPool(), m.Address(), m.GetTestnet())
+	m.pool = pools.NewP2PoolGo(m.Address())
 }
 
 func (m *Backend) WailsInit(runtime *wails.Runtime) error {

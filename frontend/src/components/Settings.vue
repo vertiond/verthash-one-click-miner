@@ -28,15 +28,6 @@
           <br />
           <span class="subtext">{{ $t("settings.enable_integrated_sub") }}</span>
         </p>
-        <p style="text-align: left">
-          {{ $t("settings.pool") }}:
-          <br />
-          <select style="width: 100%" name="pool" v-model="poolID">
-            <option v-for="option in pools" v-bind:value="option.id" v-bind:key="option.id">
-                {{ option.name }}
-            </option>
-          </select>
-        </p>
       </div>
     </div>
     <div class="col-286 height-100" v-if="!showWarning">
@@ -67,9 +58,7 @@ export default {
       enableIntegrated: true,
       showWarning: false,
       testnet: false,
-      poolID: -1,
-      pools: [],
-      // False until the first values arrive, so a half loaded screen (empty pool list)
+      // False until the first values arrive, so a half loaded screen (partly filled form)
       // is never shown
       loaded: false
     };
@@ -106,11 +95,9 @@ export default {
           window.backend.Backend.SetDebugging(self.debugging).then(() => {
             window.backend.Backend.SetAutoStart(self.autoStart).then(() => {
               window.backend.Backend.SetTestnet(self.testnet).then(() => {
-                window.backend.Backend.SetPool(self.poolID).then(() => {
-                  window.backend.Backend.SetEnableIntegrated(self.enableIntegrated).then( () => {
-                    forgetSettings();
-                    self.$emit("committed");
-                  });
+                window.backend.Backend.SetEnableIntegrated(self.enableIntegrated).then( () => {
+                  forgetSettings();
+                  self.$emit("committed");
                 });
               });
             });

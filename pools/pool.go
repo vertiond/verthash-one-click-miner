@@ -11,26 +11,7 @@ type Pool interface {
 	OpenBrowserPayoutInfo(addr string)
 }
 
-func GetPools(addr string, testnet bool) []Pool {
-	if testnet {
-		return []Pool{
-			NewP2Proxy(addr),
-		}
-	}
-	return []Pool{
-		NewSuprnova(addr),
-		NewP2Pool(addr),
-		Newzpool(addr),
-		NewMiningpoolSweden(addr),
-	}
-}
-
-func GetPool(pool int, addr string, testnet bool) Pool {
-	pools := GetPools(addr, testnet)
-	for _, p := range pools {
-		if p.GetID() == pool {
-			return p
-		}
-	}
-	return pools[0]
+// GetPool returns the only pool: the local P2Pool-Go node.
+func GetPool(addr string) Pool {
+	return NewP2PoolGo(addr)
 }

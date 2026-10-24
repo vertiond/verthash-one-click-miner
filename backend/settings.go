@@ -2,13 +2,11 @@ package backend
 
 import (
 	"fmt"
-	"math/rand"
 	"strconv"
 
 	"github.com/tidwall/buntdb"
 	"github.com/vertcoin-project/one-click-miner-vnext/logging"
 	"github.com/vertcoin-project/one-click-miner-vnext/networks"
-	"github.com/vertcoin-project/one-click-miner-vnext/pools"
 	"github.com/vertcoin-project/one-click-miner-vnext/tracking"
 	"github.com/vertcoin-project/one-click-miner-vnext/util"
 )
@@ -65,55 +63,12 @@ func (m *Backend) getIntSetting(name string) int {
 	return i
 }
 
-func (m *Backend) GetPool() int {
-	pool := m.getIntSetting("pool")
-	if pool == 0 {
-		if m.GetTestnet() {
-			return 2 // Default P2Pool on testnet
-		}
-		// Default to a random pool
-		pools := pools.GetPools(m.Address(), m.GetTestnet())
-		pool := pools[rand.Intn(len(pools))].GetID()
-		// Save this setting immediately so that we don't get
-		// a different random pool in future calls to GetPool().
-		m.setIntSetting("pool", pool)
-		return pool
-	}
-	return pool
-}
-
-func (m *Backend) SetPool(pool int) {
-	if m.GetPool() != pool {
-		m.setIntSetting("pool", pool)
-		m.ResetPool()
-		logging.Infof("Calling WalletInitialized\n")
-		m.WalletInitialized()
-		logging.Infof("Done!")
-	}
-}
-
 func (m *Backend) SetEnableIntegrated(enabled bool) {
 	m.setSetting("enableIntegrated", enabled)
 }
 
 func (m *Backend) GetEnableIntegrated() bool {
 	return m.getSetting("enableIntegrated")
-}
-
-type PoolChoice struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-func (m *Backend) GetPools() []PoolChoice {
-	pc := make([]PoolChoice, 0)
-	for _, p := range pools.GetPools(m.Address(), m.GetTestnet()) {
-		pc = append(pc, PoolChoice{
-			ID:   p.GetID(),
-			Name: fmt.Sprintf("%s (%0.2f%% fee)", p.GetName(), p.GetFee()),
-		})
-	}
-	return pc
 }
 
 func (m *Backend) GetTestnet() bool {

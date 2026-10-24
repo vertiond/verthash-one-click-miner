@@ -18,18 +18,14 @@ export function loadSettings() {
     b.GetAutoStart(),
     b.GetDebugging(),
     b.GetTestnet(),
-    b.GetEnableIntegrated(),
-    b.GetPools(),
-    b.GetPool()
+    b.GetEnableIntegrated()
   ]).then(function(r) {
     last = {
       closedSourceMiner: r[0],
       autoStart: r[1],
       debugging: r[2],
       testnet: r[3],
-      enableIntegrated: r[4],
-      pools: r[5],
-      poolID: r[6]
+      enableIntegrated: r[4]
     };
     return last;
   });
