@@ -70,6 +70,25 @@ func SetBlockbookURLs(urls []string) {
 	}
 }
 
+// DefaultBackendServers is the mainnet backend list used when neither
+// backends.json nor its cached copy is available.
+var DefaultBackendServers = []string{
+	"https://ocmbackend.javerity.com/",
+	"https://ocmbackend.mindcraftblocks.com/"}
+
+var mainnetBackendServers = DefaultBackendServers
+
+// SetBackendServers replaces the mainnet backend list. It also applies to
+// Active when the mainnet is selected.
+func SetBackendServers(servers []string) {
+	networkMu.Lock()
+	defer networkMu.Unlock()
+	mainnetBackendServers = servers
+	if !testnetActive {
+		Active.BackendServers = servers
+	}
+}
+
 func SetNetwork(testnet bool) {
 	networkMu.Lock()
 	defer networkMu.Unlock()
@@ -94,9 +113,7 @@ func SetNetwork(testnet bool) {
 			P2ProxyURL:         "https://p2proxy.vertcoin.org/",
 			WalletDB:           "wallet-testnet.db",
 			BlockbookURLs:      mainnetBlockbookURLs,
-			BackendServers: []string{
-				"https://ocmbackend.javerity.com/",
-				"https://ocmbackend.mindcraftblocks.com/"},
+			BackendServers:     mainnetBackendServers,
 		}
 	}
 }

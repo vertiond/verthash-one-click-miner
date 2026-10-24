@@ -99,7 +99,10 @@ func main() {
 	}
 	networks.SetNetwork(backend.GetTestnet())
 	backend.ResolveEndpointsInBackground()
-	go backend.BackendServerSelector()
+	go func() {
+		backend.ResolveBackendServers()
+		backend.BackendServerSelector()
+	}()
 	//ping.GetSelectedNode(backend.GetTestnet())
 
 	backend.ResetWalletAddress()

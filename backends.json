@@ -1,4 +1,8 @@
 {
+    "backendServers": [
+        "https://ocmbackend.javerity.com/",
+        "https://ocmbackend.mindcraftblocks.com/"
+    ],
     "blockbookUrls": [
         "https://blockbook.doge.zelcore.io/",
         "https://dogecoin.atomicwallet.io/"
