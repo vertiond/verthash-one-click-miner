@@ -105,12 +105,14 @@ p.bottom-button {
   margin: 0px;
 }
 
-/* Centres the rest of the screen in the space above the bottom button */
+/* Centres the rest of the screen between the top (or the tab bar) and the bottom
+   button: the padding is the distance from the button's top to the bottom of the
+   container, which the tab bar pushes 58px further down */
 div.col-286.above-bottom-button {
-  padding-bottom: 62px;
+  padding-bottom: 22px;
 }
 div.tabBar ~ div.container div.col-286.above-bottom-button {
-  padding-bottom: 120px;
+  padding-bottom: 80px;
 }
 
 
