@@ -3,6 +3,7 @@
 package p2poolgo
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"sync"
@@ -64,4 +65,9 @@ func afterNodeStart(cmd *exec.Cmd) error {
 		return fmt.Errorf("AssignProcessToJobObject: %w", err)
 	}
 	return nil
+}
+
+// isConnRefused reports whether err means nothing was listening.
+func isConnRefused(err error) bool {
+	return errors.Is(err, windows.WSAECONNREFUSED) || errors.Is(err, syscall.ECONNREFUSED)
 }

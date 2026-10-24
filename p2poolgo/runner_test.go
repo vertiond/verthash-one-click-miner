@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"testing"
@@ -273,6 +274,130 @@ func TestRunnerGracefulStop(t *testing.T) {
 	}
 }
 
+// startHelperRunner starts a runner whose node is the TestHelperNode helper
+// in the given mode, on free ephemeral ports.
+func startHelperRunner(t *testing.T, mode string) *Runner {
+	t.Helper()
+	t.Setenv(helperEnv, mode)
+	t.Setenv(helperMarkerEnv, filepath.Join(t.TempDir(), "shutdown.txt"))
+	r := NewRunner(Config{ExePath: os.Args[0], DataDir: t.TempDir(), Detection: Detection{Mode: ModeLight}})
+	r.stratumPort = freePort(t)
+	r.p2pPort = freePort(t)
+	r.argPrefix = []string{"-test.run=^TestHelperNode$", "--"}
+	if err := r.Start(); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	return r
+}
+
+func waitListening(t *testing.T, r *Runner) {
+	t.Helper()
+	addr := net.JoinHostPort("127.0.0.1", strconv.Itoa(r.stratumPort))
+	deadline := time.Now().Add(20 * time.Second)
+	for {
+		c, err := net.DialTimeout("tcp", addr, 200*time.Millisecond)
+		if err == nil {
+			c.Close()
+			return
+		}
+		if time.Now().After(deadline) {
+			r.Stop()
+			t.Fatalf("helper never listened on %s", addr)
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func assertStoppedClean(t *testing.T, r *Runner, exited chan struct{}) {
+	t.Helper()
+	select {
+	case <-exited:
+	default:
+		t.Fatal("node process still alive after Stop")
+	}
+	time.Sleep(2500 * time.Millisecond)
+	if r.Running() || r.RapidFailed() {
+		t.Fatal("runner restarted or rapid-failed after a requested stop")
+	}
+	r.mu.Lock()
+	deaths := len(r.deaths.times)
+	r.mu.Unlock()
+	if deaths != 0 {
+		t.Fatalf("requested stop recorded %d deaths", deaths)
+	}
+}
+
+func TestRunnerStopKillsWhenShutdownIgnored(t *testing.T) {
+	r := startHelperRunner(t, "ignore")
+	r.mu.Lock()
+	r.stopWait = time.Second
+	exited := r.exited
+	r.mu.Unlock()
+	waitListening(t, r)
+
+	begin := time.Now()
+	if err := r.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	took := time.Since(begin)
+	if took < 900*time.Millisecond || took > 3*time.Second {
+		t.Fatalf("Stop took %v, want about the 1s budget", took)
+	}
+	if _, err := os.Stat(os.Getenv(helperMarkerEnv)); err != nil {
+		t.Fatalf("helper never received the shutdown request: %v", err)
+	}
+	assertStoppedClean(t, r, exited)
+}
+
+func TestRunnerStopKillsImmediatelyWhenNotListening(t *testing.T) {
+	r := startHelperRunner(t, "silent")
+	r.mu.Lock()
+	exited := r.exited // default 10s budget
+	r.mu.Unlock()
+
+	begin := time.Now()
+	if err := r.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	// Windows reports a refused loopback connect after about 2s.
+	if took := time.Since(begin); took > 5*time.Second {
+		t.Fatalf("Stop took %v, want well under the 10s budget", took)
+	}
+	assertStoppedClean(t, r, exited)
+}
+
+func TestRunnerStopKeepsConcurrentlyStartedProcess(t *testing.T) {
+	r := startHelperRunner(t, "1")
+	waitListening(t, r)
+	var startErr error
+	// A Start that lands after Stop released the lock but before it finished.
+	r.stopHook = func() { startErr = r.Start() }
+
+	if err := r.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	r.stopHook = nil
+	if startErr != nil {
+		t.Fatalf("concurrent Start: %v", startErr)
+	}
+	if !r.Running() {
+		t.Fatal("Stop cleared the state of a process a concurrent Start launched")
+	}
+	r.mu.Lock()
+	cmd := r.cmd
+	r.mu.Unlock()
+	if cmd == nil {
+		t.Fatal("Stop cleared cmd of the concurrently started process")
+	}
+	waitListening(t, r)
+	if err := r.Stop(); err != nil {
+		t.Fatalf("second Stop: %v", err)
+	}
+	if r.Running() {
+		t.Fatal("Running() true after second Stop")
+	}
+}
+
 func TestRunnerLogTail(t *testing.T) {
 	dir := t.TempDir()
 	r := NewRunner(Config{DataDir: dir})
@@ -293,10 +418,14 @@ func TestRunnerLogTail(t *testing.T) {
 // TestHelperNode is not a real test: TestRunnerGracefulStop re-execs the test
 // binary with it as a stand-in p2pool-go node.
 func TestHelperNode(t *testing.T) {
-	switch os.Getenv(helperEnv) {
-	case "1":
+	mode := os.Getenv(helperEnv)
+	switch mode {
+	case "1", "ignore":
 	case "crash":
 		os.Exit(1)
+	case "silent": // never listens
+		time.Sleep(30 * time.Second)
+		os.Exit(3)
 	default:
 		t.Skip("helper process only")
 	}
@@ -327,6 +456,9 @@ func TestHelperNode(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		if f, ok := w.(http.Flusher); ok {
 			f.Flush()
+		}
+		if mode == "ignore" {
+			return
 		}
 		go func() {
 			time.Sleep(100 * time.Millisecond)

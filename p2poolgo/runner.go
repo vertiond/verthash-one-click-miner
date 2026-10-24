@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -25,6 +26,7 @@ const (
 	rapidFailDeaths  = 5
 	rapidFailWindow  = 2 * time.Minute
 	gracefulStopWait = 10 * time.Second
+	killWait         = 5 * time.Second
 	logTailMaxBytes  = 64 * 1024
 )
 
@@ -121,6 +123,8 @@ type Runner struct {
 	p2pPort     int
 	argPrefix   []string                // tests only: args placed before the node args
 	backoff     func(int) time.Duration // NextBackoff; tests shorten it
+	stopWait    time.Duration           // Stop's graceful budget; tests shorten it
+	stopHook    func()                  // tests only: runs just before Stop's final state update
 
 	mu          sync.Mutex
 	cmd         *exec.Cmd
@@ -138,7 +142,7 @@ type Runner struct {
 
 // NewRunner returns a Runner for cfg. Nothing is started.
 func NewRunner(cfg Config) *Runner {
-	return &Runner{cfg: cfg, stratumPort: StratumPort, p2pPort: P2PPort, backoff: NextBackoff}
+	return &Runner{cfg: cfg, stratumPort: StratumPort, p2pPort: P2PPort, backoff: NextBackoff, stopWait: gracefulStopWait}
 }
 
 // Config returns the configuration the runner launches the node with.
@@ -282,8 +286,10 @@ func (r *Runner) supervise(stopCh, supDone chan struct{}) {
 }
 
 // Stop ends supervision and stops the node: POST /api/shutdown with the
-// launch token, wait up to 10s for it to exit, then kill it.
+// launch token and wait for it to exit, at most 10s from the start of Stop,
+// then kill it. If the POST is refused outright it kills immediately.
 func (r *Runner) Stop() error {
+	begin := time.Now()
 	r.mu.Lock()
 	if !r.supervising && !r.running {
 		r.mu.Unlock()
@@ -295,49 +301,67 @@ func (r *Runner) Stop() error {
 		r.supervising = false
 	}
 	cmd, exited, token, running := r.cmd, r.exited, r.token, r.running
-	port := r.stratumPort
+	port, budget := r.stratumPort, r.stopWait
 	r.mu.Unlock()
 
-	var killErr error
+	var stopErr error
 	if running && cmd != nil {
-		graceful := requestShutdown(port, token) == nil
-		if graceful {
-			select {
-			case <-exited:
-			case <-time.After(gracefulStopWait):
-				graceful = false
-			}
+		deadline := begin.Add(budget)
+		err := requestShutdown(port, token, budget)
+		if err != nil && isConnRefused(err) {
+			// The node never got the request; waiting cannot help.
+			deadline = time.Now()
+		} else if err != nil {
+			logging.Warnf("P2Pool-Go shutdown request failed: %v", err)
 		}
-		if !graceful {
-			select {
-			case <-exited:
-			default:
-				if err := cmd.Process.Kill(); err != nil {
-					killErr = fmt.Errorf("unable to stop P2Pool-Go: %w", err)
-				}
-				<-exited
-			}
+		select {
+		case <-exited:
+		case <-time.After(time.Until(deadline)):
+			stopErr = killAndWait(cmd, exited)
 		}
 	}
 	if supDone != nil {
 		<-supDone
 	}
+	if r.stopHook != nil {
+		r.stopHook()
+	}
 
 	r.mu.Lock()
-	r.running = false
-	r.cmd = nil
+	if r.cmd == cmd { // not a process a concurrent Start launched
+		r.running = false
+		r.cmd = nil
+	}
 	r.mu.Unlock()
-	return killErr
+	return stopErr
 }
 
-func requestShutdown(port int, token string) error {
+// killAndWait kills the node and waits a bounded time for it to exit.
+func killAndWait(cmd *exec.Cmd, exited <-chan struct{}) error {
+	killErr := cmd.Process.Kill()
+	if errors.Is(killErr, os.ErrProcessDone) {
+		killErr = nil
+	}
+	select {
+	case <-exited:
+		return nil
+	case <-time.After(killWait):
+	}
+	if killErr != nil {
+		return fmt.Errorf("unable to stop P2Pool-Go: %w", killErr)
+	}
+	return errors.New("P2Pool-Go did not exit after being killed")
+}
+
+// requestShutdown POSTs /api/shutdown with the launch token.
+func requestShutdown(port int, token string, timeout time.Duration) error {
 	url := fmt.Sprintf("http://127.0.0.1:%d/api/shutdown", port)
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("X-Shutdown-Token", token)
-	client := &http.Client{Timeout: 3 * time.Second}
+	client := &http.Client{Timeout: timeout}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
