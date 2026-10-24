@@ -2,15 +2,15 @@
   "binaries": [
     {
       "platform": "windows",
-      "version": "v1.1.0-ocm.2",
-      "url": "https://github.com/vertiond/p2pool-go-VTC/releases/download/v1.1.0-ocm.2/p2pool-go-vtc-v1.1.0-ocm.2-windows-x64.zip",
-      "sha256": "5b33c732a324ec7b8042d2de562b692741022f6f900053b9149aba5b15752c75"
+      "version": "v1.1.0-ocm.3",
+      "url": "https://github.com/vertiond/p2pool-go-VTC/releases/download/v1.1.0-ocm.3/p2pool-go-vtc-v1.1.0-ocm.3-windows-x64.zip",
+      "sha256": "af482bfd7ac2c58de222a16bdfe414fbc4b8a0b35e9932486fd95edd144b195b"
     },
     {
       "platform": "linux",
-      "version": "v1.1.0-ocm.2",
-      "url": "https://github.com/vertiond/p2pool-go-VTC/releases/download/v1.1.0-ocm.2/p2pool-go-vtc-v1.1.0-ocm.2-linux-x64.zip",
-      "sha256": "f553174ea96d7646bc2cdeffe59f23ac8e68f997f138bdc4b25421ebc7882876"
+      "version": "v1.1.0-ocm.3",
+      "url": "https://github.com/vertiond/p2pool-go-VTC/releases/download/v1.1.0-ocm.3/p2pool-go-vtc-v1.1.0-ocm.3-linux-x64.zip",
+      "sha256": "746a22070dbd421822bcfa25649b6509974a805c5b9f93f45281da81c53ba2c8"
     }
   ],
   "trustedPeers": [
