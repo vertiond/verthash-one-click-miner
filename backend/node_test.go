@@ -2,6 +2,7 @@ package backend
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -92,6 +93,8 @@ func fmtArg(v interface{}) string {
 			return "true"
 		}
 		return "false"
+	case int:
+		return strconv.Itoa(x)
 	}
 	return "?"
 }
@@ -827,5 +830,31 @@ func TestOwnNodeStatusFailuresDoNotEmitRapidFail(t *testing.T) {
 	}
 	if n := countEvents(e.list(), "nodeRapidFail"); n != 0 {
 		t.Errorf("nodeRapidFail emitted %d times for our own node", n)
+	}
+}
+
+func TestWaitNodeReadyEmitsPeers(t *testing.T) {
+	stubNodeEnv(t)
+	seq := []*p2poolgo.Status{
+		{State: "syncing_sharechain", Version: "v", Peers: 3},
+		{State: "ready", Version: "v", Ready: true, Peers: 4},
+	}
+	i := 0
+	getStatus = func(string, string) (*p2poolgo.Status, error) {
+		s := seq[i]
+		if i < len(seq)-1 {
+			i++
+		}
+		return s, nil
+	}
+	e := &emitted{}
+	m := testBackend(e)
+	m.node = &fakeNode{running: true}
+	if err := m.WaitNodeReady(); err != nil {
+		t.Fatal(err)
+	}
+	got := strings.Join(e.list(), ",")
+	if !strings.Contains(got, "nodePeers:3,checkStatus:node_syncing_sharechain") {
+		t.Errorf("peer count not emitted before the syncing state: %s", got)
 	}
 }

@@ -335,6 +335,7 @@ func (m *Backend) WaitNodeReady() error {
 			m.emitEvent("checkStatus", "node_ready")
 			return nil
 		case err == nil:
+			m.emitEvent("nodePeers", st.Peers)
 			m.emitEvent("checkStatus", "node_"+st.State)
 		default:
 			// Not answering yet: /api/status comes up after verthash, the

@@ -4,7 +4,7 @@
       <p>{{ $t("checks.prerequisite") }}</p>
     </div>
     <div v-if="!prerequisiteInstall && checkStatus !== 'Failed'" class="col-286">
-      <p>{{checkStatus === null ? $t("checks.checking_mining_software") : (checkStatus === 'Failed' ? 'Failed' : $t("checks." + checkStatus)) }}</p>
+      <p>{{checkStatus === null ? $t("checks.checking_mining_software") : (checkStatus === 'Failed' ? 'Failed' : $t("checks." + checkStatus, {peers: nodePeers})) }}</p>
       <div class="verthashProgress" v-if="verthashProgress !== 0">
         <div class="progressBar">
           <div class="progress" v-bind:style="{width: verthashProgress + '%'}">&nbsp;</div>
@@ -18,11 +18,8 @@
       </div>
     </div>
     <div v-if="!prerequisiteInstall && checkStatus === 'Failed'" class="col-wide">
-      <div class="failureReason" v-if="checkStatus === 'Failed'">
-        {{ $t("checks.checks_failed") }}:
-        <br />&nbsp;<br />
-        {{failureReason}}
-      </div>
+      <!-- One line: white-space: pre-line would show template line breaks. -->
+      <div class="failureReason" v-if="checkStatus === 'Failed'">{{ $t("checks.checks_failed") }}:<br />&nbsp;<br />{{failureReason}}</div>
       <p v-if="!prerequisiteInstall && checkStatus === 'Failed'">
         <a class="button" @click="check">{{ $t('generic.retry') }}</a>
       </p>
@@ -38,6 +35,7 @@ export default {
       checkStatus: null,
       failureReason: "",
       verthashProgress: 0,
+      nodePeers: 0,
       nodeSlow: false,
       elapsed: 0,
       elapsedTimer: null,
@@ -59,6 +57,9 @@ export default {
     window.wails.Events.On("checkStatus", result => {
       self.checkStatus = result;
     });
+    window.wails.Events.On("nodePeers", result => {
+      self.nodePeers = result;
+    });
     window.wails.Events.On("prerequisiteInstall", result => {
       self.prerequisiteInstall = result === "1";
     });
@@ -78,7 +79,8 @@ export default {
       var self = this;
       this.clearSlow();
       this.nodeSlow = true;
-      this.elapsed = 0;
+      // The hint appears after 3 minutes of waiting; show the whole wait.
+      this.elapsed = 180;
       this.elapsedTimer = window.setInterval(() => {
         self.elapsed++;
       }, 1000);
@@ -120,6 +122,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 div.failureReason {
+  white-space: pre-line;
   height: 200px;
   overflow-y: auto;
   font-family: "Courier New", Courier, monospace;
