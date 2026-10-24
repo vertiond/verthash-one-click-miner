@@ -2,11 +2,13 @@ package backend
 
 import (
 	"path/filepath"
+	"sync"
 
 	"github.com/tidwall/buntdb"
 
 	"github.com/btcsuite/btcd/wire"
 	"github.com/vertcoin-project/one-click-miner-vnext/miners"
+	"github.com/vertcoin-project/one-click-miner-vnext/p2poolgo"
 	"github.com/vertcoin-project/one-click-miner-vnext/pools"
 	"github.com/vertcoin-project/one-click-miner-vnext/util"
 	"github.com/vertcoin-project/one-click-miner-vnext/wallet"
@@ -30,6 +32,21 @@ type Backend struct {
 	stopUpdate          chan bool
 	stopRunningState    chan bool
 	alreadyRunning      bool
+
+	// emit sends frontend events; nil means m.runtime.Events.Emit.
+	emit func(string, ...interface{})
+
+	// The P2Pool-Go node. nodeMu guards these fields; only PerformChecks and
+	// ShutdownNode start or stop the node.
+	nodeMu         sync.Mutex
+	node           nodeController
+	adopted        bool // mining to a node OCM did not start
+	detection      p2poolgo.Detection
+	nodeNeedsStart bool // node was built (or rebuilt) and StartNode must start it
+	nodeShutdown   bool // OCM is quitting; never start a node again
+	nodeRetry      chan bool
+
+	lastBackendDiff float64 // last difficulty from the backend /info; 0 = never reached
 }
 
 func NewBackend(alreadyRunning bool) (*Backend, error) {
@@ -42,6 +59,7 @@ func NewBackend(alreadyRunning bool) (*Backend, error) {
 		stopRunningState:    make(chan bool),
 		stopMonitoring:      make(chan bool),
 		stopUpdate:          make(chan bool),
+		nodeRetry:           make(chan bool, 1),
 		minerBinaries:       []*miners.BinaryRunner{},
 		rapidFailures:       []*miners.BinaryRunner{},
 	}

@@ -41,6 +41,11 @@ type CoreEnv struct {
 	RPCHost        string      // "127.0.0.1" in production
 }
 
+// ProductionCoreEnv is the CoreEnv for detecting the real local Vertcoin Core.
+func ProductionCoreEnv() CoreEnv {
+	return CoreEnv{DataDir: CoreDataDir(), ProcessRunning: coreProcessRunning, RPCHost: "127.0.0.1"}
+}
+
 // CoreDataDir is the default Vertcoin Core data directory.
 func CoreDataDir() string {
 	if runtime.GOOS == "windows" {

@@ -144,6 +144,7 @@ func main() {
 	}
 	if !alreadyRunning {
 		backend.StopMining()
+		backend.ShutdownNode()
 	}
 
 	if !alreadyRunning {

@@ -5,25 +5,23 @@ import (
 	"math/rand"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	"github.com/vertcoin-project/one-click-miner-vnext/logging"
 	"github.com/vertcoin-project/one-click-miner-vnext/miners"
 	"github.com/vertcoin-project/one-click-miner-vnext/networks"
 	"github.com/vertcoin-project/one-click-miner-vnext/tracking"
 	"github.com/vertcoin-project/one-click-miner-vnext/util"
-	verthash "github.com/vertcoin-project/verthash-go"
 )
 
 func (m *Backend) PerformChecks() string {
-	m.runtime.Events.Emit("checkStatus", "rapidfail")
+	m.emitEvent("checkStatus", "rapidfail")
 	if len(m.rapidFailures) > 0 {
-		m.runtime.Events.Emit("checkStatus", "Failed")
+		m.emitEvent("checkStatus", "Failed")
 		m.rapidFailures = make([]*miners.BinaryRunner, 0) // Clear the failures
 		return "Rapid failures: Your GPU is likely incompatible; check FAQ for supported hardware. If compatible, GPU overclocks or antivirus may be the cause."
 	}
 
-	m.runtime.Events.Emit("checkStatus", "compatibility")
+	m.emitEvent("checkStatus", "compatibility")
 	err := m.CheckGPUCompatibility()
 	if err != nil {
 		tracking.Track(tracking.TrackingRequest{
@@ -31,11 +29,11 @@ func (m *Backend) PerformChecks() string {
 			Action:   "CheckGPUCompatibilityError",
 			Name:     err.Error(),
 		})
-		m.runtime.Events.Emit("checkStatus", "Failed")
+		m.emitEvent("checkStatus", "Failed")
 		return err.Error()
 	}
 
-	m.runtime.Events.Emit("checkStatus", "installing_miners")
+	m.emitEvent("checkStatus", "installing_miners")
 	err = m.InstallMinerBinaries()
 	if err != nil {
 		tracking.Track(tracking.TrackingRequest{
@@ -43,43 +41,51 @@ func (m *Backend) PerformChecks() string {
 			Action:   "InstallMinerBinariesError",
 			Name:     err.Error(),
 		})
-		m.runtime.Events.Emit("checkStatus", "Failed")
+		m.emitEvent("checkStatus", "Failed")
 		return err.Error()
 	}
 
-	m.runtime.Events.Emit("checkStatus", "verthash")
-	verthashFile := filepath.Join(util.DataDirectory(), "verthash.dat")
-
-	doneChan := make(chan bool, 1)
-	progress := make(chan float64, 1)
-
-	go func() {
-		err = verthash.EnsureVerthashDatafileWithProgress(verthashFile, progress)
-		doneChan <- true
-	}()
-
-	for {
-		done := false
-		select {
-		case done = <-doneChan:
-			break
-		case prog := <-progress:
-			m.runtime.Events.Emit("verthashProgress", prog*100)
-			break
-		}
-		if done {
-			break
-		}
+	m.emitEvent("checkStatus", "installing_p2pool")
+	err = m.PrepareNode()
+	if err != nil {
+		tracking.Track(tracking.TrackingRequest{
+			Category: "PerformChecks",
+			Action:   "PrepareNodeError",
+			Name:     err.Error(),
+		})
+		m.emitEvent("checkStatus", "Failed")
+		return err.Error()
 	}
 
+	m.emitEvent("checkStatus", "verthash")
+	verthashFile := filepath.Join(util.DataDirectory(), "verthash.dat")
+	err = m.checkVerthash(verthashFile)
 	if err != nil {
 		errorString := fmt.Sprintf("Failed to create or verify Verthash data file: %s", err.Error())
-		m.runtime.Events.Emit("checkStatus", "Failed")
+		m.emitEvent("checkStatus", "Failed")
 		return errorString
 	}
 
-	for networks.Active.OCMBackend == "" {
-		time.Sleep(500 * time.Millisecond)
+	m.emitEvent("checkStatus", "starting_node")
+	err = m.StartNode()
+	if err != nil {
+		tracking.Track(tracking.TrackingRequest{
+			Category: "PerformChecks",
+			Action:   "StartNodeError",
+			Name:     err.Error(),
+		})
+		m.emitEvent("checkStatus", "Failed")
+		return err.Error()
+	}
+
+	err = m.WaitNodeReady()
+	if err != nil {
+		tracking.Track(tracking.TrackingRequest{
+			Category: "PerformChecks",
+			Action:   "WaitNodeReadyError",
+		})
+		m.emitEvent("checkStatus", "Failed")
+		return err.Error()
 	}
 
 	args := m.GetArgs()
@@ -93,12 +99,12 @@ func (m *Backend) PerformChecks() string {
 				Action:   "ConfigureError",
 				Name:     fmt.Sprintf("%s: %v", br.MinerBinary.MainExecutableName, err),
 			})
-			m.runtime.Events.Emit("checkStatus", "Failed")
+			m.emitEvent("checkStatus", "Failed")
 			return errorString
 		}
 
 		if br.MinerImpl.AvailableGPUs() == 0 {
-			m.runtime.Events.Emit("checkStatus", "Failed")
+			m.emitEvent("checkStatus", "Failed")
 			return "Miner software reported no compatible GPUs. Check FAQ for supported hardware and ensure your GPU drivers are up to date."
 		}
 	}
