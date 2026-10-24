@@ -1,0 +1,24 @@
+{
+  "binaries": [
+    {
+      "platform": "windows",
+      "version": "v1.1.0-ocm.1",
+      "url": "https://github.com/vertiond/p2pool-go-VTC/releases/download/v1.1.0-ocm.1/p2pool-go-vtc-v1.1.0-ocm.1-windows-x64.zip",
+      "sha256": "4b475305ab0af9570131370037105840d29e4ade1c41dbff51eaa58c38b9def3"
+    },
+    {
+      "platform": "linux",
+      "version": "v1.1.0-ocm.1",
+      "url": "https://github.com/vertiond/p2pool-go-VTC/releases/download/v1.1.0-ocm.1/p2pool-go-vtc-v1.1.0-ocm.1-linux-x64.zip",
+      "sha256": "4d96ac6cb0e23807ba78660be5b8b6068aba7a6cce6a3d68e6c996235ac71ec4"
+    }
+  ],
+  "trustedPeers": [
+    "12D3KooWNiQ2TSXEhFgZrsJuuk9xxNheph8b23pK4RHaPSQFNDwU",
+    "12D3KooWL65LCCkfLnN2PaEjdXUm4BBHj24nzpABPhDatjNzPKwi"
+  ],
+  "bootstrapPeers": [
+    "/ip4/138.68.53.157/tcp/9348/p2p/12D3KooWNiQ2TSXEhFgZrsJuuk9xxNheph8b23pK4RHaPSQFNDwU",
+    "/dns4/p2poolvtc.com/tcp/9348/p2p/12D3KooWNiQ2TSXEhFgZrsJuuk9xxNheph8b23pK4RHaPSQFNDwU"
+  ]
+}

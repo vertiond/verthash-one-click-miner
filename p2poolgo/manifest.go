@@ -13,7 +13,7 @@ import (
 	"github.com/vertcoin-project/one-click-miner-vnext/util"
 )
 
-const ManifestURL = "https://raw.githubusercontent.com/vertiond/verthash-one-click-miner/master/p2pool-go.json"
+const ManifestURL = "https://raw.githubusercontent.com/vertiond/verthash-one-click-miner/p2pool-ocm/p2pool-go.json"
 
 type Binary struct {
 	Platform string `json:"platform"` // runtime.GOOS value
