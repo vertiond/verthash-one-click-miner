@@ -112,7 +112,12 @@ func GetTipHeight() int64 {
 }
 
 func GetNetHash() uint64 {
-	difficulty := big.NewFloat(GetDifficulty())
+	return NetHashFromDifficulty(GetDifficulty())
+}
+
+// NetHashFromDifficulty converts a network difficulty to a hashrate.
+func NetHashFromDifficulty(d float64) uint64 {
+	difficulty := big.NewFloat(d)
 	factor := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(48), nil)
 	netHash := difficulty.Mul(difficulty, big.NewFloat(0).SetInt(factor))
 	u, _ := netHash.Quo(netHash, big.NewFloat(9830250)).Uint64() // 0xffff * blocktime in seconds
