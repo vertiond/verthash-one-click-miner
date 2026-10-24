@@ -1,16 +1,16 @@
 <template>
   <div class="container">
     <div v-if="checkStatus !== 'Failed'" class="col-286">
-      <p>{{checkStatus === null ? $t("checks.checking_mining_software") : (checkStatus === 'Failed' ? 'Failed' : $t("checks." + checkStatus, {peers: nodePeers})) }}</p>
+      <p>{{checkStatus === null ? $t("checks.checking_mining_software") : (checkStatus === 'Failed' ? 'Failed' : $t("checks." + checkStatus)) }}</p>
       <div class="verthashProgress" v-if="verthashProgress !== 0">
         <div class="progressBar">
           <div class="progress" v-bind:style="{width: verthashProgress + '%'}">&nbsp;</div>
         </div>
         <div class="progressText">{{Math.floor(verthashProgress)}}%</div>
       </div>
+      <p class="elapsed" v-if="waitTimer !== null">{{ $tc("checks.node_peers", nodePeers, {count: nodePeers}) }} &middot; {{ elapsedText }}</p>
       <div class="nodeSlow" v-if="nodeSlow">
         <p>{{ $t("checks.node_slow") }}</p>
-        <p class="elapsed">{{ elapsedText }}</p>
         <a class="button" @click="retryNode">{{ $t('generic.retry') }}</a>
       </div>
     </div>
@@ -34,8 +34,20 @@ export default {
       nodePeers: 0,
       nodeSlow: false,
       elapsed: 0,
-      elapsedTimer: null,
+      waitTimer: null,
     };
+  },
+  watch: {
+    // Count the time spent waiting for the node from its first state on, so
+    // the wait is visible from the start rather than only once it is slow.
+    checkStatus: function(status) {
+      var waiting = typeof status === "string" && status.indexOf("node_") === 0 && status !== "node_ready";
+      if (waiting) {
+        this.startWait();
+      } else {
+        this.stopWait();
+      }
+    }
   },
   computed: {
     elapsedText: function() {
@@ -45,7 +57,7 @@ export default {
     }
   },
   beforeDestroy() {
-    this.clearSlow();
+    this.stopWait();
   },
   mounted() {
     this.check();
@@ -60,28 +72,28 @@ export default {
       self.verthashProgress = result;
     });
     window.wails.Events.On("nodeSlow", result => {
-      if (result === true || result === "true") {
-        self.startSlow();
-      } else {
-        self.clearSlow();
+      self.nodeSlow = result === true || result === "true";
+      if (!self.nodeSlow) {
+        // A retry restarts the node, so the wait starts over too.
+        self.elapsed = 0;
       }
     });
   },
   methods: {
-    startSlow: function() {
+    startWait: function() {
       var self = this;
-      this.clearSlow();
-      this.nodeSlow = true;
-      // The hint appears after 3 minutes of waiting; show the whole wait.
-      this.elapsed = 180;
-      this.elapsedTimer = window.setInterval(() => {
+      if (this.waitTimer !== null) {
+        return;
+      }
+      this.elapsed = 0;
+      this.waitTimer = window.setInterval(() => {
         self.elapsed++;
       }, 1000);
     },
-    clearSlow: function() {
-      if (this.elapsedTimer !== null) {
-        window.clearInterval(this.elapsedTimer);
-        this.elapsedTimer = null;
+    stopWait: function() {
+      if (this.waitTimer !== null) {
+        window.clearInterval(this.waitTimer);
+        this.waitTimer = null;
       }
       this.nodeSlow = false;
       this.elapsed = 0;
@@ -93,7 +105,7 @@ export default {
       var self = this;
 
       window.backend.Backend.PerformChecks().then(result => {
-        self.clearSlow();
+        self.stopWait();
         if (result === "ok") {
           self.startMining();
         } else {
@@ -123,6 +135,11 @@ div.failureReason {
   border: 1px solid red;
   width: 600px;
   margin: 0 auto;
+}
+
+p.elapsed {
+  opacity: 0.6;
+  font-size: 10pt;
 }
 
 div.verthashProgress {
