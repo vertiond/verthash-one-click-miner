@@ -127,6 +127,7 @@ func main() {
 	//ping.GetSelectedNode(backend.GetTestnet())
 
 	backend.ResetWalletAddress()
+	backend.ResolvePools()
 	backend.ResetPool()
 	backend.ResetCustomAddress()
 	backend.ResetPayout()

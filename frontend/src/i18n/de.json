@@ -37,7 +37,7 @@
         "pool_fee" : "Pool-Gebühr",
         "copy_address" : "Wallet-Adresse kopieren",
         "payout_information" : "Auszahlungsinformationen ansehen",
-        "payout_shortage_doge" : "Dem Pool fehlen DOGE, Auszahlungen können sich verzögern. Ihr Guthaben ist sicher und wird ausgezahlt. Für schnellere DOGE-Auszahlungen in den Einstellungen HashCryptos.com wählen.",
+        "payout_shortage_doge" : "Dem Pool fehlen DOGE, Auszahlungen können sich verzögern. Ihr Guthaben ist sicher und wird ausgezahlt. Für schnellere DOGE-Auszahlungen in den Einstellungen {pool} wählen.",
         "payout_shortage_other" : "Dem Pool fehlen {ticker}, Auszahlungen können sich verzögern. Ihr Guthaben ist sicher und wird ausgezahlt. Für schnellere Auszahlungen in den Einstellungen eine andere Währung wählen."
     },
     "sending" : {

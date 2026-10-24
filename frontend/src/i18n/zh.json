@@ -31,7 +31,7 @@
         "expected_earnings_24h" : "预期收益（24小时）",
         "estimating" : "估计中",
         "stop_mining" : "停止挖矿",
-        "payout_shortage_doge" : "矿池 DOGE 不足，支付可能会延迟。您的余额是安全的，稍后将会支付。如需更快的 DOGE 支付，请在设置中切换到 HashCryptos.com。",
+        "payout_shortage_doge" : "矿池 DOGE 不足，支付可能会延迟。您的余额是安全的，稍后将会支付。如需更快的 DOGE 支付，请在设置中切换到 {pool}。",
         "payout_shortage_other" : "矿池 {ticker} 不足，支付可能会延迟。您的余额是安全的，稍后将会支付。如需更快支付，请在设置中选择其他支付币种。"
     },
     "sending" : {

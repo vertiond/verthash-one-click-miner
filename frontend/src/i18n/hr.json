@@ -31,7 +31,7 @@
         "expected_earnings_24h" : "Očekivana zarada(24h)",
         "estimating" : "Vršim procjenu",
         "stop_mining" : "Zaustavi rudarenje",
-        "payout_shortage_doge" : "Poolu nedostaje DOGE, pa isplate mogu kasniti. Vaš iznos je siguran i bit će isplaćen. Za brže DOGE isplate prebacite se na HashCryptos.com u Postavkama.",
+        "payout_shortage_doge" : "Poolu nedostaje DOGE, pa isplate mogu kasniti. Vaš iznos je siguran i bit će isplaćen. Za brže DOGE isplate prebacite se na {pool} u Postavkama.",
         "payout_shortage_other" : "Poolu nedostaje {ticker}, pa isplate mogu kasniti. Vaš iznos je siguran i bit će isplaćen. Za brže isplate odaberite drugu valutu isplate u Postavkama."
     },
     "sending" : {

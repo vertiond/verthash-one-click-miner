@@ -37,7 +37,7 @@
         "pool_fee" : "fee",
         "copy_address" : "Copy your wallet address",
         "payout_information" : "View payout information",
-        "payout_shortage_doge" : "The pool is short of DOGE, so payouts may be delayed. Your balance is safe and will be paid out. For faster DOGE payouts, switch to HashCryptos.com in Settings.",
+        "payout_shortage_doge" : "The pool is short of DOGE, so payouts may be delayed. Your balance is safe and will be paid out. For faster DOGE payouts, switch to {pool} in Settings.",
         "payout_shortage_other" : "The pool is short of {ticker}, so payouts may be delayed. Your balance is safe and will be paid out. For faster payouts, choose another payout currency in Settings."
     },
     "sending" : {

@@ -71,14 +71,8 @@ func TestFailedLookupHasNoPrice(t *testing.T) {
 func TestEveryPayoutCoinHasAPriceSourceOrIsKnownToLackOne(t *testing.T) {
 	// Every payout must be mapped. Add a ticker here only if CoinPaprika delists it.
 	lacking := map[string]bool{}
-	for _, p := range []Payout{
-		NewBCHPayout(), NewBNBPayout(), NewBTCPayout(), NewCAKEPayout(), NewDASHPayout(),
-		NewDGBPayout(), NewDOGEPayout(), NewETCPayout(), NewFIROPayout(), NewFLUXPayout(),
-		NewGRSPayout(), NewKMDPayout(), NewLBCPayout(), NewLTCPayout(), NewMATICPayout(),
-		NewPPCPayout(), NewRTMPayout(), NewRVNPayout(), NewSHIBPayout(), NewTRXPayout(),
-		NewUSDTPayout(), NewVTCPayout(), NewXMRPayout(), NewXVGPayout(), NewZECPayout(),
-		NewZENPayout(),
-	} {
+	for _, c := range DefaultConfigs {
+		p := NewConfiguredPayout(c)
 		_, mapped := coinpaprikaIDs[p.GetTicker()]
 		if !mapped && !lacking[p.GetTicker()] {
 			t.Errorf("%s has no CoinPaprika id", p.GetTicker())

@@ -37,7 +37,7 @@
         "pool_fee" : "mokestis",
         "copy_address" : "Kopijuoti jūsų piniginės adresą",
         "payout_information" : "Peržiūrėti išmokėjimo informaciją",
-        "payout_shortage_doge" : "Pool trūksta DOGE, todėl išmokėjimai gali vėluoti. Jūsų balansas saugus ir bus išmokėtas. Norėdami greitesnių DOGE išmokėjimų, nustatymuose pasirinkite HashCryptos.com.",
+        "payout_shortage_doge" : "Pool trūksta DOGE, todėl išmokėjimai gali vėluoti. Jūsų balansas saugus ir bus išmokėtas. Norėdami greitesnių DOGE išmokėjimų, nustatymuose pasirinkite {pool}.",
         "payout_shortage_other" : "Pool trūksta {ticker}, todėl išmokėjimai gali vėluoti. Jūsų balansas saugus ir bus išmokėtas. Norėdami greitesnių išmokėjimų, nustatymuose pasirinkite kitą išmokėjimo valiutą."
     },
     "sending" : {

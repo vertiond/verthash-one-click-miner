@@ -36,7 +36,7 @@
         "pool_fee" : "Vergoeding",
         "copy_address" : "Kopieer je portemonnee adres",
         "payout_information" : "Bekijk uitbetaling informatie",
-        "payout_shortage_doge" : "De pool heeft te weinig DOGE, uitbetalingen kunnen vertraagd zijn. Je saldo is veilig en wordt uitbetaald. Kies HashCryptos.com in Instellingen voor snellere DOGE-uitbetalingen.",
+        "payout_shortage_doge" : "De pool heeft te weinig DOGE, uitbetalingen kunnen vertraagd zijn. Je saldo is veilig en wordt uitbetaald. Kies {pool} in Instellingen voor snellere DOGE-uitbetalingen.",
         "payout_shortage_other" : "De pool heeft te weinig {ticker}, waardoor uitbetalingen vertraagd kunnen zijn. Je saldo is veilig en wordt uitbetaald. Voor snellere uitbetalingen kies je een andere uitbetalingsvaluta in Instellingen."
     },
     "sending" : {

@@ -37,7 +37,7 @@
     "pool_fee": "avgift",
     "copy_address": "Kopiera din plånboks address",
     "payout_information": "Visa utbetalnings information",
-    "payout_shortage_doge": "Poolen har för lite DOGE, så utbetalningar kan dröja. Ditt saldo är säkert och betalas ut. För snabbare DOGE-utbetalningar, byt till HashCryptos.com under Inställningar.",
+    "payout_shortage_doge": "Poolen har för lite DOGE, så utbetalningar kan dröja. Ditt saldo är säkert och betalas ut. För snabbare DOGE-utbetalningar, byt till {pool} under Inställningar.",
     "payout_shortage_other": "Poolen har för lite {ticker}, så utbetalningar kan dröja. Ditt saldo är säkert och betalas ut. För snabbare utbetalningar, välj en annan valuta under Inställningar."
   },
   "sending": {

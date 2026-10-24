@@ -1,0 +1,58 @@
+{
+    "payouts": [
+        {"id": 1, "name": "Vertcoin", "ticker": "VTC"},
+        {"id": 2, "name": "Bitcoin", "ticker": "BTC"},
+        {"id": 3, "name": "Litecoin", "ticker": "LTC"},
+        {"id": 4, "name": "Verthash OCM Dogecoin Wallet", "ticker": "DOGE"},
+        {"id": 5, "name": "Bitcoin Cash", "ticker": "BCH"},
+        {"id": 6, "name": "Dash", "ticker": "DASH"},
+        {"id": 8, "name": "Ravencoin", "ticker": "RVN"},
+        {"id": 9, "name": "Digibyte", "ticker": "DGB"},
+        {"id": 10, "name": "Groestlcoin", "ticker": "GRS"},
+        {"id": 11, "name": "Firo", "ticker": "FIRO"},
+        {"id": 12, "name": "Monero", "ticker": "XMR"},
+        {"id": 13, "name": "Flux", "ticker": "FLUX"},
+        {"id": 14, "name": "Komodo", "ticker": "KMD"},
+        {"id": 15, "name": "LBRY Credits", "ticker": "LBC"},
+        {"id": 16, "name": "Peercoin", "ticker": "PPC"},
+        {"id": 18, "name": "Verge", "ticker": "XVG"},
+        {"id": 19, "name": "Zcash", "ticker": "ZEC"},
+        {"id": 20, "name": "Horizen", "ticker": "ZEN"},
+        {"id": 21, "name": "Ethereum Classic", "ticker": "ETC"},
+        {"id": 22, "name": "Raptoreum", "ticker": "RTM"},
+        {"id": 23, "name": "Tether", "ticker": "USDT", "networks": ["ERC20", "TRC20", "BEP20"]},
+        {"id": 24, "name": "Shiba Inu", "ticker": "SHIB"},
+        {"id": 25, "name": "Polygon", "ticker": "MATIC"},
+        {"id": 26, "name": "Tron", "ticker": "TRX"},
+        {"id": 27, "name": "Binance Coin", "ticker": "BNB"},
+        {"id": 28, "name": "Cake", "ticker": "CAKE"}
+    ],
+    "pools": [
+        {
+            "id": 7,
+            "name": "Zpool.ca",
+            "stratumURL": "stratum+tcp://verthash.mine.zpool.ca:6144",
+            "password": "c={ticker},zap=VTC",
+            "fee": 0.50,
+            "payouts": ["DOGE", "VTC", "BTC", "DASH", "DGB", "FLUX", "GRS", "ZEN", "KMD", "LTC", "PPC", "RVN", "XVG", "ZEC"],
+            "payoutURL": "https://zpool.ca/api/wallet?address={address}",
+            "payoutFields": ["unpaid"],
+            "dashboardURL": "https://zpool.ca/wallet/{address}",
+            "shortageURL": "https://zpool.ca/api/currencies",
+            "guaranteedPayouts": ["BTC", "LTC", "DASH", "DGB", "FLUX", "RVN"]
+        },
+        {
+            "id": 6,
+            "name": "HashCryptos.com",
+            "stratumURL": "stratum+tcp://stratum3.hashcryptos.com:9991",
+            "password": "x",
+            "fee": 0.00,
+            "payouts": ["DOGE", "VTC", "BTC", "BCH", "DASH", "DGB", "FIRO", "GRS", "LTC", "XMR", "RVN"],
+            "payoutURL": "https://www.hashcryptos.com/api/walletEx/?address={address}",
+            "payoutFields": ["unpaid"],
+            "dashboardURL": "https://hashcryptos.com/?address={address}",
+            "dogeOnly": true,
+            "activationURL": "https://hashcryptos.com"
+        }
+    ]
+}

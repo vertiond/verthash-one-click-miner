@@ -37,7 +37,7 @@
         "pool_fee" : "gebyr",
         "copy_address" : "Kopier din wallet adresse",
         "payout_information" : "Se udbetalingsoplysninger",
-        "payout_shortage_doge" : "Poolen mangler DOGE, så udbetalinger kan blive forsinket. Din saldo er sikker og bliver udbetalt. Skift til HashCryptos.com under Indstillinger for hurtigere DOGE-udbetalinger.",
+        "payout_shortage_doge" : "Poolen mangler DOGE, så udbetalinger kan blive forsinket. Din saldo er sikker og bliver udbetalt. Skift til {pool} under Indstillinger for hurtigere DOGE-udbetalinger.",
         "payout_shortage_other" : "Poolen mangler {ticker}, så udbetalinger kan blive forsinket. Din saldo er sikker og vil blive udbetalt. For hurtigere udbetalinger skal du vælge en anden udbetalingsvaluta under Indstillinger."
     },
     "sending" : {

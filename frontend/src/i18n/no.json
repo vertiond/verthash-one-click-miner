@@ -31,7 +31,7 @@
     "expected_earnings_24h": "Forventet gevinst (24t)",
     "estimating": "Estimerer",
     "stop_mining": "Stopp utvinning",
-    "payout_shortage_doge": "Poolen har for lite DOGE, så utbetalinger kan bli forsinket. Saldoen din er trygg og vil bli utbetalt. For raskere DOGE-utbetalinger kan du bytte til HashCryptos.com under Innstillinger.",
+    "payout_shortage_doge": "Poolen har for lite DOGE, så utbetalinger kan bli forsinket. Saldoen din er trygg og vil bli utbetalt. For raskere DOGE-utbetalinger kan du bytte til {pool} under Innstillinger.",
     "payout_shortage_other": "Poolen har for lite {ticker}, så utbetalinger kan bli forsinket. Saldoen din er trygg og vil bli utbetalt. For raskere utbetalinger kan du velge en annen utbetalingsvaluta under Innstillinger."
   },
   "sending": {

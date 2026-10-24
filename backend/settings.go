@@ -11,6 +11,7 @@ import (
 	"github.com/tidwall/buntdb"
 	"github.com/vertiond/verthash-one-click-miner/logging"
 	"github.com/vertiond/verthash-one-click-miner/networks"
+	"github.com/vertiond/verthash-one-click-miner/payouts"
 	"github.com/vertiond/verthash-one-click-miner/pools"
 	"github.com/vertiond/verthash-one-click-miner/tracking"
 	"github.com/vertiond/verthash-one-click-miner/util"
@@ -88,6 +89,11 @@ func (m *Backend) getStringSetting(name string) string {
 
 func (m *Backend) GetPool() int {
 	pool := m.getIntSetting("pool")
+	if pool != 0 && !m.GetTestnet() && !pools.HasPool(pool, false) {
+		// The saved pool was removed from the pool list, so use the default.
+		logging.Warnf("Pool %d is no longer available, using the default pool\n", pool)
+		pool = 0
+	}
 	if pool == 0 {
 		if m.GetTestnet() {
 			return 2 // Default P2Pool on testnet
@@ -100,7 +106,10 @@ func (m *Backend) GetPool() int {
 		// // a different random pool in future calls to GetPool().
 		// m.setIntSetting("pool", pool)
 		// return pool
-		return 7 // Default zpool
+		if pools.HasPool(7, false) {
+			return 7 // Default zpool
+		}
+		return pools.GetPools(false)[0].GetID()
 	}
 	return pool
 }
@@ -124,16 +133,18 @@ func (m *Backend) GetEnableIntegrated() bool {
 }
 
 type PoolChoice struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	DogeOnly bool   `json:"dogeOnly"`
 }
 
 func (m *Backend) GetPools() []PoolChoice {
 	pc := make([]PoolChoice, 0)
 	for _, p := range pools.GetPools(m.GetTestnet()) {
 		pc = append(pc, PoolChoice{
-			ID:   p.GetID(),
-			Name: fmt.Sprintf("%s (%0.2f%% fee)", p.GetName(), p.GetFee()),
+			ID:       p.GetID(),
+			Name:     fmt.Sprintf("%s (%0.2f%% fee)", p.GetName(), p.GetFee()),
+			DogeOnly: pools.IsDogeOnly(p),
 		})
 	}
 	return pc
@@ -143,9 +154,9 @@ func (m *Backend) GetPayout() int {
 	payout := m.getIntSetting("payout")
 	if payout == 0 {
 		if m.GetTestnet() {
-			return 1 // Default Vertcoin on testnet
+			return payouts.VTCID // Default Vertcoin on testnet
 		}
-		return 4 // Default Dogecoin on mainnet
+		return payouts.DOGEID // Default Dogecoin on mainnet
 	}
 	return payout
 }
@@ -153,7 +164,7 @@ func (m *Backend) GetPayout() int {
 func (m *Backend) SetPayout(payout int) {
 	// Reset payout dropdown to Dogecoin if custom address is invalid
 	if !m.ValidCustomAddress() {
-		payout = 4
+		payout = payouts.DOGEID
 	}
 	if m.GetPayout() != payout {
 		m.setIntSetting("payout", payout)
@@ -172,7 +183,7 @@ func (m *Backend) GetPayouts(selectedPoolID int) []PayoutChoice {
 	logging.Debugf("Selected pool: %s\n", selectedPool.GetName())
 	for _, p := range selectedPool.GetPayouts(m.GetTestnet()) {
 		pc = append(pc, PayoutChoice{
-			ID:   p.GetID(),
+			ID:       p.GetID(),
 			Name: p.GetDisplayName(),
 		})
 	}
@@ -237,16 +248,16 @@ func (m *Backend) SetPayoutAddresses(addressesJson string) {
 	}
 }
 
-func (m *Backend) PoolIsHashCryptos() bool {
-	return (m.pool.GetID() == 6)
+func (m *Backend) PoolIsDogeOnly() bool {
+	return pools.IsDogeOnly(m.pool)
 }
 
 func (m *Backend) PayoutIsVertcoin() bool {
-	return (m.payout.GetID() == 1)
+	return (m.payout.GetID() == payouts.VTCID)
 }
 
 func (m *Backend) PayoutIsDogecoin() bool {
-	return (m.payout.GetID() == 4)
+	return (m.payout.GetID() == payouts.DOGEID)
 }
 
 // TODO: Improve address validation
@@ -260,10 +271,10 @@ func (m *Backend) ValidCustomAddress() bool {
 
 func (m *Backend) UseCustomPayout() bool {
 	// Use the custom payout config settings only if
-	// - non-HashCryptos pool is selected
+	// - pool that pays out more than Dogecoin is selected
 	// - non-Dogecoin payout option is selected
 	// - address for payout is valid
-	if (!m.PoolIsHashCryptos()) && (!m.PayoutIsDogecoin()) && m.ValidCustomAddress() {
+	if (!m.PoolIsDogeOnly()) && (!m.PayoutIsDogecoin()) && m.ValidCustomAddress() {
 		return true
 	}
 	return false
@@ -372,8 +383,24 @@ func (m *Backend) SetAutoStart(newAutoStart bool) {
 	util.SetAutoStart(newAutoStart)
 }
 
-func (m *Backend) ActivationInformation() {
-	util.OpenBrowser("https://hashcryptos.com")
+// ActivationInformation opens the page where the wallet address is activated
+// for the given pool, if it has one.
+func (m *Backend) ActivationInformation(poolID int) {
+	pool := pools.GetPool(poolID, m.GetTestnet())
+	if r, ok := pool.(pools.DogeOnlyReporter); ok && r.ActivationURL() != "" {
+		util.OpenBrowser(r.ActivationURL())
+	}
+}
+
+// DogeOnlyPoolName returns the name of a pool other than the active one that
+// pays out to the built-in Dogecoin wallet, or "" when there is none.
+func (m *Backend) DogeOnlyPoolName() string {
+	for _, p := range pools.GetPools(m.GetTestnet()) {
+		if p.GetID() != m.pool.GetID() && pools.IsDogeOnly(p) {
+			return p.GetName()
+		}
+	}
+	return ""
 }
 
 func (m *Backend) GetVersion() string {

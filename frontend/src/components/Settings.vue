@@ -8,7 +8,7 @@
           <br />
           <span class="subtext">{{ $t("settings.enable_integrated_sub") }}</span>
         </p>
-        <p v-if="poolID != 6" style="text-align: left">
+        <p v-if="!poolDogeOnly" style="text-align: left">
           {{ $t("settings.payout") }}:
           <br />
           <select style="width: 100%" name="payout" v-model="payoutID" v-on:change="changePayoutOptions">
@@ -18,7 +18,7 @@
           </select>
         </p>
         <!-- TODO: Improve address validation -->
-        <p v-if="poolID != 6 && payoutID != 4">
+        <p v-if="!poolDogeOnly && payoutID != 4">
           <input type="text" style="width:90%" class="critical-input"
             v-model="customAddress"
             v-bind:placeholder="$t('settings.customAddress')"
@@ -26,7 +26,7 @@
             v-on:keyup.enter="saveFromAddress"
           />
         </p>
-        <p v-if="poolID == 6" style="text-align: left">
+        <p v-if="poolDogeOnly" style="text-align: left">
           {{ $t("settings.doge_only") }}
           <br><a class="link" @click="copyAndActivate">{{ $t('settings.address_activation') }}</a>
           {{ $t("settings.mine_verthash_paid_doge") }}
@@ -106,6 +106,13 @@ export default {
       loaded: false,
     };
   },
+  computed: {
+    // The selected pool only pays out to the built-in Dogecoin wallet
+    poolDogeOnly: function() {
+      var self = this;
+      return self.pools.some(function(p) { return p.id == self.poolID && p.dogeOnly; });
+    }
+  },
   created() {
     var self = this;
     var apply = function(settings) {
@@ -171,7 +178,7 @@ export default {
     },
     copyAndActivate: function() {
       this.copyAddress();
-      window.backend.Backend.ActivationInformation();
+      window.backend.Backend.ActivationInformation(this.poolID);
     },
     copyAddress: function() {
       var textArea = document.createElement("textarea");

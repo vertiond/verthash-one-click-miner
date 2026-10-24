@@ -133,14 +133,12 @@ func (m *Backend) StartMining() bool {
 	go func() {
 		unitVtcPerBtc := 0.0
 		unitPayoutCoinPerBtc := 0.0
-		vtcPayout := payouts.NewVTCPayout()
-		btcPayout := payouts.NewBTCPayout()
 		var myPayout payouts.Payout
 		if m.UseCustomPayout() {
 			myPayout = m.payout
 		} else {
 			// Default Dogecoin payout
-			myPayout = payouts.NewDOGEPayout()
+			myPayout = payouts.DOGE()
 		}
 
 		cycles := 0
@@ -156,9 +154,9 @@ func (m *Backend) StartMining() bool {
 				// and this pulls from Insight. Every 600s is fine (~every 4 blocks)
 				nhr = util.GetNetHash()
 				th = util.GetTipHeight()
-				if myPayout.GetID() != vtcPayout.GetID() {
-					unitVtcPerBtc = payouts.GetBitcoinPerUnitCoin(vtcPayout.GetTicker())
-					if myPayout.GetID() == btcPayout.GetID() {
+				if myPayout.GetTicker() != "VTC" {
+					unitVtcPerBtc = payouts.GetBitcoinPerUnitCoin("VTC")
+					if myPayout.GetTicker() == "BTC" {
 						unitPayoutCoinPerBtc = 1
 					} else {
 						time.Sleep(750 * time.Millisecond) // Put time between API calls
@@ -182,7 +180,7 @@ func (m *Backend) StartMining() bool {
 
 			// Convert average earning from Vertcoin to selected payout coin
 			avgEarningTicker := "VTC"
-			if myPayout.GetID() != vtcPayout.GetID() {
+			if myPayout.GetTicker() != "VTC" {
 				if unitVtcPerBtc != 0 && unitPayoutCoinPerBtc != 0 {
 					avgEarningTicker = myPayout.GetTicker()
 					avgEarning = avgEarning * unitVtcPerBtc / unitPayoutCoinPerBtc

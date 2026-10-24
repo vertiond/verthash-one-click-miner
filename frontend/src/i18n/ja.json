@@ -31,7 +31,7 @@
         "expected_earnings_24h" : "予想収益 (24時間)",
         "estimating" : "見積もり",
         "stop_mining" : "マイニングをやめる",
-        "payout_shortage_doge" : "プールの DOGE 不足で支払いが遅れる場合がありますが、残高は安全です。早く受け取るには設定で HashCryptos.com を選択してください。",
+        "payout_shortage_doge" : "プールの DOGE 不足で支払いが遅れる場合がありますが、残高は安全です。早く受け取るには設定で {pool} を選択してください。",
         "payout_shortage_other" : "プールの {ticker} 不足で支払いが遅れる場合がありますが、残高は安全です。早く受け取るには設定で別の支払い通貨を選択してください。"
     },
     "sending" : {

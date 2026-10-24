@@ -71,7 +71,7 @@
         <br><a class="link" @click="payoutInformation">{{ $t('mining.payout_information') }}</a>
       </p>
       <p class="shortage" v-if="payoutShortage">
-        {{ activePayout == 'DOGE' ? $t('mining.payout_shortage_doge') : $t('mining.payout_shortage_other', { ticker: activePayout }) }}
+        {{ activePayout == 'DOGE' && dogeOnlyPool ? $t('mining.payout_shortage_doge', { pool: dogeOnlyPool }) : $t('mining.payout_shortage_other', { ticker: activePayout }) }}
       </p>
 
       <p class="spacer">&nbsp;</p>
@@ -113,6 +113,8 @@ export default {
       activePool: "",
       activePayout: "",
       payoutShortage: false,
+      // Another pool that pays out DOGE, suggested when this one is short of it
+      dogeOnlyPool: "",
       address:"",
     };
   },
@@ -153,6 +155,9 @@ export default {
     });
     window.backend.Backend.GetPayoutTicker().then(result => {
       self.activePayout = result;
+    });
+    window.backend.Backend.DogeOnlyPoolName().then(result => {
+      self.dogeOnlyPool = result;
     });
     window.wails.Events.On("hashRate", result => {
       self.hashrate = result;

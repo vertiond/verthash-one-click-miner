@@ -31,7 +31,7 @@
         "expected_earnings_24h" : "Bénéfices attendus (24h)",
         "estimating" : "Estimation",
         "stop_mining" : "Arrêt du minage",
-        "payout_shortage_doge" : "La pool manque de DOGE, les paiements peuvent être retardés. Votre solde est sécurisé et sera versé. Pour des paiements DOGE plus rapides, choisissez HashCryptos.com dans les Paramètres.",
+        "payout_shortage_doge" : "La pool manque de DOGE, les paiements peuvent être retardés. Votre solde est sécurisé et sera versé. Pour des paiements DOGE plus rapides, choisissez {pool} dans les Paramètres.",
         "payout_shortage_other" : "La pool manque de {ticker}, les paiements peuvent être retardés. Votre solde est en sécurité et sera versé. Pour des paiements plus rapides, choisissez une autre devise dans les Paramètres."
     },
     "sending" : {

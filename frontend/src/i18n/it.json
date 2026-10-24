@@ -37,7 +37,7 @@
         "pool_fee" : "tassa",
         "copy_address" : "Copia l'indirizzo del tuo portafoglio",
         "payout_information" : "Visualizza le informazioni di pagamento",
-        "payout_shortage_doge" : "Il pool ha poche riserve di DOGE, quindi i pagamenti potrebbero subire ritardi. Il tuo saldo è al sicuro e verrà pagato. Per pagamenti in DOGE più rapidi, passa a HashCryptos.com nelle Impostazioni.",
+        "payout_shortage_doge" : "Il pool ha poche riserve di DOGE, quindi i pagamenti potrebbero subire ritardi. Il tuo saldo è al sicuro e verrà pagato. Per pagamenti in DOGE più rapidi, passa a {pool} nelle Impostazioni.",
         "payout_shortage_other" : "Il pool ha poche riserve di {ticker}, quindi i pagamenti potrebbero subire ritardi. Il tuo saldo è al sicuro e verrà pagato. Per pagamenti più rapidi, scegli un'altra valuta di pagamento nelle Impostazioni."
     },
     "sending" : {

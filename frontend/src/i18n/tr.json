@@ -36,7 +36,7 @@
         "active_pool" : "Aktif havuz",
         "pool_fee" : "Havuz komisyonu",
         "copy_address" : "Cüzdan adresinizi kopyalayın",
-        "payout_shortage_doge" : "Havuzda DOGE sıkıntısı var, bu nedenle ödemeler gecikebilir. Bakiyeniz güvende ve ödenecek. Daha hızlı DOGE ödemeleri için Ayarlar'dan HashCryptos.com'a geçin.",
+        "payout_shortage_doge" : "Havuzda DOGE sıkıntısı var, bu nedenle ödemeler gecikebilir. Bakiyeniz güvende ve ödenecek. Daha hızlı DOGE ödemeleri için Ayarlar'dan {pool}'a geçin.",
         "payout_shortage_other" : "Havuzda {ticker} sıkıntısı var, bu nedenle ödemeler gecikebilir. Bakiyeniz güvende ve ödenecek. Daha hızlı ödemeler için Ayarlar'dan başka bir ödeme para birimi seçin."
     },
     "sending" : {

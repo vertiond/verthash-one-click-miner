@@ -37,7 +37,7 @@
         "pool_fee" : "Comisión.",
         "copy_address" : "Copia la dirección de tu billetera.",
         "payout_information" : "Mostrar la información del pago.",
-        "payout_shortage_doge" : "La pool no tiene suficientes DOGE, por lo que los pagos pueden retrasarse. Tu saldo está seguro y se pagará. Para pagos de DOGE más rápidos, cambia a HashCryptos.com en Opciones.",
+        "payout_shortage_doge" : "La pool no tiene suficientes DOGE, por lo que los pagos pueden retrasarse. Tu saldo está seguro y se pagará. Para pagos de DOGE más rápidos, cambia a {pool} en Opciones.",
         "payout_shortage_other" : "La pool no tiene suficientes {ticker}, por lo que los pagos pueden retrasarse. Tu saldo está seguro y se pagará. Para pagos más rápidos, elige otra moneda de pago en Opciones."
     },
     "sending" : {

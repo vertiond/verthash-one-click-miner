@@ -36,7 +36,7 @@
         "active_pool" : "Aktywna kopalnia",
         "pool_fee" : "Prowizja",
         "copy_address" : "Kopiuj adres swojego portfela",
-        "payout_shortage_doge" : "W kopalni brakuje DOGE, więc wypłaty mogą się opóźnić. Twoje saldo jest bezpieczne i zostanie wypłacone. Dla szybszych wypłat DOGE wybierz HashCryptos.com w Ustawieniach.",
+        "payout_shortage_doge" : "W kopalni brakuje DOGE, więc wypłaty mogą się opóźnić. Twoje saldo jest bezpieczne i zostanie wypłacone. Dla szybszych wypłat DOGE wybierz {pool} w Ustawieniach.",
         "payout_shortage_other" : "W kopalni brakuje {ticker}, więc wypłaty mogą być opóźnione. Twoje saldo jest bezpieczne i zostanie wypłacone. Aby otrzymywać szybsze wypłaty, wybierz inną walutę wypłaty w Ustawieniach."
     },
     "sending" : {

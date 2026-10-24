@@ -31,7 +31,7 @@
         "expected_earnings_24h" : "Câștiguri așteptate (24h)",
         "estimating" : "se estimează",
         "stop_mining" : "Oprește minarea",
-        "payout_shortage_doge" : "Pool-ul nu are suficient DOGE, așa că plățile pot întârzia. Balanța ta este în siguranță și va fi plătită. Pentru plăți DOGE mai rapide, treci la HashCryptos.com din Setări.",
+        "payout_shortage_doge" : "Pool-ul nu are suficient DOGE, așa că plățile pot întârzia. Balanța ta este în siguranță și va fi plătită. Pentru plăți DOGE mai rapide, treci la {pool} din Setări.",
         "payout_shortage_other" : "Pool-ul nu are suficient {ticker}, așa că plățile pot întârzia. Balanța ta este în siguranță și va fi plătită. Pentru plăți mai rapide, alege o altă monedă de plată din Setări."
     },
     "sending" : {

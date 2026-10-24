@@ -31,7 +31,7 @@
         "expected_earnings_24h" : "Pričakovani zaslužek (24h)",
         "estimating" : "ocenjevanje",
         "stop_mining" : "Prekini rudarjenje",
-        "payout_shortage_doge" : "Poolu primanjkuje DOGE, zato lahko izplačila zamujajo. Tvoje stanje je varno in bo izplačano. Za hitrejša izplačila DOGE v Nastavitvah preklopi na HashCryptos.com.",
+        "payout_shortage_doge" : "Poolu primanjkuje DOGE, zato lahko izplačila zamujajo. Tvoje stanje je varno in bo izplačano. Za hitrejša izplačila DOGE v Nastavitvah preklopi na {pool}.",
         "payout_shortage_other" : "Poolu primanjkuje {ticker}, zato lahko izplačila zamujajo. Tvoje stanje je varno in bo izplačano. Za hitrejša izplačila v Nastavitvah izberi drugo valuto izplačila."
     },
     "sending" : {
