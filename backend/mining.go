@@ -72,8 +72,10 @@ func (m *Backend) StartMining() bool {
 
 	go func() {
 		<-startProcessMonitoring
+		nodeFailReported := false
 		continueLoop := true
 		for continueLoop {
+			m.watchNodeRapidFail(&nodeFailReported)
 			newMinerBinaries := make([]*miners.BinaryRunner, 0)
 			for _, br := range m.minerBinaries {
 				if br.CheckRunning() == miners.RunningStateRapidFail {

@@ -98,11 +98,26 @@ func (m *Backend) emitEvent(name string, data ...interface{}) {
 	m.runtime.Events.Emit(name, data...)
 }
 
-// ownsRunningNode reports whether OCM's own node process is alive.
-func (m *Backend) ownsRunningNode() bool {
+// ownsLiveNode reports whether OCM owns a node that has not been stopped.
+// It goes by ownership, not liveness: during the supervisor's backoff the
+// process is down but about to be relaunched.
+func (m *Backend) ownsLiveNode() bool {
 	m.nodeMu.Lock()
 	defer m.nodeMu.Unlock()
-	return !m.adopted && m.node != nil && m.node.Running()
+	return !m.adopted && m.node != nil && !m.nodeNeedsStart
+}
+
+// nodeRapidFailed reports whether our own node gave up after repeated deaths.
+func (m *Backend) nodeRapidFailed() bool {
+	m.nodeMu.Lock()
+	defer m.nodeMu.Unlock()
+	return !m.adopted && m.node != nil && m.node.RapidFailed()
+}
+
+// rapidFailError is the checks failure for a rapid-failed node.
+func rapidFailError(node nodeController) error {
+	return fmt.Errorf("P2Pool-Go stopped repeatedly. Last lines of p2pool.log:\n%s",
+		strings.Join(node.LogTail(20), "\n"))
 }
 
 // PrepareNode decides which node to mine to and installs ours if needed. It
@@ -115,6 +130,14 @@ func (m *Backend) PrepareNode() error {
 		m.nodeMu.Unlock()
 		return errNodeShutdown
 	}
+	if !m.adopted && m.node != nil && m.node.RapidFailed() {
+		// Report it once; the next checks run builds a fresh runner.
+		err := rapidFailError(m.node)
+		m.node = nil
+		m.nodeNeedsStart = false
+		m.nodeMu.Unlock()
+		return err
+	}
 	if !m.adopted && m.node != nil && m.node.Running() && m.node.Config().Address == addr {
 		m.nodeMu.Unlock()
 		return nil // healthy, nothing to install or restart
@@ -123,7 +146,8 @@ func (m *Backend) PrepareNode() error {
 		// Address changed, or the node is not running: stop it before any
 		// reinstall, which replaces its executable.
 		if err := m.node.Stop(); err != nil {
-			logging.Warnf("Unable to stop P2Pool-Go: %v", err)
+			m.nodeMu.Unlock()
+			return fmt.Errorf("Unable to stop P2Pool-Go: %v", err)
 		}
 		m.node = nil
 	}
@@ -195,7 +219,7 @@ func (m *Backend) StartNode() error {
 // a running node: with our node running it only verifies, and on failure it
 // stops the node, regenerates, and has StartNode start a fresh runner.
 func (m *Backend) checkVerthash(file string) error {
-	if m.ownsRunningNode() {
+	if m.ownsLiveNode() {
 		ok, err := verifyVerthash(file)
 		if err == nil && ok {
 			return nil
@@ -205,7 +229,8 @@ func (m *Backend) checkVerthash(file string) error {
 		if m.node != nil {
 			cfg := m.node.Config()
 			if err := m.node.Stop(); err != nil {
-				logging.Warnf("Unable to stop P2Pool-Go: %v", err)
+				m.nodeMu.Unlock()
+				return fmt.Errorf("Unable to stop P2Pool-Go: %v", err)
 			}
 			m.node = newRunner(cfg)
 			m.nodeNeedsStart = true
@@ -254,8 +279,7 @@ func (m *Backend) WaitNodeReady() error {
 			return errors.New("P2Pool-Go was not prepared")
 		}
 		if !adopted && node.RapidFailed() {
-			return fmt.Errorf("P2Pool-Go stopped repeatedly. Last lines of p2pool.log:\n%s",
-				strings.Join(node.LogTail(20), "\n"))
+			return rapidFailError(node)
 		}
 
 		st, err := getStatus(p2poolgo.LocalURL(), nodeAddress(m))
@@ -304,8 +328,12 @@ func (m *Backend) restartNode() error {
 		if err := m.node.Stop(); err != nil {
 			logging.Warnf("Unable to stop P2Pool-Go: %v", err)
 		}
+		if err := m.node.Start(); err != nil {
+			m.nodeNeedsStart = true
+			return err
+		}
 		m.nodeNeedsStart = false
-		return m.node.Start()
+		return nil
 	}
 	m.adopted = false
 	m.nodeMu.Unlock()
@@ -313,6 +341,17 @@ func (m *Backend) restartNode() error {
 		return err
 	}
 	return m.StartNode()
+}
+
+// watchNodeRapidFail emits nodeRapidFail once (tracked by *reported) when
+// our own node rapid-fails while mining. Called from the monitoring loop.
+func (m *Backend) watchNodeRapidFail(reported *bool) {
+	if *reported || !m.nodeRapidFailed() {
+		return
+	}
+	*reported = true
+	logging.Errorf("P2Pool-Go rapid-failed while mining")
+	m.emitEvent("nodeRapidFail")
 }
 
 // RetryNode asks WaitNodeReady to restart the node. Bound to the frontend.
