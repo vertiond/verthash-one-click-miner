@@ -80,7 +80,9 @@
         "address_activation": "Копирайте адреса и активирайте адреса",
         "doge_only": "САМО DOGE",
         "mine_verthash_paid_doge": "Копаене: Verthash, Изплащане в: Dogecoin",
-        "network": "Мрежа"
+        "network": "Мрежа",
+        "language": "Език",
+        "language_system": "Според системата"
     },
     "tabbar" : {
         "wallet" : "Портфейл",

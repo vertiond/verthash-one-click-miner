@@ -60,6 +60,16 @@
             </option>
           </select>
         </p>
+        <p style="text-align: left">
+          {{ $t("settings.language") }}:
+          <br />
+          <select style="width: 100%" name="language" v-model="language" @change="changeLanguage">
+            <option value="">{{ $t("settings.language_system") }}</option>
+            <option v-for="option in languages" v-bind:value="option.code" v-bind:key="option.code">
+                {{ option.name }}
+            </option>
+          </select>
+        </p>
       </div>
     </div>
     <div class="col-300 height-100" v-if="!showWarning">
@@ -104,6 +114,8 @@ export default {
       // False until the first values arrive, so half-loaded ones (empty pool list,
       // payout address box) are never shown
       loaded: false,
+      language: "",
+      languages: [],
     };
   },
   computed: {
@@ -200,6 +212,16 @@ export default {
       }
     
       document.body.removeChild(textArea);
+    },
+    // The language applies and is saved as soon as it is picked, without Save & Restart
+    changeLanguage: function() {
+      var self = this;
+      window.backend.Backend.SetLanguage(this.language).then(() => {
+        window.backend.Backend.GetLocale().then(locale => {
+          self.$i18n.locale = locale;
+          forgetSettings();
+        });
+      });
     },
     save: function() {
       var self = this;

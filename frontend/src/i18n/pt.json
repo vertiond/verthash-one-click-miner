@@ -80,7 +80,9 @@
         "address_activation": "Copiar endereço e ativar endereço",
         "doge_only": "SOMENTE DOGE",
         "mine_verthash_paid_doge": "Minerar: Verthash, Pago em: Dogecoin",
-        "network": "Rede"
+        "network": "Rede",
+        "language": "Idioma",
+        "language_system": "Padrão do sistema"
     },
     "tabbar" : {
         "wallet" : "Carteira",

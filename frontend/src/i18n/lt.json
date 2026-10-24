@@ -80,7 +80,9 @@
         "address_activation": "Kopijuoti adresą ir aktyvuoti adresą",
         "doge_only": "TIK DOGE",
         "mine_verthash_paid_doge": "Kasti: Verthash, Išmokama: Dogecoin",
-        "network": "Tinklas"
+        "network": "Tinklas",
+        "language": "Kalba",
+        "language_system": "Sistemos numatytoji"
     },
     "tabbar" : {
         "wallet" : "Piniginė",

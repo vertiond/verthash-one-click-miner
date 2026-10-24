@@ -80,7 +80,9 @@
     "address_activation": "Kopiera adress och aktivera adress",
     "doge_only": "ENDAST DOGE",
     "mine_verthash_paid_doge": "Mina: Verthash, Utbetalas i: Dogecoin",
-    "network": "Nätverk"
+    "network": "Nätverk",
+    "language": "Språk",
+    "language_system": "Systemstandard"
   },
   "tabbar": {
     "wallet": "Plånbok",

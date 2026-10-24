@@ -67,7 +67,9 @@
         "address_activation" : "复制地址并激活地址",
         "doge_only" : "仅限 DOGE",
         "mine_verthash_paid_doge" : "挖矿：Verthash，支付币种：Dogecoin",
-        "network" : "网络"
+        "network" : "网络",
+        "language" : "语言",
+        "language_system" : "系统默认"
     },
     "tabbar" : {
         "wallet" : "钱包",

@@ -67,7 +67,9 @@
         "address_activation" : "Copiază adresa și activează adresa",
         "doge_only" : "DOAR DOGE",
         "mine_verthash_paid_doge" : "Minează: Verthash, Plătit în: Dogecoin",
-        "network" : "Rețea"
+        "network" : "Rețea",
+        "language" : "Limbă",
+        "language_system" : "Implicită a sistemului"
     },
     "tabbar" : {
         "wallet" : "Portofel",

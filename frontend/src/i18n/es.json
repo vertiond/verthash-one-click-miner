@@ -80,7 +80,9 @@
         "address_activation": "Copiar dirección y activar dirección",
         "doge_only": "SOLO DOGE",
         "mine_verthash_paid_doge": "Minar: Verthash, Pago en: Dogecoin",
-        "network": "Red"
+        "network": "Red",
+        "language": "Idioma",
+        "language_system": "Predeterminado del sistema"
     },
     "tabbar" : {
         "wallet" : "billetera",

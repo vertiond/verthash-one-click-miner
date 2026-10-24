@@ -67,7 +67,9 @@
         "address_activation" : "アドレスをコピーして有効化",
         "doge_only" : "DOGE のみ",
         "mine_verthash_paid_doge" : "マイニング: Verthash、支払い: Dogecoin",
-        "network" : "ネットワーク"
+        "network" : "ネットワーク",
+        "language" : "言語",
+        "language_system" : "システムの既定"
     },
     "tabbar" : {
         "wallet" : "ウォレット",

@@ -79,7 +79,9 @@
         "address_activation" : "Kopiuj adres i aktywuj adres",
         "doge_only" : "TYLKO DOGE",
         "mine_verthash_paid_doge" : "Kop: Verthash, Wypłata w: Dogecoin",
-        "network" : "Sieć"
+        "network" : "Sieć",
+        "language": "Język",
+        "language_system": "Domyślny systemu"
     },
     "tabbar" : {
         "wallet" : "Portfel",

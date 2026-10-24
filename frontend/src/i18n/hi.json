@@ -80,7 +80,9 @@
         "address_activation" : "पता कॉपी करें और पता सक्रिय करें",
         "doge_only" : "केवल DOGE",
         "mine_verthash_paid_doge" : "माइन करें: Verthash, भुगतान: Dogecoin",
-        "network" : "नेटवर्क"
+        "network" : "नेटवर्क",
+        "language" : "भाषा",
+        "language_system" : "सिस्टम डिफ़ॉल्ट"
     },
     "tabbar" : {
         "wallet" : "वॉलेट",

@@ -69,22 +69,28 @@ func (m *Backend) getIntSetting(name string) int {
 	return i
 }
 
-func (m *Backend) setStringSetting(name string, value string) {
-	setting := value
-	m.settings.Update(func(tx *buntdb.Tx) error {
-		_, _, err := tx.Set(name, setting, nil)
-		return err
-	})
-}
-
+// getStringSetting returns "" for a setting that was never saved
 func (m *Backend) getStringSetting(name string) string {
 	setting := ""
-	m.settings.View(func(tx *buntdb.Tx) error {
+	err := m.settings.View(func(tx *buntdb.Tx) error {
 		v, err := tx.Get(name)
 		setting = v
 		return err
 	})
+	if err != nil && err != buntdb.ErrNotFound {
+		logging.Errorf("Error in getSetting(%s): %v", name, err)
+	}
 	return setting
+}
+
+func (m *Backend) setStringSetting(name string, value string) {
+	err := m.settings.Update(func(tx *buntdb.Tx) error {
+		_, _, err := tx.Set(name, value, nil)
+		return err
+	})
+	if err != nil {
+		logging.Errorf("Error in setSetting(%s): %v", name, err)
+	}
 }
 
 func (m *Backend) GetPool() int {

@@ -77,7 +77,9 @@
         "address_activation": "Adresi kopyala ve adresi etkinleştir",
         "doge_only": "YALNIZCA DOGE",
         "mine_verthash_paid_doge": "Kaz: Verthash, Ödeme: Dogecoin",
-        "network": "Ağ"
+        "network": "Ağ",
+        "language": "Dil",
+        "language_system": "Sistem varsayılanı"
     },
     "tabbar" : {
         "wallet" : "Cüzdan",

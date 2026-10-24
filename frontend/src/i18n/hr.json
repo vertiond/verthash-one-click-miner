@@ -67,7 +67,9 @@
         "address_activation" : "Kopiraj adresu i aktiviraj adresu",
         "doge_only" : "SAMO DOGE",
         "mine_verthash_paid_doge" : "Rudari: Verthash, Isplata u: Dogecoin",
-        "network" : "Mreža"
+        "network" : "Mreža",
+        "language" : "Jezik",
+        "language_system" : "Zadano u sustavu"
     },
     "tabbar" : {
         "wallet" : "Novčanik",

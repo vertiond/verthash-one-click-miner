@@ -79,7 +79,9 @@
         "address_activation": "Kopieer adres en activeer adres",
         "doge_only": "ALLEEN DOGE",
         "mine_verthash_paid_doge": "Minen: Verthash, Uitbetaald in: Dogecoin",
-        "network": "Netwerk"
+        "network": "Netwerk",
+        "language": "Taal",
+        "language_system": "Systeemstandaard"
     },
     "tabbar" : {
         "wallet" : "Portemonnee",

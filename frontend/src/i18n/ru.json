@@ -80,7 +80,9 @@
         "address_activation": "Скопировать адрес и активировать адрес",
         "doge_only": "ТОЛЬКО DOGE",
         "mine_verthash_paid_doge": "Майнинг: Verthash, Выплата в: Dogecoin",
-        "network": "Сеть"
+        "network": "Сеть",
+        "language": "Язык",
+        "language_system": "Как в системе"
     },
     "tabbar" : {
         "wallet" : "Кошелёк",

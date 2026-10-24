@@ -80,7 +80,9 @@
         "address_activation": "Kopier adresse og aktiver adresse",
         "doge_only": "KUN DOGE",
         "mine_verthash_paid_doge": "Min: Verthash, Udbetalt i: Dogecoin",
-        "network": "Netværk"
+        "network": "Netværk",
+        "language": "Sprog",
+        "language_system": "Systemstandard"
     },
     "tabbar" : {
         "wallet" : "Wallet",

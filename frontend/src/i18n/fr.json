@@ -67,7 +67,9 @@
         "address_activation" : "Copier l'adresse et activer l'adresse",
         "doge_only" : "DOGE UNIQUEMENT",
         "mine_verthash_paid_doge" : "Miner : Verthash, Payé en : Dogecoin",
-        "network" : "Réseau"
+        "network" : "Réseau",
+        "language" : "Langue",
+        "language_system" : "Langue du système"
     },
     "tabbar" : {
         "wallet" : "Portefeuille",

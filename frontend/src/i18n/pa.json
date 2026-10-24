@@ -80,7 +80,9 @@
         "address_activation": "ਪਤਾ ਕਾਪੀ ਕਰੋ ਅਤੇ ਪਤਾ ਸਰਗਰਮ ਕਰੋ",
         "doge_only": "ਸਿਰਫ਼ DOGE",
         "mine_verthash_paid_doge": "ਮਾਈਨ: Verthash, ਭੁਗਤਾਨ: Dogecoin",
-        "network": "ਨੈੱਟਵਰਕ"
+        "network": "ਨੈੱਟਵਰਕ",
+        "language": "ਭਾਸ਼ਾ",
+        "language_system": "ਸਿਸਟਮ ਡਿਫੌਲਟ"
     },
     "tabbar" : {
         "wallet" : "ਬਟੂਆ",
