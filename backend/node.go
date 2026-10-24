@@ -438,6 +438,31 @@ func (m *Backend) GetRPCNotice() RPCNotice {
 	return RPCNotice{Show: true, ConfPath: confPath, Sample: "server=1"}
 }
 
+// NodeMode tells the frontend how the node gets its block templates.
+type NodeMode struct {
+	Mode           string `json:"mode"`           // "full", "light", "adopted" or "" before checks
+	CoreResponding bool   `json:"coreResponding"` // full mode: the node last reported Core as reachable
+}
+
+// GetNodeMode reports whether our node mines through the local Vertcoin
+// Core node. Bound to the frontend.
+func (m *Backend) GetNodeMode() NodeMode {
+	m.nodeMu.Lock()
+	adopted, owned, mode := m.adopted, m.node != nil, m.detection.Mode
+	m.nodeMu.Unlock()
+	switch {
+	case adopted:
+		return NodeMode{Mode: "adopted"}
+	case !owned:
+		return NodeMode{}
+	case mode == p2poolgo.ModeFull:
+		state, _ := m.lastNodeState.Load().(string)
+		return NodeMode{Mode: "full", CoreResponding: state != "waiting_rpc"}
+	default:
+		return NodeMode{Mode: "light"}
+	}
+}
+
 // ShutdownNode stops our node on quit and keeps it from being started
 // again. An adopted node is left running.
 func (m *Backend) ShutdownNode() {
@@ -473,6 +498,7 @@ func (m *Backend) networkNumbers(cycle int, ns *networkState) (float64, int64) {
 			ns.nodeFails++
 		} else {
 			ns.nodeFails = 0
+			m.lastNodeState.Store(st.State)
 		}
 		ns.node = st
 		m.watchAdoptedNodeGone(ns)
