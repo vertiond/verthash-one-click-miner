@@ -25,6 +25,26 @@ var js string
 //go:embed frontend/dist/app.css
 var css string
 
+// background matches the html background in frontend/src/assets/css/main.css
+const background = "#8b7426"
+
+// html is the page Wails loads before it injects app.css. Painting the
+// background here keeps the window from showing white until then.
+const html = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <style>html, body { background-color: ` + background + `; margin: 0; }</style>
+</head>
+
+<body>
+  <div id="app"></div>
+</body>
+
+</html>`
+
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -76,7 +96,8 @@ func main() {
 		Title:  "Verthash One Click Miner",
 		JS:     js,
 		CSS:    css,
-		Colour: "#131313",
+		HTML:   html,
+		Colour: background,
 	})
 
 	alreadyRunning := false
