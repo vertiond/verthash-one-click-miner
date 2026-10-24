@@ -70,15 +70,38 @@ func (m *Backend) PerformChecks() string {
 		return err.Error()
 	}
 
+	// Configuring the miners only needs the local Stratum URL, so it runs while
+	// the node catches up instead of after it.
+	configured := make(chan string, 1)
+	go func() { configured <- m.configureMiners(m.GetArgs()) }()
+
 	err = m.WaitNodeReady()
 	if err != nil {
+		<-configured
 		trackNodeFailure("WaitNodeReadyError", err)
 		m.emitEvent("checkStatus", "Failed")
 		return err.Error()
 	}
 
-	args := m.GetArgs()
+	if errorString := <-configured; errorString != "" {
+		m.emitEvent("checkStatus", "Failed")
+		return errorString
+	}
 
+	// The checks screen stays up until StartMining has launched the miners.
+	m.emitEvent("checkStatus", "starting_miners")
+
+	tracking.Track(tracking.TrackingRequest{
+		Category: "PerformChecks",
+		Action:   "Success",
+	})
+
+	return "ok"
+}
+
+// configureMiners prepares each miner for this machine's GPUs and returns a
+// message for the user, or "" when every miner is ready.
+func (m *Backend) configureMiners(args miners.BinaryArguments) string {
 	for _, br := range m.minerBinaries {
 		err := br.MinerImpl.Configure(args)
 		if err != nil {
@@ -88,22 +111,14 @@ func (m *Backend) PerformChecks() string {
 				Action:   "ConfigureError",
 				Name:     fmt.Sprintf("%s: %v", br.MinerBinary.MainExecutableName, err),
 			})
-			m.emitEvent("checkStatus", "Failed")
 			return errorString
 		}
 
 		if br.MinerImpl.AvailableGPUs() == 0 {
-			m.emitEvent("checkStatus", "Failed")
 			return "Miner software reported no compatible GPUs. Check FAQ for supported hardware and ensure your GPU drivers are up to date."
 		}
 	}
-
-	tracking.Track(tracking.TrackingRequest{
-		Category: "PerformChecks",
-		Action:   "Success",
-	})
-
-	return "ok"
+	return ""
 }
 
 func (m *Backend) CheckGPUCompatibility() error {

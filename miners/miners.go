@@ -74,14 +74,15 @@ type BinaryArguments struct {
 }
 
 type BinaryRunner struct {
-	MinerBinary MinerBinary
-	MinerImpl   MinerImpl
-	cmd         *exec.Cmd
-	Debug       bool
-	running     bool
-	lastStarted time.Time
-	rapidFails  int
-	usedArgs    BinaryArguments
+	MinerBinary      MinerBinary
+	MinerImpl        MinerImpl
+	cmd              *exec.Cmd
+	Debug            bool
+	running          bool
+	lastStarted      time.Time
+	rapidFails       int
+	usedArgs         BinaryArguments
+	freshlyInstalled bool // Install just ran (in the checks) and Start has not used it yet
 }
 
 func (b *BinaryRunner) logPrefix() string {
@@ -153,7 +154,19 @@ func (b *BinaryRunner) Install() error {
 		return err
 	}
 
+	b.freshlyInstalled = true
 	return nil
+}
+
+// ensureInstalled installs the miner unless the checks just did, so the start
+// that follows them does not unpack the same archive a second time. Any later
+// start installs afresh.
+func (b *BinaryRunner) ensureInstalled() error {
+	if b.freshlyInstalled {
+		b.freshlyInstalled = false
+		return nil
+	}
+	return b.Install()
 }
 
 type RunningState int
@@ -196,7 +209,7 @@ func (b *BinaryRunner) restart() error {
 }
 
 func (b *BinaryRunner) Start(args BinaryArguments) error {
-	err := b.Install()
+	err := b.ensureInstalled()
 	if err != nil {
 		return err
 	}
@@ -210,8 +223,9 @@ func (b *BinaryRunner) Start(args BinaryArguments) error {
 		return fmt.Errorf("err_no_gpus")
 	}
 
-	// Always do a fresh unpack of the executable to ensure there's been no funny
-	// business. EnsureAvailable already checked the SHA hash.
+	// The executable was freshly unpacked, by the checks or by ensureInstalled,
+	// to ensure there's been no funny business. EnsureAvailable already checked
+	// the SHA hash.
 	err = b.launch(b.MinerImpl.ConstructCommandlineArgs(args), true)
 	if err != nil {
 		return err

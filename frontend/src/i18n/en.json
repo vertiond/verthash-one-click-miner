@@ -30,6 +30,7 @@
         "node_syncing_sharechain" : "Syncing the share chain...",
         "node_peers" : "No peers yet | 1 peer | {count} peers",
         "node_ready" : "Node ready",
+        "starting_miners" : "Starting your miner...",
         "node_slow" : "Can't reach the p2pool-go network yet. Check your internet connection."
     },
     "mining" : {

@@ -120,3 +120,15 @@ func TestUnpackArchiveZip(t *testing.T) {
 		t.Fatal("stale file still present")
 	}
 }
+
+func TestEnsureInstalledUsesFreshInstallOnce(t *testing.T) {
+	// An unreachable archive: Install fails whenever it is actually run.
+	b := &BinaryRunner{MinerBinary: MinerBinary{Url: "http://127.0.0.1:1/miner.zip", Hash: "00"}}
+	b.freshlyInstalled = true
+	if err := b.ensureInstalled(); err != nil {
+		t.Fatalf("first start after the checks' install ran Install again: %v", err)
+	}
+	if err := b.ensureInstalled(); err == nil {
+		t.Error("a later start skipped Install")
+	}
+}
