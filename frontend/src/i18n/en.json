@@ -27,7 +27,7 @@
         "node_starting" : "Starting your P2Pool-Go node...",
         "node_waiting_rpc" : "Connecting to Vertcoin Core...",
         "node_waiting_template" : "Getting work from the network...",
-        "node_syncing_sharechain" : "Syncing the share chain...",
+        "node_syncing_sharechain" : "Syncing the share chain ({peers} peers)...",
         "node_ready" : "Node ready",
         "node_slow" : "Can't reach the p2pool-go network yet. Check your internet connection."
     },
