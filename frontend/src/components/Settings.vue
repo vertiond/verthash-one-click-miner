@@ -63,7 +63,7 @@
       </div>
     </div>
     <div class="col-300 height-100" v-if="!showWarning">
-      <p>
+      <p class="bottom-button">
         <a class="button" @click="save">{{ $t("settings.save_n_restart") }}</a>
       </p>
     </div>
