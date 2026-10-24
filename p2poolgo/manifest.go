@@ -38,6 +38,26 @@ func (m *Manifest) BinaryFor(goos string) (Binary, bool) {
 	return Binary{}, false
 }
 
+// validSha256 reports whether s is exactly 64 hex characters. Archive paths
+// are built from it, so nothing else may get that far.
+func validSha256(s string) bool {
+	if len(s) != 64 {
+		return false
+	}
+	_, err := hex.DecodeString(s)
+	return err == nil
+}
+
+// valid reports whether every binary entry carries a well-formed sha256.
+func (m *Manifest) valid() bool {
+	for _, b := range m.Binaries {
+		if !validSha256(b.Sha256) {
+			return false
+		}
+	}
+	return true
+}
+
 var errManifestUnavailable = errors.New("Unable to download the P2Pool-Go manifest. Check your internet connection.")
 
 // LoadManifest fetches the manifest and caches it at cachePath. If the fetch
@@ -46,6 +66,9 @@ var errManifestUnavailable = errors.New("Unable to download the P2Pool-Go manife
 func LoadManifest(url, cachePath string, fetch func(string, interface{}) error, archiveFor func(Binary) string) (*Manifest, error) {
 	m := &Manifest{}
 	fetchErr := fetch(url, m)
+	if fetchErr == nil && !m.valid() {
+		fetchErr = errors.New("the manifest has an invalid sha256")
+	}
 	if fetchErr == nil {
 		if err := writeCache(cachePath, m); err != nil {
 			logging.Warnf("Unable to cache the P2Pool-Go manifest: %v", err)
@@ -59,7 +82,7 @@ func LoadManifest(url, cachePath string, fetch func(string, interface{}) error, 
 		return nil, errManifestUnavailable
 	}
 	cached := &Manifest{}
-	if err := json.Unmarshal(data, cached); err != nil {
+	if err := json.Unmarshal(data, cached); err != nil || !cached.valid() {
 		return nil, errManifestUnavailable
 	}
 	b, ok := cached.BinaryFor(runtime.GOOS)

@@ -70,3 +70,14 @@ func TestInstallMissingExeErrors(t *testing.T) {
 		t.Fatalf("expected error mentioning p2pool-go-vtc, got %v", err)
 	}
 }
+
+func TestInstallRejectsInvalidSha(t *testing.T) {
+	binDir := t.TempDir()
+	_, err := Install(Binary{Platform: "x", Url: "http://127.0.0.1:1/node.zip", Sha256: "../outside"}, binDir)
+	if err == nil {
+		t.Fatal("expected error for an invalid sha256")
+	}
+	if entries, _ := os.ReadDir(binDir); len(entries) != 0 {
+		t.Fatalf("files written for an invalid sha256: %v", entries)
+	}
+}
