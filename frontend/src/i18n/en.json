@@ -45,6 +45,8 @@
         "estimating" : "estimating",
         "stop_mining" : "Stop Mining",
         "active_pool" : "Active pool",
+        "core_node_in_use" : "using your Vertcoin Core",
+        "core_node_not_responding" : "Vertcoin Core not responding",
         "pool_fee" : "fee",
         "copy_address" : "Copy your wallet address",
         "payout_information" : "View payout information"

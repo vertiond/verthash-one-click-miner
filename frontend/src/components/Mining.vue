@@ -76,6 +76,8 @@
       </div>
       <p class="pool">
         <span style="opacity: 1">{{$t('mining.active_pool')}}: {{activePool}} <span v-if="poolFee != '0.0%'">({{$t('mining.pool_fee')}}: {{poolFee}})</span></span>
+        <span class="coreNode" v-if="nodeMode.mode === 'full' && nodeMode.coreResponding">&#10003; {{ $t('mining.core_node_in_use') }}</span>
+        <span class="coreNode down" v-if="nodeMode.mode === 'full' && !nodeMode.coreResponding">{{ $t('mining.core_node_not_responding') }}</span>
         <br><a class="link" @click="payoutInformation">{{ $t('mining.payout_information') }}</a>
       </p>
       
@@ -130,6 +132,7 @@ export default {
       rpcNotice: {show: false, confPath: "", sample: ""},
       rpcNoticeDismissed: false,
       rpcNoticeTimer: null,
+      nodeMode: {mode: "", coreResponding: false},
     };
   },
   beforeDestroy() {
@@ -209,10 +212,15 @@ export default {
     },
   },
   methods: {
+    // Refreshes what the screen says about Vertcoin Core: the RPC notice and
+    // whether the node is mining through it.
     refreshRpcNotice: function() {
       var self = this;
       window.backend.Backend.GetRPCNotice().then(result => {
         self.rpcNotice = result;
+      });
+      window.backend.Backend.GetNodeMode().then(result => {
+        self.nodeMode = result;
       });
     },
     stop: function() {
@@ -327,6 +335,14 @@ p.netHash {
 p.spacer {
   padding: 0px;
   margin: 5px;
+}
+span.coreNode {
+  color: #048652;
+  white-space: nowrap;
+  margin-left: 4px;
+}
+span.coreNode.down {
+  color: #d0a000;
 }
 p.header {
   margin-bottom: 0;

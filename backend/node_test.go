@@ -496,6 +496,51 @@ func TestGetRPCNotice(t *testing.T) {
 	}
 }
 
+func TestGetNodeMode(t *testing.T) {
+	stubNodeEnv(t)
+	m := testBackend(&emitted{})
+	if got := m.GetNodeMode(); got != (NodeMode{}) {
+		t.Errorf("before checks: %+v", got)
+	}
+
+	m.node = &fakeNode{}
+	m.detection = p2poolgo.Detection{Mode: p2poolgo.ModeLight}
+	if got := m.GetNodeMode(); got != (NodeMode{Mode: "light"}) {
+		t.Errorf("light: %+v", got)
+	}
+
+	m.detection = p2poolgo.Detection{Mode: p2poolgo.ModeFull}
+	if got := m.GetNodeMode(); got != (NodeMode{Mode: "full", CoreResponding: true}) {
+		t.Errorf("full, not polled yet: %+v", got)
+	}
+	m.lastNodeState.Store("waiting_rpc")
+	if got := m.GetNodeMode(); got != (NodeMode{Mode: "full", CoreResponding: false}) {
+		t.Errorf("full, Core gone: %+v", got)
+	}
+	m.lastNodeState.Store("ready")
+	if got := m.GetNodeMode(); !got.CoreResponding {
+		t.Errorf("full, Core back: %+v", got)
+	}
+
+	m.adopted = true
+	if got := m.GetNodeMode(); got != (NodeMode{Mode: "adopted"}) {
+		t.Errorf("adopted: %+v", got)
+	}
+}
+
+func TestNetworkNumbersRecordsNodeState(t *testing.T) {
+	stubNodeEnv(t)
+	m := testBackend(&emitted{})
+	getStatus = func(string, string) (*p2poolgo.Status, error) {
+		return &p2poolgo.Status{State: "waiting_rpc"}, nil
+	}
+	var ns networkState
+	m.networkNumbers(0, &ns)
+	if s, _ := m.lastNodeState.Load().(string); s != "waiting_rpc" {
+		t.Errorf("lastNodeState = %q", s)
+	}
+}
+
 func TestGetRPCNoticeHiddenOnceCoreStops(t *testing.T) {
 	stubNodeEnv(t)
 	m := testBackend(&emitted{})

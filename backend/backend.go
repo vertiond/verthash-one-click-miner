@@ -3,6 +3,7 @@ package backend
 import (
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 
 	"github.com/tidwall/buntdb"
 
@@ -47,7 +48,8 @@ type Backend struct {
 	nodeShutdown   bool // OCM is quitting; never start a node again
 	nodeRetry      chan bool
 
-	lastBackendDiff float64 // last difficulty from the backend /info; 0 = never reached
+	lastBackendDiff float64      // last difficulty from the backend /info; 0 = never reached
+	lastNodeState   atomic.Value // string: the node's state at the last mining-loop status poll
 }
 
 func NewBackend(alreadyRunning bool) (*Backend, error) {
