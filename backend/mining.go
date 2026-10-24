@@ -89,20 +89,21 @@ func (m *Backend) StartMining() bool {
 	}()
 
 	go func() {
-		cycles := 0
-		nhr := util.GetNetHash()
-		th := util.GetTipHeight()
+		// Network numbers come from the local node (every 30s) with the
+		// backend /info (every 600s) as the fallback and sanity check.
+		var ns networkState
+		var nhr uint64
+		var th int64
+		lastDiff := -1.0
 		var avgEarning float64
 		continueLoop := true
-		for continueLoop {
-			cycles++
-			if cycles > 600 {
-				// Don't refresh this every time since we refresh it every second
-				// and this pulls from Insight. Every 600s is fine (~every 4 blocks)
-				nhr = util.GetNetHash()
-				th = util.GetTipHeight()
-				cycles = 0
+		for cycles := 0; continueLoop; cycles++ {
+			diff, tip := m.networkNumbers(cycles, &ns)
+			if diff != lastDiff {
+				nhr = util.NetHashFromDifficulty(diff)
+				lastDiff = diff
 			}
+			th = tip
 			hr := uint64(0)
 			for _, br := range m.minerBinaries {
 				hr += br.HashRate()

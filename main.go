@@ -112,6 +112,7 @@ func main() {
 		logging.Errorf("Error running app: %v", err)
 	}
 	backend.StopMining()
+	backend.ShutdownNode()
 
 	tracking.Track(tracking.TrackingRequest{
 		Category: "Lifecycle",
