@@ -48,11 +48,7 @@ func (m *Backend) PerformChecks() string {
 	m.emitEvent("checkStatus", "installing_p2pool")
 	err = m.PrepareNode()
 	if err != nil {
-		tracking.Track(tracking.TrackingRequest{
-			Category: "PerformChecks",
-			Action:   "PrepareNodeError",
-			Name:     err.Error(),
-		})
+		trackNodeFailure("PrepareNodeError", err)
 		m.emitEvent("checkStatus", "Failed")
 		return err.Error()
 	}
@@ -69,21 +65,14 @@ func (m *Backend) PerformChecks() string {
 	m.emitEvent("checkStatus", "starting_node")
 	err = m.StartNode()
 	if err != nil {
-		tracking.Track(tracking.TrackingRequest{
-			Category: "PerformChecks",
-			Action:   "StartNodeError",
-			Name:     err.Error(),
-		})
+		trackNodeFailure("StartNodeError", err)
 		m.emitEvent("checkStatus", "Failed")
 		return err.Error()
 	}
 
 	err = m.WaitNodeReady()
 	if err != nil {
-		tracking.Track(tracking.TrackingRequest{
-			Category: "PerformChecks",
-			Action:   "WaitNodeReadyError",
-		})
+		trackNodeFailure("WaitNodeReadyError", err)
 		m.emitEvent("checkStatus", "Failed")
 		return err.Error()
 	}

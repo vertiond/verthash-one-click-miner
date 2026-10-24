@@ -12,6 +12,7 @@ import (
 	"github.com/vertcoin-project/one-click-miner-vnext/logging"
 	"github.com/vertcoin-project/one-click-miner-vnext/networks"
 	"github.com/vertcoin-project/one-click-miner-vnext/p2poolgo"
+	"github.com/vertcoin-project/one-click-miner-vnext/tracking"
 	"github.com/vertcoin-project/one-click-miner-vnext/util"
 	verthash "github.com/vertcoin-project/verthash-go"
 )
@@ -67,6 +68,8 @@ var (
 
 	getStatus = p2poolgo.GetStatus
 
+	track = tracking.Track
+
 	nodeAddress = func(m *Backend) string { return m.Address() }
 
 	nodeDataDir = func() string { return filepath.Join(util.DataDirectory(), "p2pool-go") }
@@ -114,10 +117,45 @@ func (m *Backend) nodeRapidFailed() bool {
 	return !m.adopted && m.node != nil && m.node.RapidFailed()
 }
 
+// nodeRapidFailError is the checks failure for a rapid-failed node. Its
+// text carries the log tail, so it must never reach tracking.
+type nodeRapidFailError struct{ msg string }
+
+func (e *nodeRapidFailError) Error() string { return e.msg }
+
 // rapidFailError is the checks failure for a rapid-failed node.
 func rapidFailError(node nodeController) error {
-	return fmt.Errorf("P2Pool-Go stopped repeatedly. Last lines of p2pool.log:\n%s",
-		strings.Join(node.LogTail(20), "\n"))
+	return &nodeRapidFailError{msg: "P2Pool-Go stopped repeatedly. Last lines of p2pool.log:\n" +
+		strings.Join(node.LogTail(20), "\n")}
+}
+
+// nodeFailureKind maps a node error to a constant label for analytics. Node
+// errors can hold log lines, addresses, peer IPs and paths, so the raw text
+// is never tracked.
+func nodeFailureKind(err error) string {
+	var rf *nodeRapidFailError
+	switch {
+	case errors.As(err, &rf):
+		return "RapidFail"
+	case errors.Is(err, errNoNodeBinary):
+		return "NoBinary"
+	case errors.Is(err, errNodeShutdown):
+		return "Shutdown"
+	case strings.Contains(err.Error(), "is already in use"):
+		return "PortInUse"
+	case strings.HasPrefix(err.Error(), "Unable to download the P2Pool-Go manifest"):
+		return "ManifestUnavailable"
+	}
+	return "Other"
+}
+
+// trackNodeFailure records a node step failure with a constant Name.
+func trackNodeFailure(action string, err error) {
+	track(tracking.TrackingRequest{
+		Category: "PerformChecks",
+		Action:   action,
+		Name:     nodeFailureKind(err),
+	})
 }
 
 // PrepareNode decides which node to mine to and installs ours if needed. It
