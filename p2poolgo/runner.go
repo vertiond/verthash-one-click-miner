@@ -69,7 +69,7 @@ func buildArgs(cfg Config, parentPID int, token string, stratumPort int) []strin
 			args = append(args, "-rpcport", strconv.Itoa(p))
 		}
 	} else {
-		args = append(args, "-light", "-p2pbind", "127.0.0.1", "-nonatportmap")
+		args = append(args, "-light", "-p2pbind", "127.0.0.1", "-disable-upnp")
 	}
 	return args
 }
