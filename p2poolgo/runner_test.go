@@ -59,6 +59,23 @@ func TestBuildArgsFull(t *testing.T) {
 	}
 }
 
+func TestBuildArgsFullWithConfCredentials(t *testing.T) {
+	cfg := Config{
+		DataDir:      "D",
+		VerthashPath: "V",
+		Address:      "A",
+		Detection:    Detection{Mode: ModeFull, RPCUser: "vert", RPCPass: "pw", RPCPort: 15888},
+	}
+	want := []string{
+		"-datadir", "D", "-verthash", "V", "-bind", "127.0.0.1", "-stratum", "9172",
+		"-parentpid", "42", "-shutdown-token", "T", "-pooladdr", "A",
+		"-u", "vert", "-p", "pw", "-rpcport", "15888",
+	}
+	if got := BuildArgs(cfg, 42, "T"); !reflect.DeepEqual(got, want) {
+		t.Fatalf("got  %q\nwant %q", got, want)
+	}
+}
+
 func TestBuildArgsOmitsEmptyPeerLists(t *testing.T) {
 	cfg := Config{
 		DataDir:      "D",

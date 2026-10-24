@@ -59,7 +59,12 @@ func buildArgs(cfg Config, parentPID int, token string, stratumPort int) []strin
 		args = append(args, "-peers", strings.Join(cfg.BootstrapPeers, ","))
 	}
 	if cfg.Detection.Mode == ModeFull {
-		args = append(args, "-cookie", cfg.Detection.CookiePath)
+		if cfg.Detection.CookiePath == "" && cfg.Detection.RPCUser != "" {
+			// vertcoin.conf's own credentials; already plain text there.
+			args = append(args, "-u", cfg.Detection.RPCUser, "-p", cfg.Detection.RPCPass)
+		} else {
+			args = append(args, "-cookie", cfg.Detection.CookiePath)
+		}
 		if p := cfg.Detection.RPCPort; p != 0 && p != defaultCoreRPCPort {
 			args = append(args, "-rpcport", strconv.Itoa(p))
 		}
