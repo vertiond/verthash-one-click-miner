@@ -2,11 +2,8 @@ package miners
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/hex"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -284,32 +281,7 @@ func (b *BinaryRunner) launch(params []string, wait bool) error {
 }
 
 func (b *BinaryRunner) unpack() error {
-	unpackDir := b.unpackDir()
-
-	if _, err := os.Stat(unpackDir); !os.IsNotExist(err) {
-		logging.Debugf("%sRemoving unpack directory", b.logPrefix())
-		time.Sleep(1 * time.Second) // Necessary on Windows to avoid permission error
-		err = os.RemoveAll(unpackDir)
-		if err != nil {
-			return err
-		}
-	}
-	if _, err := os.Stat(unpackDir); os.IsNotExist(err) {
-		logging.Debugf("%s(Re)creating unpack directory", b.logPrefix())
-		err = os.MkdirAll(unpackDir, 0755)
-		if err != nil {
-			return err
-		}
-	}
-
-	archive := b.downloadPath()
-	if strings.HasSuffix(b.MinerBinary.Url, ".zip") {
-		return util.UnpackZip(archive, unpackDir)
-	} else if strings.HasSuffix(b.MinerBinary.Url, ".tar.gz") || strings.HasSuffix(b.MinerBinary.Url, ".tgz") {
-		return util.UnpackTar(archive, unpackDir)
-	}
-
-	return fmt.Errorf("Unknown archive format, cannot unpack: %s", b.MinerBinary.Url)
+	return UnpackArchive(b.MinerBinary.Url, b.downloadPath(), b.unpackDir())
 }
 
 func (b *BinaryRunner) findExecutable() string {
@@ -331,65 +303,6 @@ func (b *BinaryRunner) findExecutable() string {
 }
 
 func (b *BinaryRunner) ensureAvailable() error {
-	freshDownload := false
 	_ = os.Mkdir(filepath.Join(util.DataDirectory(), "miners"), 0700)
-	nodePath := b.downloadPath()
-	_, err := os.Stat(nodePath)
-	if os.IsNotExist(err) {
-		logging.Debugf("%sBinary not found, downloading...", b.logPrefix())
-		freshDownload = true
-		err := b.download()
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
-	} else {
-		logging.Debugf("%sDaemon file already exists", b.logPrefix())
-	}
-
-	shaSum, err := util.ShaSum(nodePath)
-	if err != nil {
-		return err
-	}
-	expectedHash, _ := hex.DecodeString(b.MinerBinary.Hash)
-	if !bytes.Equal(shaSum, expectedHash) {
-		logging.Warnf("%sHash differs: [%x] vs [%s]", b.logPrefix(), shaSum, b.MinerBinary.Hash)
-		if !freshDownload {
-			err = os.Remove(nodePath)
-			if err != nil {
-				return err
-			}
-			return b.ensureAvailable()
-		} else {
-			err = fmt.Errorf("%sFreshly downloaded node did not have correct SHA256 hash", b.logPrefix())
-			logging.Error(err)
-			return err
-		}
-	}
-
-	logging.Debugf("%sDaemon file is available and correct", b.logPrefix())
-	return nil
-}
-
-func (b *BinaryRunner) download() error {
-	nodePath := b.downloadPath()
-
-	resp, err := http.Get(b.MinerBinary.Url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(nodePath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	logging.Debugf("%sDaemon file downloaded", b.logPrefix())
-	return err
+	return EnsureArchive(b.MinerBinary.Url, b.MinerBinary.Hash, b.downloadPath())
 }
