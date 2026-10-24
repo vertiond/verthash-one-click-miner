@@ -98,6 +98,16 @@
 
 <script>
 export default {
+  props: {
+    active: {type: Boolean, default: false},
+  },
+  watch: {
+    active: function(now) {
+      if (now) {
+        this.refreshRpcNotice();
+      }
+    },
+  },
   data() {
     return {
       hashrate: "0.00 MH/s",
@@ -183,6 +193,12 @@ export default {
     },
   },
   methods: {
+    refreshRpcNotice: function() {
+      var self = this;
+      window.backend.Backend.GetRPCNotice().then(result => {
+        self.rpcNotice = result;
+      });
+    },
     stop: function() {
       var self = this;
       this.stopping = true;

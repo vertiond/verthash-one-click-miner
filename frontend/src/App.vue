@@ -9,7 +9,7 @@
     <Welcome v-if="screen === 'welcome'" v-on:start-mining="switchToChecks" />
     <Checks v-if="screen === 'checks'" v-on:mining="switchToMining" v-on:checksFailed="showTabBar" />
     <Send v-if="screen === 'send'" v-on:back="switchToMining" v-on:cancel="switchToMining" />
-    <Mining v-show="screen === 'mining'" v-on:stop-mining="stopMining" />
+    <Mining v-show="screen === 'mining'" :active="screen === 'mining'" v-on:stop-mining="stopMining" />
     <Settings v-if="screen === 'settings'" v-on:committed="restartMining" />
     <Update v-if="screen === 'update'" v-on:back="restartMiningIfNotStopped" />
     <Tracking v-on:update="switchToUpdate" />
