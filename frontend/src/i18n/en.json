@@ -35,6 +35,9 @@
     "mining" : {
         "rpc_notice_found" : "Vertcoin Core found.",
         "rpc_notice" : "{title} To mine through it, add {setting} to {file}, then restart Core and One-Click Miner.",
+        "clock_notice_fast" : "Your clock is {minutes} min fast.",
+        "clock_notice_slow" : "Your clock is {minutes} min slow.",
+        "clock_notice" : "{title} Turn on \"Set time automatically\" so the P2Pool network accepts your shares.",
         "spendable_balance" : "Spendable Balance",
         "still_maturing" : "still maturing",
         "pending_pool_payout" : "pending pool payout",

@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/tidwall/buntdb"
 
@@ -49,6 +50,11 @@ type Backend struct {
 
 	lastBackendDiff float64      // last difficulty from the backend /info; 0 = never reached
 	lastNodeState   atomic.Value // string: the node's state at the last mining-loop status poll
+
+	// The last system clock check; clockMu guards these fields.
+	clockMu      sync.Mutex
+	clockChecked time.Time
+	clockNotice  ClockNotice
 }
 
 func NewBackend(alreadyRunning bool) (*Backend, error) {

@@ -66,6 +66,13 @@
 <!--      <p class="poolBalance" v-if="balancePendingPool == '0.00000000'">-->
 <!--        {{$t('mining.pending_payout_info_unavailable')}}-->
 <!--      </p>-->
+      <div class="notices" v-if="showRpcNotice || showClockNotice">
+      <div class="clockNotice" v-if="showClockNotice">
+        <a class="dismiss" @click="clockNoticeDismissed = true" v-bind:title="$t('generic.close')">&times;</a>
+        <i18n path="mining.clock_notice" tag="span">
+          <template v-slot:title><b>{{ $t(clockNotice.ahead ? 'mining.clock_notice_fast' : 'mining.clock_notice_slow', {minutes: clockNotice.minutes}) }}</b></template>
+        </i18n>
+      </div>
       <div class="rpcNotice" v-if="showRpcNotice">
         <a class="dismiss" @click="rpcNoticeDismissed = true" v-bind:title="$t('generic.close')">&times;</a>
         <i18n path="mining.rpc_notice" tag="span">
@@ -73,6 +80,7 @@
           <template v-slot:setting><code>{{ rpcNotice.sample }}</code></template>
           <template v-slot:file><span class="confFile" v-bind:title="rpcNotice.confPath">vertcoin.conf</span></template>
         </i18n>
+      </div>
       </div>
       <p class="pool">
         <span style="opacity: 1">{{$t('mining.active_pool')}}: {{activePool}} <span v-if="poolFee != '0.0%'">({{$t('mining.pool_fee')}}: {{poolFee}})</span></span>
@@ -130,6 +138,8 @@ export default {
       address:"",
       rpcNotice: {show: false, confPath: "", sample: ""},
       rpcNoticeDismissed: false,
+      clockNotice: {show: false, minutes: 0, ahead: false},
+      clockNoticeDismissed: false,
       rpcNoticeTimer: null,
       nodeMode: {mode: "", coreResponding: false},
     };
@@ -202,6 +212,9 @@ export default {
     showRpcNotice() {
       return this.rpcNotice.show && !this.rpcNoticeDismissed;
     },
+    showClockNotice() {
+      return this.clockNotice.show && !this.clockNoticeDismissed;
+    },
     // The backend reports no hashrate as "0.00 kH/s", so check the number, not the text.
     estimating() {
       return !(parseFloat(this.hashrate) > 0);
@@ -217,6 +230,10 @@ export default {
       });
       window.backend.Backend.GetNodeMode().then(result => {
         self.nodeMode = result;
+      });
+      // The backend checks the clock at most every 10 minutes.
+      window.backend.Backend.GetClockNotice().then(result => {
+        self.clockNotice = result;
       });
     },
     stop: function() {
@@ -265,12 +282,17 @@ export default {
 <style scoped>
 /* One line in the gap under the tab bar, out of the centered column's flow,
    so it never pushes Stop Mining into the footer at 800x400. */
-div.rpcNotice {
+div.notices {
   position: fixed;
   top: 62px;
   left: 50%;
   transform: translateX(-50%);
   -ms-transform: translateX(-50%);
+}
+div.rpcNotice,
+div.clockNotice {
+  position: relative;
+  margin-bottom: 2px;
   box-sizing: border-box;
   white-space: nowrap;
   border: 1px solid #d0a000;
@@ -288,7 +310,8 @@ div.rpcNotice span.confFile {
   text-decoration: underline dotted;
   cursor: help;
 }
-div.rpcNotice a.dismiss {
+div.rpcNotice a.dismiss,
+div.clockNotice a.dismiss {
   position: absolute;
   top: 1px;
   right: 5px;
@@ -297,7 +320,8 @@ div.rpcNotice a.dismiss {
   cursor: pointer;
   opacity: 0.8;
 }
-div.rpcNotice a.dismiss:hover {
+div.rpcNotice a.dismiss:hover,
+div.clockNotice a.dismiss:hover {
   opacity: 1;
 }
 a.tiny:hover {
