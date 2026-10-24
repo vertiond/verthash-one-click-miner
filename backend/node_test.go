@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/vertcoin-project/one-click-miner-vnext/p2poolgo"
+	"github.com/vertcoin-project/one-click-miner-vnext/tracking"
 )
 
 // fakeNode is a nodeController that records calls.
@@ -680,5 +681,51 @@ func TestPrepareNodeStopErrorAbortsInstall(t *testing.T) {
 	}
 	if m.node != old {
 		t.Error("the node that failed to stop was dropped; quit could not stop it")
+	}
+}
+
+func TestPrepareNodeRapidFailTracksNoLogContent(t *testing.T) {
+	stubNodeEnv(t)
+	oldTrack := track
+	t.Cleanup(func() { track = oldTrack })
+	var got []tracking.TrackingRequest
+	track = func(r tracking.TrackingRequest) { got = append(got, r) }
+
+	m := testBackend(&emitted{})
+	m.node = &fakeNode{cfg: p2poolgo.Config{Address: "Vaddr1"}, rapidFailed: true,
+		tail: []string{"payout to Vaddr1 via peer 203.0.113.7:9348", `C:\Users\someone\AppData\p2pool-go`}}
+	err := m.PrepareNode()
+	if err == nil {
+		t.Fatal("PrepareNode succeeded for a rapid-failed node")
+	}
+	trackNodeFailure("PrepareNodeError", err)
+
+	if len(got) != 1 {
+		t.Fatalf("tracked %d requests, want 1", len(got))
+	}
+	r := got[0]
+	if r.Name != "RapidFail" {
+		t.Errorf("Name = %q, want RapidFail", r.Name)
+	}
+	for _, leak := range []string{"Vaddr1", "203.0.113.7", "someone", "p2pool.log"} {
+		if strings.Contains(r.Name+r.Action+r.Category, leak) {
+			t.Errorf("tracking request %+v leaks %q", r, leak)
+		}
+	}
+}
+
+func TestNodeFailureKind(t *testing.T) {
+	cases := map[string]error{
+		"RapidFail":           &nodeRapidFailError{msg: "x"},
+		"NoBinary":            errNoNodeBinary,
+		"Shutdown":            errNodeShutdown,
+		"PortInUse":           errors.New("Port 9172 is already in use by another program. Close it and retry."),
+		"ManifestUnavailable": errors.New("Unable to download the P2Pool-Go manifest. Check your internet connection."),
+		"Other":               errors.New(`open C:\Users\someone\secret: access denied`),
+	}
+	for want, err := range cases {
+		if got := nodeFailureKind(err); got != want {
+			t.Errorf("nodeFailureKind(%q) = %q, want %q", err, got, want)
+		}
 	}
 }
