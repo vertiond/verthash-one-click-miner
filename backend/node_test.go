@@ -751,3 +751,81 @@ func TestNodeFailureKind(t *testing.T) {
 		}
 	}
 }
+
+func countEvents(list []string, name string) int {
+	n := 0
+	for _, ev := range list {
+		if ev == name {
+			n++
+		}
+	}
+	return n
+}
+
+func TestAdoptedNodeDeadWhileMiningEmitsRapidFail(t *testing.T) {
+	stubNodeEnv(t)
+	oldHasBackend := hasBackend
+	t.Cleanup(func() { hasBackend = oldHasBackend })
+	hasBackend = func() bool { return false }
+
+	up := true
+	getStatus = func(string, string) (*p2poolgo.Status, error) {
+		if up {
+			return &p2poolgo.Status{Ready: true, State: "ready", Version: "v", Difficulty: 20, Height: 1}, nil
+		}
+		return nil, errors.New("connection refused")
+	}
+	e := &emitted{}
+	m := testBackend(e)
+	m.adopted = true
+	var ns networkState
+
+	cycle := 0
+	poll := func() { m.networkNumbers(cycle, &ns); cycle += nodeStatusEvery }
+
+	poll() // healthy
+	up = false
+	poll()
+	poll()
+	// Back up before the third failure: the count starts over.
+	up = true
+	poll()
+	up = false
+	poll()
+	poll()
+	if n := countEvents(e.list(), "nodeRapidFail"); n != 0 {
+		t.Fatalf("nodeRapidFail after two failed polls in a row: %d", n)
+	}
+	// Seconds between status polls never count.
+	m.networkNumbers(cycle+1, &ns)
+	m.networkNumbers(cycle+2, &ns)
+	if n := countEvents(e.list(), "nodeRapidFail"); n != 0 {
+		t.Fatalf("nodeRapidFail from cycles without a poll: %d", n)
+	}
+	poll() // third consecutive failure
+	if n := countEvents(e.list(), "nodeRapidFail"); n != 1 {
+		t.Fatalf("nodeRapidFail emitted %d times after three failures, want 1", n)
+	}
+	poll()
+	poll()
+	if n := countEvents(e.list(), "nodeRapidFail"); n != 1 {
+		t.Errorf("nodeRapidFail emitted %d times, want once", n)
+	}
+}
+
+func TestOwnNodeStatusFailuresDoNotEmitRapidFail(t *testing.T) {
+	stubNodeEnv(t)
+	oldHasBackend := hasBackend
+	t.Cleanup(func() { hasBackend = oldHasBackend })
+	hasBackend = func() bool { return false }
+	e := &emitted{}
+	m := testBackend(e)
+	m.node = &fakeNode{cfg: p2poolgo.Config{Address: "Vaddr1"}, running: true}
+	var ns networkState
+	for i := 0; i < 5; i++ {
+		m.networkNumbers(i*nodeStatusEvery, &ns)
+	}
+	if n := countEvents(e.list(), "nodeRapidFail"); n != 0 {
+		t.Errorf("nodeRapidFail emitted %d times for our own node", n)
+	}
+}

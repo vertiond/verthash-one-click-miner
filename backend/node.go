@@ -92,6 +92,7 @@ var (
 const (
 	existingNodeGap     = 3 * time.Second
 	nodeStatusEvery     = 30  // mining-loop cycles (seconds)
+	adoptedDeadPolls    = 3   // failed status polls in a row before an adopted node counts as gone
 	backendRefreshEvery = 600 // mining-loop cycles (seconds)
 )
 
@@ -395,6 +396,25 @@ func (m *Backend) watchNodeRapidFail(reported *bool) {
 	m.emitEvent("nodeRapidFail")
 }
 
+// watchAdoptedNodeGone emits nodeRapidFail once when the node we adopted
+// stopped answering for adoptedDeadPolls status polls in a row (spec 5.5).
+// Re-running the checks then re-detects and starts our own node if the
+// stratum port is free. Our own node is watched by watchNodeRapidFail.
+func (m *Backend) watchAdoptedNodeGone(ns *networkState) {
+	if ns.deadReported || ns.nodeFails < adoptedDeadPolls {
+		return
+	}
+	m.nodeMu.Lock()
+	adopted := m.adopted
+	m.nodeMu.Unlock()
+	if !adopted {
+		return
+	}
+	ns.deadReported = true
+	logging.Errorf("The P2Pool-Go node this miner was using stopped answering")
+	m.emitEvent("nodeRapidFail")
+}
+
 // RetryNode asks WaitNodeReady to restart the node. Bound to the frontend.
 func (m *Backend) RetryNode() {
 	select {
@@ -437,6 +457,8 @@ type networkState struct {
 	node         *p2poolgo.Status
 	backendTip   int64
 	backendStale bool
+	nodeFails    int  // failed status polls in a row
+	deadReported bool // nodeRapidFail sent for a gone adopted node
 }
 
 // networkNumbers returns the difficulty and tip height for the mining screen
@@ -447,8 +469,12 @@ func (m *Backend) networkNumbers(cycle int, ns *networkState) (float64, int64) {
 		st, err := getStatus(p2poolgo.LocalURL(), nodeAddress(m))
 		if err != nil {
 			st = nil
+			ns.nodeFails++
+		} else {
+			ns.nodeFails = 0
 		}
 		ns.node = st
+		m.watchAdoptedNodeGone(ns)
 	}
 	if cycle%backendRefreshEvery == 0 {
 		ns.backendStale = true
