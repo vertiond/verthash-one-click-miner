@@ -25,7 +25,7 @@ func TestBuildArgsLight(t *testing.T) {
 		"-datadir", "D", "-verthash", "V", "-bind", "127.0.0.1", "-stratum", "9172",
 		"-parentpid", "42", "-shutdown-token", "T", "-pooladdr", "A",
 		"-trustedpeers", "a,b", "-peers", "x,y",
-		"-light", "-p2pbind", "127.0.0.1", "-nonatportmap",
+		"-light", "-p2pbind", "127.0.0.1", "-disable-upnp",
 	}
 	got := BuildArgs(cfg, 42, "T")
 	if !reflect.DeepEqual(got, want) {
@@ -86,7 +86,7 @@ func TestBuildArgsOmitsEmptyPeerLists(t *testing.T) {
 	want := []string{
 		"-datadir", "D", "-verthash", "V", "-bind", "127.0.0.1", "-stratum", "9172",
 		"-parentpid", "42", "-shutdown-token", "T", "-pooladdr", "A",
-		"-light", "-p2pbind", "127.0.0.1", "-nonatportmap",
+		"-light", "-p2pbind", "127.0.0.1", "-disable-upnp",
 	}
 	if got := BuildArgs(cfg, 42, "T"); !reflect.DeepEqual(got, want) {
 		t.Fatalf("got  %q\nwant %q", got, want)
