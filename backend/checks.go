@@ -10,7 +10,6 @@ import (
 	"github.com/vertcoin-project/one-click-miner-vnext/logging"
 	"github.com/vertcoin-project/one-click-miner-vnext/miners"
 	"github.com/vertcoin-project/one-click-miner-vnext/networks"
-	"github.com/vertcoin-project/one-click-miner-vnext/pools"
 	"github.com/vertcoin-project/one-click-miner-vnext/tracking"
 	"github.com/vertcoin-project/one-click-miner-vnext/util"
 	verthash "github.com/vertcoin-project/verthash-go"
@@ -79,12 +78,6 @@ func (m *Backend) PerformChecks() string {
 		return errorString
 	}
 
-	// Only P2Pool mines through the selected node, so other pools don't wait for it.
-	if _, ok := m.pool.(*pools.P2Pool); ok {
-		for !m.p2poolNodeSelected {
-			time.Sleep(100 * time.Millisecond)
-		}
-	}
 	for networks.Active.OCMBackend == "" {
 		time.Sleep(500 * time.Millisecond)
 	}

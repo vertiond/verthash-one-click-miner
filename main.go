@@ -134,9 +134,7 @@ func main() {
 			backend.ResolveBackendServers()
 			backend.BackendServerSelector()
 		}()
-		go backend.SelectP2PoolNode()
 
-		backend.ResolvePools()
 		backend.ResetPool()
 	}
 	app.Bind(backend)

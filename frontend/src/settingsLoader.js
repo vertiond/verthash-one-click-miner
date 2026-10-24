@@ -17,8 +17,6 @@ export function loadSettings() {
     b.GetAutoStart(),
     b.GetDebugging(),
     b.GetEnableIntegrated(),
-    b.GetPools(),
-    b.GetPool(),
     b.GetLanguages(),
     b.GetLanguage(),
     b.GetSystemLocale()
@@ -27,11 +25,9 @@ export function loadSettings() {
       autoStart: r[0],
       debugging: r[1],
       enableIntegrated: r[2],
-      pools: r[3],
-      poolID: r[4],
-      languages: r[5],
-      language: r[6],
-      systemLocale: r[7]
+      languages: r[3],
+      language: r[4],
+      systemLocale: r[5]
     };
     return last;
   });

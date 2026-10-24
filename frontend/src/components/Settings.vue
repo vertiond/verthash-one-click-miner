@@ -23,15 +23,6 @@
           <span class="subtext">{{ $t("settings.enable_integrated_sub") }}</span>
         </p>
         <p style="text-align: left">
-          {{ $t("settings.pool") }}:
-          <br />
-          <select style="width: 100%" name="pool" v-model="poolID">
-            <option v-for="option in pools" v-bind:value="option.id" v-bind:key="option.id">
-                {{ option.name }}
-            </option>
-          </select>
-        </p>
-        <p style="text-align: left">
           {{ $t("settings.language") }}:
           <br />
           <select style="width: 100%" name="language" v-model="language" @change="changeLanguage">
@@ -61,12 +52,10 @@ export default {
       debugging: false,
       autoStart: false,
       enableIntegrated: true,
-      poolID: -1,
-      pools: [],
       language: "",
       languages: [],
       systemLocale: "en",
-      // False until the first values arrive, so a half loaded screen (empty pool list)
+      // False until the first values arrive, so a half loaded screen (empty language list)
       // is never shown
       loaded: false
     };
@@ -106,11 +95,9 @@ export default {
       var self = this;
       window.backend.Backend.SetDebugging(self.debugging).then(() => {
         window.backend.Backend.SetAutoStart(self.autoStart).then(() => {
-          window.backend.Backend.SetPool(self.poolID).then(() => {
-            window.backend.Backend.SetEnableIntegrated(self.enableIntegrated).then( () => {
-              forgetSettings();
-              self.$emit("committed");
-            });
+          window.backend.Backend.SetEnableIntegrated(self.enableIntegrated).then( () => {
+            forgetSettings();
+            self.$emit("committed");
           });
         });
       });
