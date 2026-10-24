@@ -43,6 +43,11 @@ export default {
         self.switchToChecks();
       });
     });
+    window.wails.Events.On("nodeRapidFail", () => {
+      window.backend.Backend.StopMining().then(() => {
+        self.switchToChecks();
+      });
+    });
   },
   methods: {
     stopMining: function() {

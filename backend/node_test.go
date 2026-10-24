@@ -17,6 +17,7 @@ type fakeNode struct {
 	running     bool
 	rapidFailed bool
 	startErr    error
+	stopErr     error
 	starts      int
 	stops       int
 	tail        []string
@@ -39,6 +40,9 @@ func (f *fakeNode) Stop() error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.stops++
+	if f.stopErr != nil {
+		return f.stopErr
+	}
 	f.running = false
 	return nil
 }
@@ -555,5 +559,126 @@ func waitFor(t *testing.T, cond func() bool) {
 			t.Fatal("condition not met in time")
 		}
 		time.Sleep(time.Millisecond)
+	}
+}
+
+func TestNodeRapidFailDuringMiningEmitsEvent(t *testing.T) {
+	stubNodeEnv(t)
+	e := &emitted{}
+	m := testBackend(e)
+	node := &fakeNode{cfg: p2poolgo.Config{Address: "Vaddr1"}, running: true}
+	m.node = node
+	reported := false
+
+	m.watchNodeRapidFail(&reported)
+	if contains(e.list(), "nodeRapidFail") {
+		t.Fatal("event emitted for a healthy node")
+	}
+	node.mu.Lock()
+	node.rapidFailed, node.running = true, false
+	node.mu.Unlock()
+	for i := 0; i < 3; i++ {
+		m.watchNodeRapidFail(&reported)
+	}
+	n := 0
+	for _, ev := range e.list() {
+		if ev == "nodeRapidFail" {
+			n++
+		}
+	}
+	if n != 1 {
+		t.Errorf("nodeRapidFail emitted %d times, want 1", n)
+	}
+
+	// An adopted node is not ours to report.
+	e2 := &emitted{}
+	m2 := testBackend(e2)
+	m2.adopted = true
+	m2.node = &fakeNode{rapidFailed: true}
+	r2 := false
+	m2.watchNodeRapidFail(&r2)
+	if contains(e2.list(), "nodeRapidFail") {
+		t.Error("event emitted for an adopted node")
+	}
+}
+
+func TestPrepareNodeReportsRapidFailedNodeLogTail(t *testing.T) {
+	env := stubNodeEnv(t)
+	m := testBackend(&emitted{})
+	m.node = &fakeNode{cfg: p2poolgo.Config{Address: "Vaddr1"}, rapidFailed: true,
+		tail: []string{"sharechain corrupt", "exiting"}}
+
+	err := m.PrepareNode()
+	if err == nil || !strings.Contains(err.Error(), "sharechain corrupt\nexiting") {
+		t.Fatalf("PrepareNode error = %v, want the log tail", err)
+	}
+	if env.installs != 0 || len(env.runnersBuilt) != 0 {
+		t.Errorf("installs=%d runners=%d, want none on the failing run", env.installs, len(env.runnersBuilt))
+	}
+	// The next checks run (the user's retry) builds a fresh runner.
+	if err := m.PrepareNode(); err != nil {
+		t.Fatalf("retry: %v", err)
+	}
+	if len(env.runnersBuilt) != 1 {
+		t.Errorf("retry built %d runners, want 1", len(env.runnersBuilt))
+	}
+}
+
+func TestCheckVerthashVerifiesWhenOwnedNodeInBackoff(t *testing.T) {
+	env := stubNodeEnv(t)
+	oldVerify, oldEnsure := verifyVerthash, ensureVerthash
+	t.Cleanup(func() { verifyVerthash, ensureVerthash = oldVerify, oldEnsure })
+	verified, ensured := 0, 0
+	verifyVerthash = func(string) (bool, error) { verified++; return true, nil }
+	ensureVerthash = func(string, bool, chan float64) error { ensured++; return nil }
+
+	m := testBackend(&emitted{})
+	node := &fakeNode{cfg: p2poolgo.Config{Address: "Vaddr1"}, running: false} // between relaunches
+	m.node = node
+	if err := m.checkVerthash("v.dat", false); err != nil {
+		t.Fatal(err)
+	}
+	if verified != 1 || ensured != 0 {
+		t.Errorf("verified=%d ensured=%d, want 1/0", verified, ensured)
+	}
+	if _, stops := node.counts(); stops != 0 || len(env.runnersBuilt) != 0 {
+		t.Errorf("stops=%d runners=%d, want 0/0", stops, len(env.runnersBuilt))
+	}
+}
+
+func TestCheckVerthashStopErrorAbortsRegenerate(t *testing.T) {
+	stubNodeEnv(t)
+	oldVerify, oldEnsure := verifyVerthash, ensureVerthash
+	t.Cleanup(func() { verifyVerthash, ensureVerthash = oldVerify, oldEnsure })
+	ensured := 0
+	verifyVerthash = func(string) (bool, error) { return false, nil }
+	ensureVerthash = func(string, bool, chan float64) error { ensured++; return nil }
+
+	m := testBackend(&emitted{})
+	m.node = &fakeNode{running: true, stopErr: errors.New("access denied")}
+	err := m.checkVerthash("v.dat", false)
+	if err == nil || !strings.Contains(err.Error(), "access denied") {
+		t.Fatalf("checkVerthash error = %v, want the stop error", err)
+	}
+	if ensured != 0 {
+		t.Error("verthash regenerated after a failed stop")
+	}
+}
+
+func TestPrepareNodeStopErrorAbortsInstall(t *testing.T) {
+	env := stubNodeEnv(t)
+	m := testBackend(&emitted{})
+	old := &fakeNode{cfg: p2poolgo.Config{Address: "Vold"}, running: true, stopErr: errors.New("access denied")}
+	m.node = old
+
+	err := m.PrepareNode()
+	if err == nil || !strings.Contains(err.Error(), "access denied") {
+		t.Fatalf("PrepareNode error = %v, want the stop error", err)
+	}
+	if env.installs != 0 || len(env.runnersBuilt) != 0 {
+		t.Errorf("installs=%d runners=%d, want none", env.installs, len(env.runnersBuilt))
+	}
+	if m.node != old {
+		t.Error("the node that failed to stop was dropped; quit could not stop it")
 	}
 }
