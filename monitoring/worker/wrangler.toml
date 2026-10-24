@@ -21,7 +21,7 @@ binding = "STATE"
 id = "517540d3553e4b62a1361324b81604bc"
 
 [vars]
-# Keep these in sync with networks/networks.go (a Go test checks that they are)
+# Keep these in sync with networks/networks.go and backends.json (a Go test checks that they are)
 BLOCKBOOK_URLS = "https://blockbook.doge.zelcore.io/,https://dogecoin.atomicwallet.io/"
 BACKEND_URLS = "https://ocmbackend.javerity.com/,https://ocmbackend.mindcraftblocks.com/"
 # The Dogecoin Foundation address from https://foundation.dogecoin.com/about/. It is a

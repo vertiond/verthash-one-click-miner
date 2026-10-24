@@ -98,6 +98,7 @@ func main() {
 		panic(err)
 	}
 	networks.SetNetwork(backend.GetTestnet())
+	backend.ResolveEndpointsInBackground()
 	go backend.BackendServerSelector()
 	//ping.GetSelectedNode(backend.GetTestnet())
 

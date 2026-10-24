@@ -3,6 +3,7 @@ package payouts
 import (
 	"fmt"
 
+	"github.com/vertiond/verthash-one-click-miner/networks"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
@@ -66,12 +67,39 @@ var coinpaprikaIDs = map[string]string{
 	"ZEN":   "zen-horizen",
 }
 
+// DefaultCoinpaprikaURL is the CoinPaprika API base, without a trailing slash,
+// used when neither backends.json nor its cached copy has one.
+const DefaultCoinpaprikaURL = "https://api.coinpaprika.com/v1"
+
 // coinpaprikaURL is the CoinPaprika API base, a variable so tests can point it elsewhere.
-var coinpaprikaURL = "https://api.coinpaprika.com/v1"
+var coinpaprikaURL = DefaultCoinpaprikaURL
+
+// SetCoinpaprika replaces the CoinPaprika API base (without a trailing slash)
+// and adds or replaces coin ids by ticker. Empty values are ignored, so the
+// built-in ones stay in use.
+func SetCoinpaprika(url string, ids map[string]string) {
+	if url != "" {
+		coinpaprikaURL = url
+	}
+	if len(ids) == 0 {
+		return
+	}
+	merged := make(map[string]string, len(coinpaprikaIDs)+len(ids))
+	for ticker, id := range coinpaprikaIDs {
+		merged[ticker] = id
+	}
+	for ticker, id := range ids {
+		if ticker != "" && id != "" {
+			merged[ticker] = id
+		}
+	}
+	coinpaprikaIDs = merged
+}
 
 // GetBitcoinPerUnitCoin returns the price of one unit of the coin in BTC from
 // CoinPaprika, or 0 when the coin is unknown or the lookup fails.
 func GetBitcoinPerUnitCoin(coinTicker string) float64 {
+	networks.WaitForEndpoints()
 	id, ok := coinpaprikaIDs[coinTicker]
 	if !ok {
 		return 0.0

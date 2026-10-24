@@ -1,0 +1,35 @@
+{
+    "blockbookUrls": [
+        "https://blockbook.doge.zelcore.io/",
+        "https://dogecoin.atomicwallet.io/"
+    ],
+    "coinpaprikaUrl": "https://api.coinpaprika.com/v1",
+    "coinpaprikaIds": {
+        "BCH": "bch-bitcoin-cash",
+        "BNB": "bnb-binance-coin",
+        "BTC": "btc-bitcoin",
+        "CAKE": "cake-pancakeswap",
+        "DASH": "dash-dash",
+        "DGB": "dgb-digibyte",
+        "DOGE": "doge-dogecoin",
+        "ETC": "etc-ethereum-classic",
+        "FIRO": "firo-firo",
+        "FLUX": "zel-zelcash",
+        "GRS": "grs-groestlcoin",
+        "KMD": "kmd-komodo",
+        "LBC": "lbc-lbry-credits",
+        "LTC": "ltc-litecoin",
+        "MATIC": "matic-polygon",
+        "PPC": "ppc-peercoin",
+        "RTM": "rtm-raptoreum",
+        "RVN": "rvn-ravencoin",
+        "SHIB": "shib-shiba-inu",
+        "TRX": "trx-tron",
+        "USDT": "usdt-tether",
+        "VTC": "vtc-vertcoin",
+        "XMR": "xmr-monero",
+        "XVG": "xvg-verge",
+        "ZEC": "zec-zcash",
+        "ZEN": "zen-horizen"
+    }
+}

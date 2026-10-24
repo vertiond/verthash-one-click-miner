@@ -93,5 +93,6 @@ goes out when the daily run happens on a Monday.
 ## Keeping it in sync
 
 `BLOCKBOOK_URLS` and `BACKEND_URLS` in `worker/wrangler.toml` must match
-`networks/networks.go` (and the host of each backend needs its own `MENTIONS` entry). A Go test (`go test ./networks`) fails when they drift apart.
+`networks/networks.go`, and `BLOCKBOOK_URLS` also the `blockbookUrls` in `backends.json`, which the app
+fetches at startup (and the host of each backend needs its own `MENTIONS` entry). A Go test (`go test ./networks`) fails when they drift apart.
 Change both together, then run `npx wrangler@4.152.0 deploy` again.

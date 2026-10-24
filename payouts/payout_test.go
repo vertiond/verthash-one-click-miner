@@ -1,9 +1,12 @@
 package payouts
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"reflect"
 	"testing"
 )
 
@@ -80,5 +83,48 @@ func TestEveryPayoutCoinHasAPriceSourceOrIsKnownToLackOne(t *testing.T) {
 		if !mapped && !lacking[p.GetTicker()] {
 			t.Errorf("%s has no CoinPaprika id", p.GetTicker())
 		}
+	}
+}
+
+func TestSetCoinpaprika(t *testing.T) {
+	oldURL, oldIDs := coinpaprikaURL, coinpaprikaIDs
+	t.Cleanup(func() { coinpaprikaURL, coinpaprikaIDs = oldURL, oldIDs })
+
+	SetCoinpaprika("", nil)
+	if coinpaprikaURL != DefaultCoinpaprikaURL || !reflect.DeepEqual(coinpaprikaIDs, oldIDs) {
+		t.Fatalf("empty values replaced the defaults")
+	}
+
+	SetCoinpaprika("https://prices.example/v1", map[string]string{"DOGE": "doge-new", "NEW": "new-coin"})
+	if coinpaprikaURL != "https://prices.example/v1" {
+		t.Fatalf("coinpaprikaURL = %s", coinpaprikaURL)
+	}
+	if coinpaprikaIDs["DOGE"] != "doge-new" || coinpaprikaIDs["NEW"] != "new-coin" || coinpaprikaIDs["VTC"] != "vtc-vertcoin" {
+		t.Fatalf("ids not merged over the defaults: %v", coinpaprikaIDs)
+	}
+	if oldIDs["DOGE"] != "doge-dogecoin" {
+		t.Fatalf("the built-in ids were modified in place")
+	}
+}
+
+// backends.json is fetched at startup, the built-in ids are the offline
+// fallback; keep them in step.
+func TestPublishedCoinpaprikaMatchesTheBuiltInOne(t *testing.T) {
+	data, err := os.ReadFile("../backends.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	published := struct {
+		CoinpaprikaURL string            `json:"coinpaprikaUrl"`
+		CoinpaprikaIDs map[string]string `json:"coinpaprikaIds"`
+	}{}
+	if err := json.Unmarshal(data, &published); err != nil {
+		t.Fatal(err)
+	}
+	if published.CoinpaprikaURL != DefaultCoinpaprikaURL {
+		t.Errorf("backends.json has coinpaprikaUrl %s, the default is %s", published.CoinpaprikaURL, DefaultCoinpaprikaURL)
+	}
+	if !reflect.DeepEqual(published.CoinpaprikaIDs, coinpaprikaIDs) {
+		t.Errorf("backends.json has coinpaprikaIds %v, the defaults are %v", published.CoinpaprikaIDs, coinpaprikaIDs)
 	}
 }

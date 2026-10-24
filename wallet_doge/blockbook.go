@@ -34,6 +34,7 @@ type blockbookError struct {
 // blockbookRequest tries each configured Blockbook server in turn and returns the
 // first successful response body.
 func blockbookRequest(method, path string, body []byte) ([]byte, error) {
+	networks.WaitForEndpoints()
 	var lastErr error
 	for _, base := range networks.Active.BlockbookURLs {
 		url := strings.TrimRight(base, "/") + "/" + path

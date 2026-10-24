@@ -1,6 +1,7 @@
 package networks
 
 import (
+	"encoding/json"
 	"os"
 	"reflect"
 	"regexp"
@@ -38,5 +39,34 @@ func TestMonitoringWorkerChecksTheServersTheAppUses(t *testing.T) {
 		if got := workerList(t, string(raw), name); !reflect.DeepEqual(got, want) {
 			t.Errorf("%s in monitoring/worker/wrangler.toml is %v, networks.go has %v", name, got, want)
 		}
+	}
+}
+
+// The app fetches its Blockbook servers from backends.json and falls back to
+// DefaultBlockbookURLs, so the worker has to check the same servers as both.
+func TestMonitoringWorkerChecksThePublishedBlockbookServers(t *testing.T) {
+	raw, err := os.ReadFile("../monitoring/worker/wrangler.toml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile("../backends.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	published := struct {
+		BlockbookURLs []string `json:"blockbookUrls"`
+	}{}
+	if err := json.Unmarshal(data, &published); err != nil {
+		t.Fatal(err)
+	}
+	want := append([]string{}, published.BlockbookURLs...)
+	sort.Strings(want)
+	if got := workerList(t, string(raw), "BLOCKBOOK_URLS"); !reflect.DeepEqual(got, want) {
+		t.Errorf("BLOCKBOOK_URLS in monitoring/worker/wrangler.toml is %v, backends.json has %v", got, want)
+	}
+	defaults := append([]string{}, DefaultBlockbookURLs...)
+	sort.Strings(defaults)
+	if !reflect.DeepEqual(defaults, want) {
+		t.Errorf("DefaultBlockbookURLs is %v, backends.json has %v", defaults, want)
 	}
 }
