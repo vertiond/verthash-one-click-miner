@@ -102,13 +102,29 @@ func (d *deathLog) Record(t time.Time) (rapidFail bool) {
 	return len(d.times) >= rapidFailDeaths
 }
 
-// PortFree reports whether addr can be listened on right now.
+// PortFree reports whether addr can be listened on right now and nothing
+// answers on it. The connect attempt catches a program listening on every
+// interface: Windows still lets OCM listen on the loopback address then.
 func PortFree(addr string) bool {
+	if portAnswers(addr) {
+		return false
+	}
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return false
 	}
 	l.Close()
+	return true
+}
+
+// portAnswers reports whether a TCP connect to addr succeeds. A local
+// listener accepts at once, so a short timeout is enough.
+func portAnswers(addr string) bool {
+	c, err := net.DialTimeout("tcp", addr, 250*time.Millisecond)
+	if err != nil {
+		return false
+	}
+	c.Close()
 	return true
 }
 
@@ -178,12 +194,12 @@ func (r *Runner) Start() error {
 	return nil
 }
 
-// p2pCheckAddr is where the node's p2p listener binds: loopback in light
-// mode, every interface in full mode.
+// p2pCheckAddr is where OCM test-listens for the node's p2p port. It is
+// loopback in every mode: a listen on all interfaces by vertcoin-ocm.exe
+// makes Windows show a firewall prompt for OCM itself. In full mode the
+// node binds every interface; PortFree's connect attempt still sees a
+// program holding the port on any interface.
 func (r *Runner) p2pCheckAddr() string {
-	if r.cfg.Detection.Mode == ModeFull {
-		return ":" + strconv.Itoa(r.p2pPort)
-	}
 	return net.JoinHostPort("127.0.0.1", strconv.Itoa(r.p2pPort))
 }
 
