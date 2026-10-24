@@ -28,7 +28,9 @@ const defaultCoreRPCPort = 5888
 // Detection is the result of looking for a local Vertcoin Core.
 type Detection struct {
 	Mode       Mode
-	CookiePath string // full mode only
+	CookiePath string // full mode only, when the cookie was used
+	RPCUser    string // full mode only, when vertcoin.conf's rpcuser/rpcpassword were used
+	RPCPass    string // never log it
 	RPCPort    int    // from rpcport= or 5888
 	RPCNotice  bool   // Core running but RPC unusable
 	ConfPath   string // absolute vertcoin.conf path, for the notice
@@ -117,6 +119,21 @@ func DetectCore(env CoreEnv) Detection {
 	}
 
 	d.RPCNotice = true // until proven usable
+	// Core writes no cookie when rpcpassword is set, so use the conf's own
+	// credentials then. rpcauth= is hashed and can't be used; it falls
+	// through to the cookie like no credentials at all.
+	if user, pass := conf["rpcuser"], conf["rpcpassword"]; user != "" && pass != "" {
+		ibd, ok := coreIBD(addr, user, pass)
+		if !ok {
+			return d
+		}
+		d.RPCNotice = false
+		if !ibd {
+			d.Mode = ModeFull
+			d.RPCUser, d.RPCPass = user, pass
+		}
+		return d
+	}
 	cookiePath := filepath.Join(cookieDir, ".cookie")
 	cookie, err := os.ReadFile(cookiePath)
 	if err != nil {
@@ -126,20 +143,35 @@ func DetectCore(env CoreEnv) Detection {
 	if !ok {
 		return d
 	}
+	ibd, ok := coreIBD(addr, user, pass)
+	if !ok {
+		return d
+	}
+	d.RPCNotice = false
+	if !ibd {
+		d.Mode = ModeFull
+		d.CookiePath = cookiePath
+	}
+	return d
+}
+
+// coreIBD calls getblockchaininfo with basic auth. ok is false when Core
+// can't be queried with these credentials.
+func coreIBD(addr, user, pass string) (ibd, ok bool) {
 	req, err := http.NewRequest("POST", "http://"+addr+"/", strings.NewReader(
 		`{"jsonrpc":"1.0","id":"ocm","method":"getblockchaininfo","params":[]}`))
 	if err != nil {
-		return d
+		return false, false
 	}
 	req.SetBasicAuth(user, pass)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := (&http.Client{Timeout: 5 * time.Second}).Do(req)
 	if err != nil {
-		return d
+		return false, false
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return d
+		return false, false
 	}
 	var body struct {
 		Result *struct {
@@ -147,12 +179,7 @@ func DetectCore(env CoreEnv) Detection {
 		} `json:"result"`
 	}
 	if json.NewDecoder(resp.Body).Decode(&body) != nil || body.Result == nil {
-		return d
+		return false, false
 	}
-	d.RPCNotice = false
-	if !body.Result.IBD {
-		d.Mode = ModeFull
-		d.CookiePath = cookiePath
-	}
-	return d
+	return body.Result.IBD, true
 }

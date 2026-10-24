@@ -125,3 +125,70 @@ func TestDetectConfDatadir(t *testing.T) {
 		t.Fatalf("got %+v", d)
 	}
 }
+
+func credServer(t *testing.T, user, pass string) (port int) {
+	t.Helper()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u, p, ok := r.BasicAuth()
+		if !ok || u != user || p != pass || r.Method != "POST" {
+			w.WriteHeader(401)
+			return
+		}
+		fmt.Fprint(w, `{"result":{"initialblockdownload":false},"error":null,"id":"ocm"}`)
+	}))
+	t.Cleanup(srv.Close)
+	uu, _ := url.Parse(srv.URL)
+	port, _ = strconv.Atoi(uu.Port())
+	return port
+}
+
+func TestDetectConfCredentialsFullMode(t *testing.T) {
+	dir := t.TempDir()
+	port := credServer(t, "vert", "s3cret")
+	writeConf(t, dir, fmt.Sprintf("server=1\nrpcuser=vert\nrpcpassword=s3cret\nrpcport=%d\n", port))
+	d := DetectCore(env(dir, true))
+	if d.Mode != ModeFull || d.RPCNotice || d.CookiePath != "" || d.RPCUser != "vert" || d.RPCPass != "s3cret" {
+		t.Fatalf("got %+v", d)
+	}
+}
+
+func TestDetectConfCredentialsPreferredOverCookie(t *testing.T) {
+	dir := t.TempDir()
+	port := credServer(t, "vert", "s3cret")
+	writeConf(t, dir, fmt.Sprintf("rpcuser=vert\nrpcpassword=s3cret\nrpcport=%d\n", port))
+	writeCookie(t, dir) // stale cookie: the server rejects it
+	d := DetectCore(env(dir, true))
+	if d.Mode != ModeFull || d.RPCUser != "vert" || d.CookiePath != "" {
+		t.Fatalf("got %+v", d)
+	}
+}
+
+func TestDetectConfCredentialsWrongNotice(t *testing.T) {
+	dir := t.TempDir()
+	port := credServer(t, "vert", "right")
+	writeConf(t, dir, fmt.Sprintf("rpcuser=vert\nrpcpassword=wrong\nrpcport=%d\n", port))
+	d := DetectCore(env(dir, true))
+	if d.Mode != ModeLight || !d.RPCNotice || d.RPCUser != "" || d.RPCPass != "" {
+		t.Fatalf("got %+v", d)
+	}
+}
+
+func TestDetectRPCAuthOnlyUsesCookie(t *testing.T) {
+	dir := t.TempDir()
+	port := rpcServer(t, false, 200)
+	writeConf(t, dir, fmt.Sprintf("rpcauth=vert:abc$def\nrpcport=%d\n", port))
+	writeCookie(t, dir)
+	d := DetectCore(env(dir, true))
+	if d.Mode != ModeFull || d.RPCUser != "" || filepath.Base(d.CookiePath) != ".cookie" {
+		t.Fatalf("got %+v", d)
+	}
+}
+
+func TestDetectRPCUserWithoutPasswordUsesCookie(t *testing.T) {
+	dir := t.TempDir()
+	writeConf(t, dir, fmt.Sprintf("rpcuser=vert\nrpcport=%d\n", closedPort(t)))
+	d := DetectCore(env(dir, true))
+	if d.Mode != ModeLight || !d.RPCNotice || d.RPCUser != "" {
+		t.Fatalf("got %+v", d)
+	}
+}
