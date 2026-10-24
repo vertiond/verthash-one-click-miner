@@ -11,7 +11,6 @@ require (
 	github.com/btcsuite/fastsha256 v0.0.0-20160815193821-637e65642941
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/gertjaap/verthash-go v0.0.0-20210205201258-234a3a9698d1
-	github.com/go-ping/ping v1.1.0
 	github.com/marcsauter/single v0.0.0-20201009143647-9f8d81240be2
 	github.com/tidwall/buntdb v1.3.0
 	github.com/wailsapp/wails v1.16.9
@@ -28,7 +27,6 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/go-playground/colors v1.2.0 // indirect
-	github.com/google/uuid v1.2.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/jackmordaunt/icns v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
@@ -52,6 +50,5 @@ require (
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
