@@ -42,9 +42,10 @@ func TestMonitoringWorkerChecksTheServersTheAppUses(t *testing.T) {
 	}
 }
 
-// The app fetches its Blockbook servers from backends.json and falls back to
-// DefaultBlockbookURLs, so the worker has to check the same servers as both.
-func TestMonitoringWorkerChecksThePublishedBlockbookServers(t *testing.T) {
+// The app fetches its Blockbook and backend servers from backends.json and
+// falls back to the built-in lists, so the worker has to check the same
+// servers as both.
+func TestMonitoringWorkerChecksThePublishedServers(t *testing.T) {
 	raw, err := os.ReadFile("../monitoring/worker/wrangler.toml")
 	if err != nil {
 		t.Fatal(err)
@@ -54,19 +55,29 @@ func TestMonitoringWorkerChecksThePublishedBlockbookServers(t *testing.T) {
 		t.Fatal(err)
 	}
 	published := struct {
-		BlockbookURLs []string `json:"blockbookUrls"`
+		BlockbookURLs  []string `json:"blockbookUrls"`
+		BackendServers []string `json:"backendServers"`
 	}{}
 	if err := json.Unmarshal(data, &published); err != nil {
 		t.Fatal(err)
 	}
-	want := append([]string{}, published.BlockbookURLs...)
-	sort.Strings(want)
-	if got := workerList(t, string(raw), "BLOCKBOOK_URLS"); !reflect.DeepEqual(got, want) {
-		t.Errorf("BLOCKBOOK_URLS in monitoring/worker/wrangler.toml is %v, backends.json has %v", got, want)
-	}
-	defaults := append([]string{}, DefaultBlockbookURLs...)
-	sort.Strings(defaults)
-	if !reflect.DeepEqual(defaults, want) {
-		t.Errorf("DefaultBlockbookURLs is %v, backends.json has %v", defaults, want)
+	for _, c := range []struct {
+		name, key string
+		published []string
+		defaults  []string
+	}{
+		{"BLOCKBOOK_URLS", "blockbookUrls", published.BlockbookURLs, DefaultBlockbookURLs},
+		{"BACKEND_URLS", "backendServers", published.BackendServers, DefaultBackendServers},
+	} {
+		want := append([]string{}, c.published...)
+		sort.Strings(want)
+		if got := workerList(t, string(raw), c.name); !reflect.DeepEqual(got, want) {
+			t.Errorf("%s in monitoring/worker/wrangler.toml is %v, %s in backends.json has %v", c.name, got, c.key, want)
+		}
+		defaults := append([]string{}, c.defaults...)
+		sort.Strings(defaults)
+		if !reflect.DeepEqual(defaults, want) {
+			t.Errorf("the built-in list is %v, %s in backends.json has %v", defaults, c.key, want)
+		}
 	}
 }

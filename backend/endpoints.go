@@ -36,7 +36,8 @@ func (m *Backend) ResolveEndpointsInBackground() {
 	release := networks.HoldEndpoints()
 	go func() {
 		defer release()
-		cachePath := filepath.Join(util.DataDirectory(), "backends.json")
+		// Not backends.json: ResolveBackendServers caches its own part there
+		cachePath := filepath.Join(util.DataDirectory(), "endpoints.json")
 		l := loadEndpoints(endpointsURL, cachePath, util.GetJson)
 		networks.SetBlockbookURLs(l.BlockbookURLs)
 		payouts.SetCoinpaprika(l.CoinpaprikaURL, l.CoinpaprikaIDs)
