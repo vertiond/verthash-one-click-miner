@@ -40,6 +40,7 @@
         "clock_notice_slow" : "Your clock is {minutes} min slow.",
         "clock_notice" : "{title} Turn on \"Set time automatically\" so the P2Pool network accepts your shares.",
         "spendable_balance" : "Spendable Balance",
+        "balance_unavailable" : "Balance unavailable",
         "still_maturing" : "still maturing",
         "pending_pool_payout" : "pending pool payout",
         "pending_payout_info_unavailable" : "Please wait for pending payout information",

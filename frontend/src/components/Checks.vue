@@ -1,7 +1,11 @@
 <template>
   <div class="container">
     <div v-if="checkStatus !== 'Failed'" class="col-286">
+      <!-- Only the headline is centred; the lines under it hang below, so the
+           headline stays put when they appear or disappear -->
+      <div class="pinned">
       <p>{{checkStatus === null ? $t("checks.checking_mining_software") : (checkStatus === 'Failed' ? 'Failed' : $t("checks." + checkStatus)) }}</p>
+      <div class="below">
       <div class="verthashProgress" v-if="verthashProgress !== 0">
         <div class="progressBar">
           <div class="progress" v-bind:style="{width: verthashProgress + '%'}">&nbsp;</div>
@@ -12,6 +16,8 @@
       <div class="nodeSlow" v-if="nodeSlow">
         <p>{{ $t("checks.node_slow") }}</p>
         <a class="button" @click="retryNode">{{ $t('generic.retry') }}</a>
+      </div>
+      </div>
       </div>
     </div>
     <div v-if="checkStatus === 'Failed'" class="col-wide">
@@ -135,6 +141,17 @@ div.failureReason {
   border: 1px solid red;
   width: 600px;
   margin: 0 auto;
+}
+
+div.pinned {
+  position: relative;
+}
+
+div.below {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
 }
 
 p.elapsed {

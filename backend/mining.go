@@ -2,6 +2,7 @@ package backend
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/vertcoin-project/one-click-miner-vnext/logging"
@@ -141,16 +142,30 @@ func (m *Backend) StartMining() bool {
 
 	go func() {
 		continueLoop := true
-		var pb uint64
 		for continueLoop {
-			m.wal.Update()
-			b, bi := m.wal.GetBalance()
-			m.runtime.Events.Emit("balance", fmt.Sprintf("%0.8f", float64(b)/float64(100000000)))
-			m.runtime.Events.Emit("balanceImmature", fmt.Sprintf("%0.8f", float64(bi)/float64(100000000)))
-			logging.Infof("Updating pending pool payout...")
-			newPb := m.pool.GetPendingPayout()
-			pb = newPb
-			m.runtime.Events.Emit("balancePendingPool", fmt.Sprintf("%0.8f", float64(pb)/float64(100000000)))
+			// The wallet balance comes from the backend and the pending payout
+			// from the local node, so fetch them side by side. A failed
+			// balance fetch leaves the last value on screen rather than a
+			// zero, and tells the screen so it can stop waiting for one.
+			var wg sync.WaitGroup
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+				if m.wal.Update() != nil {
+					m.runtime.Events.Emit("balanceUnavailable")
+					return
+				}
+				b, bi := m.wal.GetBalance()
+				m.runtime.Events.Emit("balance", fmt.Sprintf("%0.8f", float64(b)/float64(100000000)))
+				m.runtime.Events.Emit("balanceImmature", fmt.Sprintf("%0.8f", float64(bi)/float64(100000000)))
+			}()
+			go func() {
+				defer wg.Done()
+				logging.Infof("Updating pending pool payout...")
+				pb := m.pool.GetPendingPayout()
+				m.runtime.Events.Emit("balancePendingPool", fmt.Sprintf("%0.8f", float64(pb)/float64(100000000)))
+			}()
+			wg.Wait()
 			select {
 			case <-m.stopBalance:
 				continueLoop = false
@@ -196,6 +211,15 @@ func (m *Backend) StartMining() bool {
 	}
 
 	startProcessMonitoring <- true
+
+	// Report the launched miners now rather than on the next one-second tick,
+	// so the screen never shows "Waiting for miners to start" for them.
+	go func() {
+		select {
+		case m.refreshRunningState <- true:
+		case <-time.After(5 * time.Second):
+		}
+	}()
 
 	return true
 }

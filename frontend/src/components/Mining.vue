@@ -3,7 +3,10 @@
     <div class="col-286 above-bottom-button">
       <p class="header">{{$t('mining.spendable_balance')}}:</p>
       <p class="spendableBalance">
-        <a class="tiny" @click="refreshBalance">
+        <!-- Until the first balance arrives the whole line is laid out with a
+             sample value but kept invisible, so it already takes its full space.
+             If no balance can be fetched, the buttons come back so it can be retried. -->
+        <a class="tiny" @click="refreshBalance" v-bind:class="{ invisible: !balanceShown }">
           <svg
             width="16"
             height="16"
@@ -33,8 +36,9 @@
             </g>
           </svg>
         </a>
-        &nbsp;{{balance}} VTC
-        <a class="tiny" @click="copyAddress" v-bind:title="$t('mining.copy_address')">
+        <span v-if="!balanceUnavailable || balance !== null" v-bind:class="{ invisible: balance === null }">&nbsp;{{ balance !== null ? balance : '0.00000000' }} VTC&nbsp;</span>
+        <span class="unavailable" v-if="balance === null && balanceUnavailable">&nbsp;{{ $t('mining.balance_unavailable') }}&nbsp;</span>
+        <a class="tiny" @click="copyAddress" v-bind:title="$t('mining.copy_address')" v-bind:class="{ invisible: !balanceShown }">
           <svg width="16" height="16" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
           viewBox="0 0 368.008 368.008" style="enable-background:new 0 0 368.008 368.008;" xml:space="preserve">
             <g>
@@ -53,14 +57,16 @@
           </svg>
         </a>
       </p>
-      <p class="immatureBalance" v-if="balanceImmature != '0.00000000'">
+      <!-- Arrives with the balance; laid out but invisible until then -->
+      <p class="immatureBalance" v-if="balance === null || balanceImmature != '0.00000000'" v-bind:class="{ invisible: balance === null }">
         (
-        <span style="opacity: 1">{{balanceImmature}} VTC</span>
+        <span style="opacity: 1">{{ balance !== null ? balanceImmature : '0.00000000' }} VTC</span>
         {{$t('mining.still_maturing')}})
       </p>
-      <p class="poolBalance" v-if="balancePendingPool != '0.00000000'">
+      <!-- Laid out but invisible until the first value, so the lines below don't move when it loads -->
+      <p class="poolBalance" v-if="balancePendingPool === null || balancePendingPool != '0.00000000'" v-bind:class="{ invisible: balancePendingPool === null }">
         (
-        <span style="opacity: 1">{{balancePendingPool}} VTC</span>
+        <span style="opacity: 1">{{ balancePendingPool !== null ? balancePendingPool : '0.00000000' }} VTC</span>
         {{$t('mining.pending_pool_payout')}})
       </p>
 <!--      <p class="poolBalance" v-if="balancePendingPool == '0.00000000'">-->
@@ -117,6 +123,7 @@ export default {
     active: function(now) {
       if (now) {
         this.refreshRpcNotice();
+        this.startBalanceFallback();
       }
     },
   },
@@ -127,9 +134,11 @@ export default {
       netHash: "",
       gpu: "",
       wallet: "",
-      balance: "0.00000000",
+      balance: null, // null until the first value arrives; shows nothing until then
+      balanceUnavailable: false, // the fetch failed, or took too long
+      balanceTimer: null,
       balanceImmature: "0.00000000",
-      balancePendingPool: "0.00000000",
+      balancePendingPool: null,
       runningMiners: 0,
       spinner: "...",
       stopping: false,
@@ -145,6 +154,7 @@ export default {
     };
   },
   beforeDestroy() {
+    this.stopBalanceFallback();
     if (this.rpcNoticeTimer !== null) {
       window.clearInterval(this.rpcNoticeTimer);
       this.rpcNoticeTimer = null;
@@ -197,6 +207,11 @@ export default {
     });
     window.wails.Events.On("balance", result => {
       self.balance = result;
+      self.balanceUnavailable = false;
+      self.stopBalanceFallback();
+    });
+    window.wails.Events.On("balanceUnavailable", () => {
+      self.balanceUnavailable = true;
     });
     window.wails.Events.On("balanceImmature", result => {
       self.balanceImmature = result;
@@ -209,6 +224,9 @@ export default {
     window.backend.Backend.RefreshRunningState();
   },
   computed: {
+    balanceShown() {
+      return this.balance !== null || this.balanceUnavailable;
+    },
     showRpcNotice() {
       return this.rpcNotice.show && !this.rpcNoticeDismissed;
     },
@@ -221,6 +239,26 @@ export default {
     },
   },
   methods: {
+    // If no balance has arrived 10 s after the screen opens, stop waiting and
+    // give the line its buttons so the user can retry or copy their address.
+    startBalanceFallback: function() {
+      var self = this;
+      if (this.balance !== null || this.balanceTimer !== null) {
+        return;
+      }
+      this.balanceTimer = window.setTimeout(() => {
+        self.balanceTimer = null;
+        if (self.balance === null) {
+          self.balanceUnavailable = true;
+        }
+      }, 10000);
+    },
+    stopBalanceFallback: function() {
+      if (this.balanceTimer !== null) {
+        window.clearTimeout(this.balanceTimer);
+        this.balanceTimer = null;
+      }
+    },
     // Refreshes what the screen says about Vertcoin Core: the RPC notice and
     // whether the node is mining through it.
     refreshRpcNotice: function() {
@@ -355,6 +393,13 @@ p.netHash {
 p.spacer {
   padding: 0px;
   margin: 5px;
+}
+.invisible {
+  visibility: hidden;
+}
+span.unavailable {
+  font-size: 14px;
+  opacity: 0.6;
 }
 span.coreNode {
   color: #048652;

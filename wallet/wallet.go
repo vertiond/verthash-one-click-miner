@@ -201,15 +201,18 @@ type BalanceResponse struct {
 }
 
 // Update will reload balance from the backend
-func (w *Wallet) Update() {
+// Update fetches the balance from the backend. On failure the last balance is
+// kept and the error is returned, so callers can tell it was not refreshed.
+func (w *Wallet) Update() error {
 	bal := BalanceResponse{}
 	err := util.GetJson(fmt.Sprintf("%sbalance/%x", networks.Active.OCMBackend, w.Script), &bal)
 	if err != nil {
 		logging.Errorf("Error fetching balance from backend: %s", err.Error())
-		return
+		return err
 	}
 	w.Spendable = bal.Spendable
 	w.Maturing = bal.Maturing
+	return nil
 }
 
 // GetBalance will scan the utxos in the wallet and return
