@@ -1,6 +1,7 @@
 package p2poolgo
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -42,6 +43,9 @@ func ExePath() string { return exePathIn(BinDir()) }
 // it into binDir/current, replacing any previous copy. Callers must not call
 // it while OCM's own node is running.
 func Install(b Binary, binDir string) (string, error) {
+	if !validSha256(b.Sha256) {
+		return "", errors.New("The P2Pool-Go manifest has an invalid sha256")
+	}
 	if err := os.MkdirAll(binDir, 0755); err != nil {
 		return "", err
 	}

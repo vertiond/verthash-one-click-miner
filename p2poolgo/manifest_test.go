@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -20,6 +21,9 @@ func testManifest(sha string) *Manifest {
 	}
 }
 
+// dummySha is a well-formed sha256 that matches no archive.
+const dummySha = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
 func okFetch(m *Manifest) func(string, interface{}) error {
 	return func(url string, target interface{}) error {
 		*(target.(*Manifest)) = *m
@@ -32,7 +36,7 @@ func failFetch(string, interface{}) error { return errors.New("offline") }
 func TestLoadManifestFetchWritesCache(t *testing.T) {
 	dir := t.TempDir()
 	cache := filepath.Join(dir, "sub", "manifest.json")
-	m, err := LoadManifest("http://x", cache, okFetch(testManifest("abc")), func(Binary) string { return "" })
+	m, err := LoadManifest("http://x", cache, okFetch(testManifest(dummySha)), func(Binary) string { return "" })
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +73,7 @@ func TestLoadManifestOfflineRejectsCacheWithoutArchive(t *testing.T) {
 	dir := t.TempDir()
 	cache := filepath.Join(dir, "manifest.json")
 	af := func(Binary) string { return filepath.Join(dir, "missing.zip") }
-	if _, err := LoadManifest("http://x", cache, okFetch(testManifest("abc")), af); err != nil {
+	if _, err := LoadManifest("http://x", cache, okFetch(testManifest(dummySha)), af); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := LoadManifest("http://x", cache, failFetch, af); err == nil {
@@ -105,5 +109,79 @@ func TestBinaryFor(t *testing.T) {
 	}
 	if _, ok := m.BinaryFor("darwin"); ok {
 		t.Fatal("darwin should not be found")
+	}
+}
+
+func TestValidSha256(t *testing.T) {
+	good := []string{dummySha, strings.ToUpper(dummySha)}
+	bad := []string{"", "abc", dummySha + "0", dummySha[:63], "g" + dummySha[1:],
+		"../../../../evil/" + dummySha[17:], dummySha[:62] + "/x", dummySha[:62] + ".."}
+	for _, s := range good {
+		if !validSha256(s) {
+			t.Errorf("%q rejected", s)
+		}
+	}
+	for _, s := range bad {
+		if validSha256(s) {
+			t.Errorf("%q accepted", s)
+		}
+	}
+}
+
+func TestLoadManifestFetchedBadShaFallsBackToCache(t *testing.T) {
+	dir := t.TempDir()
+	cache := filepath.Join(dir, "manifest.json")
+	archive := filepath.Join(dir, "a.zip")
+	data := []byte("zipdata")
+	os.WriteFile(archive, data, 0644)
+	sum := sha256.Sum256(data)
+	hexsum := hex.EncodeToString(sum[:])
+	af := func(Binary) string { return archive }
+	if _, err := LoadManifest("http://x", cache, okFetch(testManifest(hexsum)), af); err != nil {
+		t.Fatal(err)
+	}
+	bad := testManifest(`..\..\evil`)
+	bad.TrustedPeers = []string{"bad"}
+	m, err := LoadManifest("http://x", cache, okFetch(bad), af)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.Binaries[0].Sha256 != hexsum || m.TrustedPeers[0] != "t1" {
+		t.Fatalf("invalid fetched manifest used: %+v", m)
+	}
+	// The invalid manifest was not cached.
+	if m, err := LoadManifest("http://x", cache, failFetch, af); err != nil || m.Binaries[0].Sha256 != hexsum {
+		t.Fatalf("cache replaced: %+v %v", m, err)
+	}
+}
+
+func TestLoadManifestFetchedBadShaNoCacheErrors(t *testing.T) {
+	cache := filepath.Join(t.TempDir(), "manifest.json")
+	called := false
+	af := func(Binary) string { called = true; return "" }
+	if _, err := LoadManifest("http://x", cache, okFetch(testManifest("abc")), af); err == nil {
+		t.Fatal("expected error for an invalid sha256")
+	}
+	if called {
+		t.Fatal("archive path built from an invalid sha256")
+	}
+	if _, err := os.Stat(cache); err == nil {
+		t.Fatal("invalid manifest cached")
+	}
+}
+
+func TestLoadManifestCachedBadShaRejected(t *testing.T) {
+	dir := t.TempDir()
+	cache := filepath.Join(dir, "manifest.json")
+	if err := writeCache(cache, testManifest("../evil")); err != nil {
+		t.Fatal(err)
+	}
+	called := false
+	af := func(Binary) string { called = true; return filepath.Join(dir, "a.zip") }
+	if _, err := LoadManifest("http://x", cache, failFetch, af); err == nil {
+		t.Fatal("expected error for an invalid cached sha256")
+	}
+	if called {
+		t.Fatal("archive path built from an invalid cached sha256")
 	}
 }
