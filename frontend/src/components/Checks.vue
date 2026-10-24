@@ -8,6 +8,11 @@
         </div>
         <div class="progressText">{{Math.floor(verthashProgress)}}%</div>
       </div>
+      <div class="nodeSlow" v-if="nodeSlow">
+        <p>{{ $t("checks.node_slow") }}</p>
+        <p class="elapsed">{{ elapsedText }}</p>
+        <a class="button" @click="retryNode">{{ $t('generic.retry') }}</a>
+      </div>
     </div>
     <div v-if="checkStatus === 'Failed'" class="col-wide">
       <div class="failureReason" v-if="checkStatus === 'Failed'">
@@ -29,7 +34,20 @@ export default {
       checkStatus: null,
       failureReason: "",
       verthashProgress: 0,
+      nodeSlow: false,
+      elapsed: 0,
+      elapsedTimer: null,
     };
+  },
+  computed: {
+    elapsedText: function() {
+      var m = Math.floor(this.elapsed / 60);
+      var s = this.elapsed % 60;
+      return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+    }
+  },
+  beforeDestroy() {
+    this.clearSlow();
   },
   mounted() {
     this.check();
@@ -39,13 +57,41 @@ export default {
     });
     window.wails.Events.On("verthashProgress", result => {
       self.verthashProgress = result;
-    })
+    });
+    window.wails.Events.On("nodeSlow", result => {
+      if (result === true || result === "true") {
+        self.startSlow();
+      } else {
+        self.clearSlow();
+      }
+    });
   },
   methods: {
+    startSlow: function() {
+      var self = this;
+      this.clearSlow();
+      this.nodeSlow = true;
+      this.elapsed = 0;
+      this.elapsedTimer = window.setInterval(() => {
+        self.elapsed++;
+      }, 1000);
+    },
+    clearSlow: function() {
+      if (this.elapsedTimer !== null) {
+        window.clearInterval(this.elapsedTimer);
+        this.elapsedTimer = null;
+      }
+      this.nodeSlow = false;
+      this.elapsed = 0;
+    },
+    retryNode: function() {
+      window.backend.Backend.RetryNode();
+    },
     check: function() {
       var self = this;
 
       window.backend.Backend.PerformChecks().then(result => {
+        self.clearSlow();
         if (result === "ok") {
           self.startMining();
         } else {
