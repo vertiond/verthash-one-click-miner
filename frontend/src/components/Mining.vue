@@ -66,6 +66,12 @@
 <!--      <p class="poolBalance" v-if="balancePendingPool == '0.00000000'">-->
 <!--        {{$t('mining.pending_payout_info_unavailable')}}-->
 <!--      </p>-->
+      <div class="warning" v-if="rpcNotice.show && !rpcNoticeDismissed">
+        <p><strong>{{ $t('mining.rpc_notice_title') }}</strong></p>
+        <p>{{ $t('mining.rpc_notice_body', {path: rpcNotice.confPath}) }}</p>
+        <pre>{{ rpcNotice.sample }}</pre>
+        <a class="link" @click="rpcNoticeDismissed = true">{{ $t('mining.rpc_notice_dismiss') }}</a>
+      </div>
       <p class="pool">
         <span style="opacity: 1">{{$t('mining.active_pool')}}: {{activePool}} <span v-if="poolFee != '0.0%'">({{$t('mining.pool_fee')}}: {{poolFee}})</span></span>
         <br><a class="link" @click="payoutInformation">{{ $t('mining.payout_information') }}</a>
@@ -109,6 +115,8 @@ export default {
       poolFee: "0.0%",
       activePool: "",
       address:"",
+      rpcNotice: {show: false, confPath: "", sample: ""},
+      rpcNoticeDismissed: false,
     };
   },
   mounted() {
@@ -120,6 +128,9 @@ export default {
       }
       self.spinner = newSpinner;
     }, 1000);
+    window.backend.Backend.GetRPCNotice().then(result => {
+      self.rpcNotice = result;
+    });
     window.backend.Backend.GetTestnet().then(result => {
       self.testnet = result;
     });
@@ -216,6 +227,24 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+div.warning {
+  border: 2px solid #d0a000;
+  color: #d0a000;
+  width: 100%;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  text-align: justify;
+  line-height: 10pt;
+  font-size: 10pt;
+}
+div.warning p {
+  margin: 0px;
+  padding: 0px;
+}
+div.warning pre {
+  margin: 5px 0px;
+  user-select: text;
+}
 a.tiny:hover {
   opacity: 1;
   transition: 500ms;
