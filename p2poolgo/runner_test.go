@@ -473,3 +473,39 @@ func TestHelperNode(t *testing.T) {
 		os.Exit(2)
 	}
 }
+
+func TestP2PCheckAddrIsLoopbackInEveryMode(t *testing.T) {
+	port := freePort(t)
+	for _, mode := range []Mode{ModeLight, ModeFull} {
+		r := NewRunner(Config{Detection: Detection{Mode: mode}})
+		r.p2pPort = port
+		want := net.JoinHostPort("127.0.0.1", strconv.Itoa(port))
+		if got := r.p2pCheckAddr(); got != want {
+			t.Fatalf("mode %d: p2pCheckAddr() = %q, want %q", mode, got, want)
+		}
+	}
+}
+
+func TestPortAnswers(t *testing.T) {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := l.Addr().String()
+	go func() {
+		for {
+			c, err := l.Accept()
+			if err != nil {
+				return
+			}
+			c.Close()
+		}
+	}()
+	if !portAnswers(addr) {
+		t.Fatalf("%s did not answer while listening", addr)
+	}
+	l.Close()
+	if portAnswers(addr) {
+		t.Fatalf("%s answered after close", addr)
+	}
+}
