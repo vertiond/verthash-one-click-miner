@@ -116,10 +116,13 @@ func stubNodeEnv(t *testing.T) *nodeEnv {
 	env := &nodeEnv{}
 	oldNewRunner, oldDetectExisting, oldLoad, oldCore := newRunner, detectExisting, loadAndInstall, detectCore
 	oldStatus, oldPoll, oldSlow, oldAddr, oldDir := getStatus, nodeReadyPoll, nodeSlowAfter, nodeAddress, nodeDataDir
+	oldCoreRunning := coreRunning
 	t.Cleanup(func() {
 		newRunner, detectExisting, loadAndInstall, detectCore = oldNewRunner, oldDetectExisting, oldLoad, oldCore
 		getStatus, nodeReadyPoll, nodeSlowAfter, nodeAddress, nodeDataDir = oldStatus, oldPoll, oldSlow, oldAddr, oldDir
+		coreRunning = oldCoreRunning
 	})
+	coreRunning = func() bool { return true }
 	dir := t.TempDir()
 	newRunner = func(cfg p2poolgo.Config) nodeController {
 		f := &fakeNode{cfg: cfg}
@@ -477,6 +480,7 @@ func TestCheckVerthashWithoutNodeEnsures(t *testing.T) {
 }
 
 func TestGetRPCNotice(t *testing.T) {
+	stubNodeEnv(t)
 	m := testBackend(&emitted{})
 	m.detection = p2poolgo.Detection{RPCNotice: true, ConfPath: `C:\Users\x\AppData\Roaming\Vertcoin\vertcoin.conf`}
 	n := m.GetRPCNotice()
@@ -486,6 +490,24 @@ func TestGetRPCNotice(t *testing.T) {
 	m.detection = p2poolgo.Detection{}
 	if m.GetRPCNotice().Show {
 		t.Error("notice shown without RPCNotice")
+	}
+}
+
+func TestGetRPCNoticeHiddenOnceCoreStops(t *testing.T) {
+	stubNodeEnv(t)
+	m := testBackend(&emitted{})
+	m.detection = p2poolgo.Detection{RPCNotice: true, ConfPath: "vertcoin.conf"}
+	running := true
+	coreRunning = func() bool { return running }
+	if !m.GetRPCNotice().Show {
+		t.Fatal("notice hidden while Core runs")
+	}
+	running = false
+	if n := m.GetRPCNotice(); n.Show {
+		t.Errorf("notice shown after Core stopped: %+v", n)
+	}
+	if !m.detection.RPCNotice || m.detection.Mode != p2poolgo.ModeLight {
+		t.Errorf("detection changed: %+v", m.detection)
 	}
 }
 

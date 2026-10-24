@@ -66,11 +66,13 @@
 <!--      <p class="poolBalance" v-if="balancePendingPool == '0.00000000'">-->
 <!--        {{$t('mining.pending_payout_info_unavailable')}}-->
 <!--      </p>-->
-      <div class="warning" v-if="rpcNotice.show && !rpcNoticeDismissed">
-        <p><strong>{{ $t('mining.rpc_notice_title') }}</strong></p>
-        <p>{{ $t('mining.rpc_notice_body', {path: rpcNotice.confPath}) }}</p>
-        <pre>{{ rpcNotice.sample }}</pre>
-        <a class="link" @click="rpcNoticeDismissed = true">{{ $t('mining.rpc_notice_dismiss') }}</a>
+      <div class="rpcNotice" v-if="showRpcNotice">
+        <a class="dismiss" @click="rpcNoticeDismissed = true" v-bind:title="$t('generic.close')">&times;</a>
+        <i18n path="mining.rpc_notice" tag="span">
+          <template v-slot:title><b>{{ $t('mining.rpc_notice_found') }}</b></template>
+          <template v-slot:setting><code>{{ rpcNotice.sample }}</code></template>
+          <template v-slot:file><span class="confFile" v-bind:title="rpcNotice.confPath">vertcoin.conf</span></template>
+        </i18n>
       </div>
       <p class="pool">
         <span style="opacity: 1">{{$t('mining.active_pool')}}: {{activePool}} <span v-if="poolFee != '0.0%'">({{$t('mining.pool_fee')}}: {{poolFee}})</span></span>
@@ -126,7 +128,14 @@ export default {
       address:"",
       rpcNotice: {show: false, confPath: "", sample: ""},
       rpcNoticeDismissed: false,
+      rpcNoticeTimer: null,
     };
+  },
+  beforeDestroy() {
+    if (this.rpcNoticeTimer !== null) {
+      window.clearInterval(this.rpcNoticeTimer);
+      this.rpcNoticeTimer = null;
+    }
   },
   mounted() {
     var self = this;
@@ -137,9 +146,13 @@ export default {
       }
       self.spinner = newSpinner;
     }, 1000);
-    window.backend.Backend.GetRPCNotice().then(result => {
-      self.rpcNotice = result;
-    });
+    this.refreshRpcNotice();
+    // The notice only shows while Vertcoin Core runs, so check again now and then.
+    this.rpcNoticeTimer = window.setInterval(() => {
+      if (self.active) {
+        self.refreshRpcNotice();
+      }
+    }, 30000);
     window.setInterval(() => {
       window.backend.Backend.GetPoolName().then(result => {
         self.activePool = result;
@@ -183,6 +196,9 @@ export default {
     window.backend.Backend.RefreshRunningState();
   },
   computed: {
+    showRpcNotice() {
+      return this.rpcNotice.show && !this.rpcNoticeDismissed;
+    },
     // The backend reports no hashrate as "0.00 kH/s", so check the number, not the text.
     estimating() {
       return !(parseFloat(this.hashrate) > 0);
@@ -239,23 +255,42 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-div.warning {
-  border: 2px solid #d0a000;
+/* One line in the gap under the tab bar, out of the centered column's flow,
+   so it never pushes Stop Mining into the footer at 800x400. */
+div.rpcNotice {
+  position: fixed;
+  top: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  box-sizing: border-box;
+  white-space: nowrap;
+  border: 1px solid #d0a000;
   color: #d0a000;
-  width: 100%;
-  padding: 5px 10px;
-  margin-bottom: 10px;
-  text-align: justify;
-  line-height: 10pt;
-  font-size: 10pt;
+  padding: 2px 20px 2px 8px;
+  text-align: left;
+  line-height: 14px;
+  font-size: 11px;
 }
-div.warning p {
-  margin: 0px;
-  padding: 0px;
-}
-div.warning pre {
-  margin: 5px 0px;
+div.rpcNotice code {
+  font-family: "Courier New", Courier, monospace;
   user-select: text;
+}
+div.rpcNotice span.confFile {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+div.rpcNotice a.dismiss {
+  position: absolute;
+  top: 1px;
+  right: 5px;
+  font-size: 14px;
+  line-height: 14px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+div.rpcNotice a.dismiss:hover {
+  opacity: 1;
 }
 a.tiny:hover {
   opacity: 1;

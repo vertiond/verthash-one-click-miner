@@ -32,9 +32,8 @@
         "node_slow" : "Can't reach the p2pool-go network yet. Check your internet connection."
     },
     "mining" : {
-        "rpc_notice_title" : "Vertcoin Core found, but its RPC is not enabled",
-        "rpc_notice_body" : "Add this line to {path}, restart Vertcoin Core, then restart One-Click Miner to use your full node:",
-        "rpc_notice_dismiss" : "Dismiss",
+        "rpc_notice_found" : "Vertcoin Core found.",
+        "rpc_notice" : "{title} To mine through it, add {setting} to {file}, then restart Core and One-Click Miner.",
         "spendable_balance" : "Spendable Balance",
         "still_maturing" : "still maturing",
         "pending_pool_payout" : "pending pool payout",

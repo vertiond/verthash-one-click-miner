@@ -66,6 +66,9 @@ var (
 
 	detectCore = func() p2poolgo.Detection { return p2poolgo.DetectCore(p2poolgo.ProductionCoreEnv()) }
 
+	// coreRunning reports whether a Vertcoin Core process is running now.
+	coreRunning = func() bool { return p2poolgo.ProductionCoreEnv().ProcessRunning() }
+
 	getStatus = p2poolgo.GetStatus
 
 	track = tracking.Track
@@ -400,15 +403,18 @@ func (m *Backend) RetryNode() {
 	}
 }
 
-// GetRPCNotice reports whether to tell the user to enable Core's RPC.
-// Bound to the frontend.
+// GetRPCNotice reports whether to tell the user to enable Core's RPC: the
+// launch-time detection asked for it and Core is still running. The node's
+// mode stays as decided at launch. Bound to the frontend.
 func (m *Backend) GetRPCNotice() RPCNotice {
 	m.nodeMu.Lock()
-	defer m.nodeMu.Unlock()
-	if m.adopted || !m.detection.RPCNotice {
+	show := !m.adopted && m.detection.RPCNotice
+	confPath := m.detection.ConfPath
+	m.nodeMu.Unlock()
+	if !show || !coreRunning() {
 		return RPCNotice{}
 	}
-	return RPCNotice{Show: true, ConfPath: m.detection.ConfPath, Sample: "server=1"}
+	return RPCNotice{Show: true, ConfPath: confPath, Sample: "server=1"}
 }
 
 // ShutdownNode stops our node on quit and keeps it from being started
