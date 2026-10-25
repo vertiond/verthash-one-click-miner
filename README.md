@@ -40,7 +40,7 @@ The pools and the payout coins each pool offers are loaded from [pools.json](poo
 
 The Verthash One-Click Miner mines [Vertcoin](https://vertcoin.org) and is functionally the same as [upstream](https://github.com/vertcoin-project/one-click-miner-vnext) utilizing a new data directory, `verthash-ocm`.  This is essentially a fancy wrapper for [VerthashMiner](https://github.com/CryptoGraphics/VerthashMiner) which is also open source.
 
-This software is available for Windows and Linux.
+This software is available for Windows and Linux. On Linux it needs WebKitGTK 4.1, the `libwebkit2gtk-4.1-0` package on Ubuntu 22.04 and later and Debian 12 and later.
 
 ## FAQ
 
@@ -72,7 +72,7 @@ You need:
 
   - Go 1.22 or later
   - Node.js (CI builds with Node 24). On Node 17 or later, set `NODE_OPTIONS=--openssl-legacy-provider` for the Vue CLI 4 frontend build
-  - A C compiler for cgo: MinGW-w64 on Windows, or on Linux `libgtk-3-dev` and `libwebkit2gtk-4.0-dev` (Ubuntu 22.04 or earlier)
+  - A C compiler for cgo: MinGW-w64 on Windows, or on Linux `libgtk-3-dev` and `libwebkit2gtk-4.1-dev` (Ubuntu 22.04 and later, Debian 12 and later)
   - The Wails v1.16.9 CLI:
 
 ```bash
@@ -86,6 +86,8 @@ wails build
 ```
 
 Use `wails build -d` for a debug build, which writes what the app is doing to the console and to `debug.log` in the data directory.
+
+For reproducible Linux and Windows builds, which give byte-identical zips for the same commit, see [contrib/guix](contrib/guix/README.md).
 
 ## Donations
 
