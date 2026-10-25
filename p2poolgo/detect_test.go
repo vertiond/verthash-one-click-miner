@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func rpcServer(t *testing.T, ibd bool, status int) (port int) {
@@ -24,7 +25,11 @@ func rpcServer(t *testing.T, ibd bool, status int) (port int) {
 			w.WriteHeader(401)
 			return
 		}
-		fmt.Fprintf(w, `{"result":{"initialblockdownload":%v},"error":null,"id":"ocm"}`, ibd)
+		progress := 1.0
+		if ibd {
+			progress = 0.42
+		}
+		fmt.Fprintf(w, `{"result":{"initialblockdownload":%v,"verificationprogress":%v},"error":null,"id":"ocm"}`, ibd, progress)
 	}))
 	t.Cleanup(srv.Close)
 	uu, _ := url.Parse(srv.URL)
@@ -90,7 +95,70 @@ func TestDetectSyncingCoreLight(t *testing.T) {
 	writeConf(t, dir, fmt.Sprintf("rpcport=%d\n", port))
 	writeCookie(t, dir)
 	d := DetectCore(env(dir, true))
-	if d.Mode != ModeLight || d.RPCNotice {
+	if d.Mode != ModeLight || d.RPCNotice || !d.CoreSyncing || d.SyncProgress != 0.42 {
+		t.Fatalf("got %+v", d)
+	}
+}
+
+// rawServer answers every RPC call with handler, for Core states rpcServer
+// can't produce.
+func rawServer(t *testing.T, handler http.HandlerFunc) (port int) {
+	t.Helper()
+	srv := httptest.NewServer(handler)
+	t.Cleanup(srv.Close)
+	uu, _ := url.Parse(srv.URL)
+	port, _ = strconv.Atoi(uu.Port())
+	return port
+}
+
+func TestDetectWarmingUpCoreSyncing(t *testing.T) {
+	dir := t.TempDir()
+	port := rawServer(t, func(w http.ResponseWriter, r *http.Request) {
+		// Core answers every call with RPC_IN_WARMUP while it loads.
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, `{"result":null,"error":{"code":-28,"message":"Loading block index..."},"id":"ocm"}`)
+	})
+	writeConf(t, dir, fmt.Sprintf("rpcport=%d\n", port))
+	writeCookie(t, dir)
+	d := DetectCore(env(dir, true))
+	if d.Mode != ModeLight || d.RPCNotice || !d.CoreSyncing || d.SyncProgress != -1 {
+		t.Fatalf("got %+v", d)
+	}
+}
+
+func TestDetectBusyCoreSyncing(t *testing.T) {
+	old := coreRPCTimeout
+	coreRPCTimeout = 200 * time.Millisecond
+	t.Cleanup(func() { coreRPCTimeout = old })
+	dir := t.TempDir()
+	release := make(chan struct{})
+	port := rawServer(t, func(w http.ResponseWriter, r *http.Request) {
+		select { // too busy to answer in time
+		case <-release:
+		case <-time.After(5 * time.Second):
+		}
+	})
+	// Registered after the server's cleanup so it runs first: the stalled
+	// handler returns before the server waits for it to finish.
+	t.Cleanup(func() { close(release) })
+	writeConf(t, dir, fmt.Sprintf("rpcport=%d\n", port))
+	writeCookie(t, dir)
+	d := DetectCore(env(dir, true))
+	if d.Mode != ModeLight || d.RPCNotice || !d.CoreSyncing || d.SyncProgress != -1 {
+		t.Fatalf("got %+v", d)
+	}
+}
+
+func TestDetectOtherRPCErrorStillNotice(t *testing.T) {
+	dir := t.TempDir()
+	port := rawServer(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, `{"result":null,"error":{"code":-32601,"message":"Method not found"},"id":"ocm"}`)
+	})
+	writeConf(t, dir, fmt.Sprintf("rpcport=%d\n", port))
+	writeCookie(t, dir)
+	d := DetectCore(env(dir, true))
+	if d.Mode != ModeLight || !d.RPCNotice || d.CoreSyncing {
 		t.Fatalf("got %+v", d)
 	}
 }

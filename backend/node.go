@@ -33,6 +33,10 @@ type RPCNotice struct {
 	Show     bool   `json:"show"`
 	ConfPath string `json:"confPath"`
 	Sample   string `json:"sample"` // "server=1"
+	// Syncing: RPC works but Core is still syncing (or starting up), so the
+	// node runs in light mode until OCM is restarted after Core is synced.
+	Syncing  bool `json:"syncing"`
+	Progress int  `json:"progress"` // whole percent, -1 when unknown
 }
 
 var errNoNodeBinary = errors.New("P2Pool-Go is not available for this platform.")
@@ -429,13 +433,19 @@ func (m *Backend) RetryNode() {
 // mode stays as decided at launch. Bound to the frontend.
 func (m *Backend) GetRPCNotice() RPCNotice {
 	m.nodeMu.Lock()
-	show := !m.adopted && m.detection.RPCNotice
-	confPath := m.detection.ConfPath
+	det, adopted := m.detection, m.adopted
 	m.nodeMu.Unlock()
-	if !show || !coreRunning() {
+	if adopted || !(det.RPCNotice || det.CoreSyncing) || !coreRunning() {
 		return RPCNotice{}
 	}
-	return RPCNotice{Show: true, ConfPath: confPath, Sample: "server=1"}
+	if det.CoreSyncing {
+		progress := -1
+		if det.SyncProgress >= 0 {
+			progress = int(det.SyncProgress * 100)
+		}
+		return RPCNotice{Show: true, ConfPath: det.ConfPath, Syncing: true, Progress: progress}
+	}
+	return RPCNotice{Show: true, ConfPath: det.ConfPath, Sample: "server=1"}
 }
 
 // NodeMode tells the frontend how the node gets its block templates.

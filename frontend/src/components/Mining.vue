@@ -81,7 +81,10 @@
       </div>
       <div class="rpcNotice" v-if="showRpcNotice">
         <a class="dismiss" @click="rpcNoticeDismissed = true" v-bind:title="$t('generic.close')">&times;</a>
-        <i18n path="mining.rpc_notice" tag="span">
+        <i18n path="mining.core_syncing_notice" tag="span" v-if="rpcNotice.syncing">
+          <template v-slot:title><b>{{ rpcNotice.progress >= 0 ? $t('mining.core_syncing_progress', {progress: rpcNotice.progress}) : $t('mining.core_syncing') }}</b></template>
+        </i18n>
+        <i18n path="mining.rpc_notice" tag="span" v-else>
           <template v-slot:title><b>{{ $t('mining.rpc_notice_found') }}</b></template>
           <template v-slot:setting><code>{{ rpcNotice.sample }}</code></template>
           <template v-slot:file><span class="confFile" v-bind:title="rpcNotice.confPath">vertcoin.conf</span></template>
@@ -145,7 +148,7 @@ export default {
       poolFee: "0.0%",
       activePool: "",
       address:"",
-      rpcNotice: {show: false, confPath: "", sample: ""},
+      rpcNotice: {show: false, confPath: "", sample: "", syncing: false, progress: -1},
       rpcNoticeDismissed: false,
       clockNotice: {show: false, minutes: 0, ahead: false},
       clockNoticeDismissed: false,
@@ -323,16 +326,19 @@ export default {
 div.notices {
   position: fixed;
   top: 62px;
-  left: 50%;
-  transform: translateX(-50%);
-  -ms-transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  padding: 0 16px;
 }
+/* Each notice is as wide as its text, centred, one under the other. It wraps
+   at the window's width instead of running off it with longer text or
+   translations, and floats under the tab bar, so wrapping moves nothing. */
 div.rpcNotice,
 div.clockNotice {
   position: relative;
-  margin-bottom: 2px;
+  display: table;
+  margin: 0 auto 2px auto;
   box-sizing: border-box;
-  white-space: nowrap;
   border: 1px solid #d0a000;
   color: #d0a000;
   padding: 2px 20px 2px 8px;

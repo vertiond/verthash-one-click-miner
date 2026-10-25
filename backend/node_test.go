@@ -541,6 +541,19 @@ func TestNetworkNumbersRecordsNodeState(t *testing.T) {
 	}
 }
 
+func TestGetRPCNoticeSyncingCore(t *testing.T) {
+	stubNodeEnv(t)
+	m := testBackend(&emitted{})
+	m.detection = p2poolgo.Detection{CoreSyncing: true, SyncProgress: 0.4249, ConfPath: "vertcoin.conf"}
+	if n := m.GetRPCNotice(); !n.Show || !n.Syncing || n.Progress != 42 {
+		t.Errorf("notice = %+v", n)
+	}
+	m.detection = p2poolgo.Detection{CoreSyncing: true, SyncProgress: -1}
+	if n := m.GetRPCNotice(); !n.Show || !n.Syncing || n.Progress != -1 {
+		t.Errorf("unknown progress: notice = %+v", n)
+	}
+}
+
 func TestGetRPCNoticeHiddenOnceCoreStops(t *testing.T) {
 	stubNodeEnv(t)
 	m := testBackend(&emitted{})

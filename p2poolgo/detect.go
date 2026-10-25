@@ -3,6 +3,7 @@ package p2poolgo
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"net"
 	"net/http"
 	"os"
@@ -34,7 +35,26 @@ type Detection struct {
 	RPCPort    int    // from rpcport= or 5888
 	RPCNotice  bool   // Core running but RPC unusable
 	ConfPath   string // absolute vertcoin.conf path, for the notice
+
+	// CoreSyncing: Core's RPC works but Core isn't ready to mine through yet:
+	// it is in initial block download, still loading at startup, or too busy
+	// syncing to answer in time. SyncProgress is its verificationprogress
+	// (0 to 1), or -1 when unknown.
+	CoreSyncing  bool
+	SyncProgress float64
 }
+
+// coreRPCTimeout bounds the getblockchaininfo probe. Injectable for tests.
+var coreRPCTimeout = 5 * time.Second
+
+// coreState is what a getblockchaininfo probe found.
+type coreState int
+
+const (
+	coreUnusable coreState = iota // can't be queried with these credentials
+	coreSynced
+	coreSyncing // initial block download, warming up, or too busy to answer
+)
 
 // CoreEnv holds the injectable inputs of DetectCore.
 type CoreEnv struct {
@@ -123,13 +143,7 @@ func DetectCore(env CoreEnv) Detection {
 	// credentials then. rpcauth= is hashed and can't be used; it falls
 	// through to the cookie like no credentials at all.
 	if user, pass := conf["rpcuser"], conf["rpcpassword"]; user != "" && pass != "" {
-		ibd, ok := coreIBD(addr, user, pass)
-		if !ok {
-			return d
-		}
-		d.RPCNotice = false
-		if !ibd {
-			d.Mode = ModeFull
+		if d.applyCoreState(probeCore(addr, user, pass)) {
 			d.RPCUser, d.RPCPass = user, pass
 		}
 		return d
@@ -143,43 +157,71 @@ func DetectCore(env CoreEnv) Detection {
 	if !ok {
 		return d
 	}
-	ibd, ok := coreIBD(addr, user, pass)
-	if !ok {
-		return d
-	}
-	d.RPCNotice = false
-	if !ibd {
-		d.Mode = ModeFull
+	if d.applyCoreState(probeCore(addr, user, pass)) {
 		d.CookiePath = cookiePath
 	}
 	return d
 }
 
-// coreIBD calls getblockchaininfo with basic auth. ok is false when Core
-// can't be queried with these credentials.
-func coreIBD(addr, user, pass string) (ibd, ok bool) {
+// applyCoreState records a probe's result and reports whether Core can be
+// mined through now, in which case the caller records the credentials used.
+func (d *Detection) applyCoreState(state coreState, progress float64) bool {
+	switch state {
+	case coreSynced:
+		d.RPCNotice = false
+		d.Mode = ModeFull
+		return true
+	case coreSyncing:
+		d.RPCNotice = false
+		d.CoreSyncing = true
+		d.SyncProgress = progress
+	}
+	return false
+}
+
+// probeCore calls getblockchaininfo with basic auth. progress is Core's
+// verificationprogress, or -1 when it didn't say.
+func probeCore(addr, user, pass string) (state coreState, progress float64) {
 	req, err := http.NewRequest("POST", "http://"+addr+"/", strings.NewReader(
 		`{"jsonrpc":"1.0","id":"ocm","method":"getblockchaininfo","params":[]}`))
 	if err != nil {
-		return false, false
+		return coreUnusable, -1
 	}
 	req.SetBasicAuth(user, pass)
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := (&http.Client{Timeout: 5 * time.Second}).Do(req)
+	resp, err := (&http.Client{Timeout: coreRPCTimeout}).Do(req)
 	if err != nil {
-		return false, false
+		var netErr net.Error
+		if errors.As(err, &netErr) && netErr.Timeout() {
+			// The port answered but Core didn't reply in time: it is busy,
+			// which during initial block download is normal.
+			return coreSyncing, -1
+		}
+		return coreUnusable, -1
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return false, false
-	}
 	var body struct {
 		Result *struct {
-			IBD bool `json:"initialblockdownload"`
+			IBD      bool    `json:"initialblockdownload"`
+			Progress float64 `json:"verificationprogress"`
 		} `json:"result"`
+		Error *struct {
+			Code int `json:"code"`
+		} `json:"error"`
 	}
-	if json.NewDecoder(resp.Body).Decode(&body) != nil || body.Result == nil {
-		return false, false
+	decodeErr := json.NewDecoder(resp.Body).Decode(&body)
+	if resp.StatusCode != http.StatusOK {
+		// RPC_IN_WARMUP: Core is loading its block index or verifying blocks.
+		if decodeErr == nil && body.Error != nil && body.Error.Code == -28 {
+			return coreSyncing, -1
+		}
+		return coreUnusable, -1
 	}
-	return body.Result.IBD, true
+	if decodeErr != nil || body.Result == nil {
+		return coreUnusable, -1
+	}
+	if body.Result.IBD {
+		return coreSyncing, body.Result.Progress
+	}
+	return coreSynced, body.Result.Progress
 }
