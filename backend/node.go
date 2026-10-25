@@ -448,6 +448,22 @@ func (m *Backend) GetRPCNotice() RPCNotice {
 	return RPCNotice{Show: true, ConfPath: det.ConfPath, Sample: "server=1"}
 }
 
+// revealPath shows a file in the system file manager. Injectable for tests.
+var revealPath = util.RevealInFileManager
+
+// RevealCoreConf opens Vertcoin Core's data folder with vertcoin.conf selected,
+// or just the folder when the file doesn't exist yet, so the user can add
+// server=1. Bound to the frontend.
+func (m *Backend) RevealCoreConf() {
+	m.nodeMu.Lock()
+	path := m.detection.ConfPath
+	m.nodeMu.Unlock()
+	if path == "" {
+		path = filepath.Join(p2poolgo.CoreDataDir(), "vertcoin.conf")
+	}
+	revealPath(path)
+}
+
 // NodeMode tells the frontend how the node gets its block templates.
 type NodeMode struct {
 	Mode           string `json:"mode"`           // "full", "light", "adopted" or "" before checks

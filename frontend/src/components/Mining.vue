@@ -87,7 +87,7 @@
         <i18n path="mining.rpc_notice" tag="span" v-else>
           <template v-slot:title><b>{{ $t('mining.rpc_notice_found') }}</b></template>
           <template v-slot:setting><code>{{ rpcNotice.sample }}</code></template>
-          <template v-slot:file><span class="confFile" v-bind:title="rpcNotice.confPath">vertcoin.conf</span></template>
+          <template v-slot:file><a class="confFile" @click="revealCoreConf" v-bind:title="rpcNotice.confPath">vertcoin.conf</a></template>
         </i18n>
       </div>
       </div>
@@ -262,6 +262,11 @@ export default {
         this.balanceTimer = null;
       }
     },
+    // Opens Core's data folder with vertcoin.conf selected (or just the
+    // folder, when the file doesn't exist yet).
+    revealCoreConf: function() {
+      window.backend.Backend.RevealCoreConf();
+    },
     // Refreshes what the screen says about Vertcoin Core: the RPC notice and
     // whether the node is mining through it.
     refreshRpcNotice: function() {
@@ -350,9 +355,10 @@ div.rpcNotice code {
   font-family: "Courier New", Courier, monospace;
   user-select: text;
 }
-div.rpcNotice span.confFile {
-  text-decoration: underline dotted;
-  cursor: help;
+div.rpcNotice a.confFile {
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
 }
 div.rpcNotice a.dismiss,
 div.clockNotice a.dismiss {

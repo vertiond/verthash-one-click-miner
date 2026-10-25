@@ -2,6 +2,7 @@ package backend
 
 import (
 	"errors"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -551,6 +552,25 @@ func TestGetRPCNoticeSyncingCore(t *testing.T) {
 	m.detection = p2poolgo.Detection{CoreSyncing: true, SyncProgress: -1}
 	if n := m.GetRPCNotice(); !n.Show || !n.Syncing || n.Progress != -1 {
 		t.Errorf("unknown progress: notice = %+v", n)
+	}
+}
+
+func TestRevealCoreConf(t *testing.T) {
+	stubNodeEnv(t)
+	old := revealPath
+	t.Cleanup(func() { revealPath = old })
+	var got string
+	revealPath = func(p string) { got = p }
+	m := testBackend(&emitted{})
+	m.detection = p2poolgo.Detection{ConfPath: "/home/x/.vertcoin/vertcoin.conf"}
+	m.RevealCoreConf()
+	if got != m.detection.ConfPath {
+		t.Errorf("revealed %q, want %q", got, m.detection.ConfPath)
+	}
+	m.detection = p2poolgo.Detection{}
+	m.RevealCoreConf()
+	if want := filepath.Join(p2poolgo.CoreDataDir(), "vertcoin.conf"); got != want {
+		t.Errorf("without a detection revealed %q, want %q", got, want)
 	}
 }
 
