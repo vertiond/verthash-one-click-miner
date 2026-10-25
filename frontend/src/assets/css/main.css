@@ -84,10 +84,27 @@ div.col-settings {
   flex-basis: 1;
 }
 
+/* Both columns take half the width whatever their text, so the layout is the
+   same in every language */
 div.col-settings-sub {
-  padding: 20px;
+  padding: 10px 20px;
   width: 50%;
-  flex-grow: 1;
+  flex: 1 1 0px;
+  min-width: 0;
+}
+
+/* A label with its list on the same line */
+p.settings-row {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  white-space: nowrap;
+}
+
+p.settings-row select {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 8px;
 }
 
 div.col-286.height-100 {

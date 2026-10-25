@@ -31,6 +31,16 @@
           <br><a class="link" @click="copyAndActivate">{{ $t('settings.address_activation') }}</a>
           {{ $t("settings.mine_verthash_paid_doge") }}
         </p>
+        <!-- Label and list on one line, so the column fits in every language -->
+        <p class="settings-row">
+          {{ $t("settings.language") }}:
+          <select name="language" v-model="language" @change="changeLanguage">
+            <option value="">{{ $t("settings.language_system") }}</option>
+            <option v-for="option in languages" v-bind:value="option.code" v-bind:key="option.code">
+                {{ option.name }}
+            </option>
+          </select>
+        </p>
       </div>
       <div class="col-settings-sub" v-bind:style="{ visibility: loaded ? 'visible' : 'hidden' }">
 <!--        <p style="text-align: left">-->
@@ -56,16 +66,6 @@
           <br />
           <select style="width: 100%" name="pool" v-model="poolID" v-on:change="updatePoolPayouts">
             <option v-for="option in pools" v-bind:value="option.id" v-bind:key="option.id">
-                {{ option.name }}
-            </option>
-          </select>
-        </p>
-        <p style="text-align: left">
-          {{ $t("settings.language") }}:
-          <br />
-          <select style="width: 100%" name="language" v-model="language" @change="changeLanguage">
-            <option value="">{{ $t("settings.language_system") }}</option>
-            <option v-for="option in languages" v-bind:value="option.code" v-bind:key="option.code">
                 {{ option.name }}
             </option>
           </select>
