@@ -1,38 +1,154 @@
 # Reproducible builds with Guix
 
-`contrib/guix/guix-build` builds the One Click Miner for Linux and Windows
-(x86-64) so that anyone building the same commit gets byte-identical zips.
-Every compiler, Go, Node and library comes from one pinned Guix commit, and the
-build runs in a container with no network and nothing from the host.
+These scripts build the One Click Miner for Linux and Windows (x86-64) the
+same way on every machine: anyone who builds the same commit gets
+byte-for-byte the same zips. Then they sign a list of the zips' hashes, so
+people can check that a release really came from this source.
 
-## Requirements
+- `guix-build` builds the zips.
+- `guix-sign` checks them, lists their hashes in `manifest-<version>.txt`
+  and signs that file.
 
-- Linux (WSL 2 works) with [Guix](https://guix.gnu.org/manual/en/html_node/Binary-Installation.html)
-  installed and `guix-daemon` running
-- git, and a clean checkout of the commit to build
+## Before you start (once per machine)
 
-## Building
+1. **Linux, or WSL 2 on Windows**, with
+   [Guix](https://guix.gnu.org/manual/en/html_node/Binary-Installation.html)
+   installed and `guix-daemon` running.
+2. **A clone of this repository** in Linux (in WSL, in your Linux home folder,
+   not under `/mnt/c`).
+3. **Your GPG key**, to sign releases. On Windows, keep it in
+   [GnuPG](https://gnupg.org/download/) or [Gpg4win](https://gpg4win.org/);
+   `guix-sign` uses that from WSL. Tell git which key it is, in the Linux
+   clone:
+
+   ```
+   git config user.signingkey <your key ID>
+   ```
+
+   Find your key ID with `gpg --list-secret-keys --keyid-format long`. It is the
+   part after `rsa3072/` or `ed25519/`, like `A7BEB2621678D37D`.
+
+The first build takes a long time (an hour or more): Guix builds the
+compilers first. Later builds reuse them and take minutes.
+
+## Making a release, step by step
+
+The example is version `2.1.6-rc2`; use your own.
+
+**1. Tag the commit** (on Windows or Linux, wherever you commit):
+
+```
+git tag -s 2.1.6-rc2 -m 2.1.6-rc2
+git push origin 2.1.6-rc2
+```
+
+**2. Check out the tag in the Linux clone:**
+
+```
+cd ~/verthash-one-click-miner
+git fetch origin --tags --force
+git checkout 2.1.6-rc2
+```
+
+**3. Build:**
 
 ```
 ./contrib/guix/guix-build
 ```
 
-Outputs land in `guix-build-<version>/output/<host>/` (the tag, or the commit
-when HEAD has no tag): the zip, the bare binary
-and a `SHA256SUMS.part`. Compare those hashes with someone else's build of the
-same commit.
+It names everything after the tag on the commit, so you don't need to give
+the version. When it finishes, the zips are in `guix-build-2.1.6-rc2/output/`.
 
-| variable | meaning |
+**4. Sign, and copy the release files to Windows:**
+
+```
+RELEASE_DIR=/mnt/c/Users/<you>/Downloads/2.1.6-rc2 ./contrib/guix/guix-sign
+```
+
+It checks the zips, writes `manifest-2.1.6-rc2.txt`, and asks for your GPG
+passphrase to sign it. Then it copies four files to `Downloads\2.1.6-rc2`:
+
+| file | what it is |
 |---|---|
-| `HOSTS` | `x86_64-linux-gnu`, `x86_64-w64-mingw32`, or both (the default) |
-| `VERSION` | e.g. `2.1.6`: stamped into the binary as `2.1.6-g<commit>` and used in the zip names. Unset, it is the tag on HEAD (`git describe --exact-match --tags`). Set it empty (`VERSION=`), or build an untagged commit, and the binary keeps the source's dev version and the zips are named after the commit |
-| `JOBS` | parallel jobs, default `nproc` |
-| `CACHE_PATH` | where Go modules and npm packages are kept, default `./guix-cache` |
+| `verthash-ocm-2.1.6-rc2-linux-x64.zip` | the Linux release |
+| `verthash-ocm-2.1.6-rc2-windows-x64.zip` | the Windows release |
+| `manifest-2.1.6-rc2.txt` | the SHA-256 of each zip and of the program inside it |
+| `manifest-2.1.6-rc2.txt.sig` | your signature of the manifest |
 
-The first run takes a long time: it builds the GCC cross toolchains and may
-build WebKitGTK if no substitute is available. Later runs reuse them.
+**5. Upload** those four files to the GitHub release.
 
-## What it does
+### If you move a tag
+
+If you delete a tag and create it again on a newer commit, build again (step
+3). `guix-sign` refuses a build of the old commit even though it has the same
+name. Delete the old folder first:
+
+```
+rm -rf guix-build-2.1.6-rc2
+```
+
+## Checking a release
+
+Anyone can check a release by downloading the four files into one folder and
+running:
+
+```
+gpg --verify manifest-2.1.6-rc2.txt.sig manifest-2.1.6-rc2.txt
+sha256sum --check --ignore-missing manifest-2.1.6-rc2.txt
+```
+
+The first command should say `Good signature` from the release key. The second
+should say `OK` for each zip. On Windows, `Get-FileHash <zip>` in PowerShell
+prints the hash to compare with the manifest by eye.
+
+To be sure the zips came from the source, build the same tag yourself (steps 2
+and 3) and compare: your `guix-build-<version>/output/*/SHA256SUMS.part` files
+should have the same hashes as the manifest.
+
+## Options
+
+Options are environment variables and go **before** the command:
+
+```
+VERSION=2.1.6 ./contrib/guix/guix-build     # right
+./contrib/guix/guix-build VERSION=2.1.6     # wrong: ignored
+```
+
+Usually you don't need any.
+
+**`guix-build`**
+
+| option | what it does |
+|---|---|
+| `VERSION` | the version to name the zips after and to build into the program (it shows as `2.1.6-g<commit>`). By default, the tag on the commit. With no tag, or with `VERSION=` (empty), the program keeps the source's dev version and everything is named after the commit |
+| `HOSTS` | `x86_64-linux-gnu` or `x86_64-w64-mingw32` to build only one. By default, both |
+| `JOBS` | how many jobs to run at once. By default, one per CPU |
+| `CACHE_PATH` | where downloaded Go and npm packages are kept between builds. By default, `./guix-cache` |
+
+**`guix-sign`**
+
+| option | what it does |
+|---|---|
+| `RELEASE_DIR` | a folder to copy the four release files into |
+| `SIGNER` | the GPG key ID to sign with. By default, git's `user.signingkey`. Unset, gpg's default key, which with several keys may not be the one you want |
+| `GPG` | the gpg program to sign with. By default, the Linux `gpg` if it holds a secret key; otherwise, from WSL, Windows' GnuPG in `C:\Program Files\GnuPG` |
+| `VERSION` | the version the build was named after, if you set one for `guix-build` |
+
+## Troubleshooting
+
+- **The zips are named after a commit, not the version.** The commit had no
+  tag, or the version was written after the command. Tag it, or put
+  `VERSION=...` before the command, delete the `guix-build-...` folder and
+  build again.
+- **"the working tree has uncommitted changes".** Only committed files are
+  built. Commit or stash your changes.
+- **"already exists; remove it to rebuild".** Delete that build's folder.
+- **"not as 2.1.6-rc2" or "was not built from HEAD"** from `guix-sign`. The
+  build doesn't match the checkout: build again.
+- **gpg says "waiting for lock".** Another gpg process is stuck. In Windows
+  PowerShell, run `gpgconf --kill all`, then sign again.
+
+## How it works
 
 1. `git archive HEAD` makes the source tarball, so only committed files are
    built. The script refuses to run with uncommitted changes.
@@ -47,6 +163,12 @@ build WebKitGTK if no substitute is available. Later runs reuse them.
    `wails build` generates (`winicon.go` repeats Wails' icon code, and
    `windows/` holds Wails v1.16.9's manifest and `.rc`, which
    `third_party/wails` leaves out). The zip's timestamp is the commit's time.
+4. **Sign** (`guix-sign`): checks each output against its `SHA256SUMS.part`,
+   joins them into `manifest-<version>.txt` (Linux, then Windows, as for
+   2.1.5) and writes a binary detached signature of it.
+
+Every compiler, Go, Node and library comes from one pinned Guix commit, and
+the build runs in a container with no network and nothing from the host.
 
 The Linux binary is linked with GCC against glibc 2.31 and the system loader,
 with no Guix store paths. At run time it needs glibc 2.31 or newer and
@@ -62,28 +184,3 @@ search path; `libexec/strip-rpath.sh` removes that argument from the Linux link.
 unchanged, and `guix-build` pins the same Guix commit Bitcoin Core v32.0 does
 (`c5eee333`), so a machine that has built Bitcoin Core v32 or Vertcoin Core's
 32.x branch already has them.
-
-## Signing a release
-
-```
-RELEASE_DIR=/mnt/c/Users/<you>/Downloads ./contrib/guix/guix-sign
-```
-
-`guix-sign` checks every output of HEAD's build against its `SHA256SUMS.part`,
-joins those into `manifest-<version>.txt` (the zips and the bare binaries, as
-for 2.1.5) and signs it with a detached signature, `manifest-<version>.txt.sig`.
-It refuses outputs built under another name, so build a tag with that tag's
-version. From WSL it signs with Windows' GnuPG (`C:\Program Files\GnuPG` or
-Gpg4win's) unless WSL's own gpg holds a secret key, and with git's
-`user.signingkey` if set, the key the tags are signed with. `RELEASE_DIR` also copies the zips, manifest and
-signature there, ready to attach to the GitHub release.
-
-| variable | meaning |
-|---|---|
-| `VERSION` | the version it was built as, by default the tag on HEAD |
-| `GPG` | gpg to sign with |
-| `SIGNER` | key ID to sign with, by default git's `user.signingkey`, else gpg's default key |
-| `RELEASE_DIR` | where to copy the release assets |
-
-Anyone can check a release with `gpg --verify manifest-<version>.txt.sig` and
-`sha256sum --check --ignore-missing manifest-<version>.txt`.
