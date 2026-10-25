@@ -2,55 +2,35 @@
 
 ### Requirements
 
-- Actively mined on [Zergpool.com](https://zergpool.com/site/exchangestatus) or [zpool.ca](https://www.zpool.ca/coins)
-- BTC price available on an exchange found in [Coingecko's API](https://api.coingecko.com/api/v3/exchanges/)
+- Actively mined on [zpool.ca](https://www.zpool.ca/coins) or [HashCryptos.com](https://www.hashcryptos.com/)
+- Listed on [CoinPaprika](https://coinpaprika.com/), which the app uses for prices
 - Submit a PR formatted in the following format
 
-### What files must be created and edited?
+The app loads [pools.json](pools.json) and [backends.json](backends.json) from this repository's master branch when it starts, so a merged coin shows up without a new release.
 
-In the Payouts folder, a new file titled `btcpayout.go` is created replacing btc with the ticker of the coin you are adding.
-``````
-package payouts
+### What files must be edited?
 
-var _ Payout = &BTCPayout{}
+In `pools.json`, add the coin to `payouts`:
 
-type BTCPayout struct {}
+```json
+{"id": 29, "name": "Bitcoin", "ticker": "BTC"}
+```
 
-func NewBTCPayout() *BTCPayout {
-return &BTCPayout{}
-}
+ - `id` is a new number that comes after the highest ID already in the list. IDs are saved in users' settings, so never reuse or change one
+ - `name` is the name shown in the Payout dropdown menu
+ - `ticker` is the ticker the pool uses for miner configuration
+ - If the pool needs to know which chain to pay on, add `"networks"` with the network names, for example `"networks": ["ERC20", "TRC20", "BEP20"]`
 
-func (p *BTCPayout) GetID() int {
-return 2
-}
+Then add the ticker to the `payouts` list of each pool that pays out in it, in the order it should appear in the dropdown menu.
 
-func (p *BTCPayout) GetDisplayName() string {
-return "Bitcoin"
-}
+In `backends.json`, add the coin's CoinPaprika ID to `coinpaprikaIds`, in alphabetical order of ticker:
 
-func (p *BTCPayout) GetTicker() string {
-return "BTC"
-}
+```json
+"BTC": "btc-bitcoin"
+```
 
-func (p *BTCPayout) GetCoingeckoExchange() string {
-return "bittrex"
-}
+### CoinPaprika API
 
-func (p *BTCPayout) GetCoingeckoCoinID() string {
-return "bitcoin"
-}
-``````
- - Replace all instances of `BTC` in `BTCPayout` and `NewBTCPayout` with the ticker
- - Under `GetID` `return 2`, replace `2` with a new number that comes sequentially after the last coin added.  See IDs listed under other coins in the payouts folder
- - Under `GetDisplayName` `return "Bitcoin"`, replace `Bitcoin` with the name that you wish to be displayed in the Mining Pool dropdown menu
- - Under `GetTicker` `return "BTC"`, replace `BTC` with the ticker used by Zergpool and/or zpool for miner configuration
- - Under `GetCoingeckoExchange` `return "bittrex"`, replace `bittrex` with the exact name of an exchange as used within the Coingecko API
- - Under `GetCoingeckoCoinID` `return "bitcoin"`, replace `bitcoin` with the name of the CoinID as used within the Coingecko API
+The app reads the coin's price in BTC from CoinPaprika to show Expected Earnings in it. A coin without a CoinPaprika ID has no price, so its Expected Earnings show zero.
 
-Finally, in the pools folder add the payout option in alphabetical order of GetDisplayName to zergpool.go and/or zpool.go under `return []payouts.Payout{`
-
-### Coingecko API
-
-This software pulls an exchange rate for a BTC pair from the Coingecko API using this format for example: https://api.coingecko.com/api/v3/exchanges/bittrex/tickers?coin_ids=dogecoin
-
-`GetCoingeckoExchange` and `GetCoingeckoID` must match what would be in this URL
+The CoinPaprika ID is the last part of the coin's page URL, for example `btc-bitcoin` in https://coinpaprika.com/coin/btc-bitcoin/. It must work in this URL: https://api.coinpaprika.com/v1/tickers/btc-bitcoin

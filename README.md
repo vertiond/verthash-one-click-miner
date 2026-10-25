@@ -1,17 +1,17 @@
 # Verthash One-Click Miner
 
-This program will create a Dogecoin wallet that only you have access to.  Encrypt your wallet with a password that you will not forget. It will then create the Verthash datafile and immediately begin mining Vertcoin. You will receive payouts in Dogecoin to your built-in Dogecoin wallet from the pool selected in Settings.  Additional payout currencies via Zergpool and zpool are available in Settings.  
+This program will create a Dogecoin wallet that only you have access to.  Encrypt your wallet with a password that you will not forget. It will then create the Verthash datafile and immediately begin mining Vertcoin. You will receive payouts in Dogecoin to your built-in Dogecoin wallet from the pool selected in Settings.  Additional payout currencies via zpool are available in Settings, where you can also pick the app's language.  
     
 ### What are the fees?
    
   - This program and the [miner](https://github.com/CryptoGraphics/VerthashMiner) it runs are completely free and have no fee
-  - [Zergpool.com](https://zergpool.com/) and [zpool.ca](https://www.zpool.ca/) charge a 0.5% fee while mining
+  - [zpool.ca](https://www.zpool.ca/) charges a 0.5% fee while mining
   - [HashCryptos.com](https://www.hashcryptos.com/) charges no fee (DOGE only)
   - Standard minimum Dogecoin network fee for withdrawal from built-in wallet (usually < 0.001 DOGE)
 
 ### When do I get paid?
 
-  - **Zergpool.com and zpool.ca**
+  - **zpool.ca**
     - Please check 'View Payout Information' for payout thresholds
   - **HashCryptos.com**
     - Every 24 hours with the ability to change payout frequency to every 12 hours (DOGE only)
@@ -20,32 +20,23 @@ This program will create a Dogecoin wallet that only you have access to.  Encryp
 
   - Dogecoin
   - Vertcoin
-  - Binance Coin
   - Bitcoin
   - Bitcoin Cash
-  - Cake
   - Dash
   - Digibyte
-  - Ethereum
-  - Ethereum Classic
-  - Firo (Zcoin)
-  - Flux (Zelcash)
+  - Firo
+  - Flux
   - Groestlcoin
-  - Horizen (Zencash)
+  - Horizen
   - Komodo
-  - LBRY Credits
   - Litecoin
   - Monero
   - Peercoin
-  - Polygon(ERC20)
-  - Raptoreum
   - Ravencoin
-  - Shiba Inu(ERC20)
-  - Tether(ERC20, TRC20, BEP20)
-  - Tron
-  - Verge 
+  - Verge
   - Zcash
-  - Additional coins may be added via PR following this [guide](https://github.com/vertiond/verthash-one-click-miner/blob/master/ADD-A-COIN.md)
+
+The pools and the payout coins each pool offers are loaded from [pools.json](pools.json) when the app starts, so they can change without a new release. Additional coins may be added via PR following this [guide](https://github.com/vertiond/verthash-one-click-miner/blob/master/ADD-A-COIN.md).
 
 The Verthash One-Click Miner mines [Vertcoin](https://vertcoin.org) and is functionally the same as [upstream](https://github.com/vertcoin-project/one-click-miner-vnext) utilizing a new data directory, `verthash-ocm`.  This is essentially a fancy wrapper for [VerthashMiner](https://github.com/CryptoGraphics/VerthashMiner) which is also open source.
 
@@ -75,12 +66,17 @@ Please make sure you have [activated your address.](https://www.hashcryptos.com/
 
 ## Building
 
-The GUI is based on [Wails](https://wails.app) and [Go](https://golang.org/).
+The GUI is based on [Wails](https://wails.app) v1 and [Go](https://golang.org/). This repository builds against a patched copy of Wails v1.16.9 in [third_party/wails](third_party/wails) (see [PATCHED.md](third_party/wails/PATCHED.md)), which `go.mod` uses in place of the published module.
 
-Install the Wails [prerequisites](https://wails.app/gettingstarted/) for your platform, and then run:
+You need:
+
+  - Go 1.22 or later
+  - Node.js (CI builds with Node 24). On Node 17 or later, set `NODE_OPTIONS=--openssl-legacy-provider` for the Vue CLI 4 frontend build
+  - A C compiler for cgo: MinGW-w64 on Windows, or on Linux `libgtk-3-dev` and `libwebkit2gtk-4.0-dev` (Ubuntu 22.04 or earlier)
+  - The Wails v1.16.9 CLI:
 
 ```bash
-go get github.com/wailsapp/wails/cmd/wails
+go install github.com/wailsapp/wails/cmd/wails@v1.16.9
 ```
 
 Then clone this repository, and inside its main folder, execute:
@@ -88,6 +84,8 @@ Then clone this repository, and inside its main folder, execute:
 ```bash
 wails build
 ```
+
+Use `wails build -d` for a debug build, which writes what the app is doing to the console and to `debug.log` in the data directory.
 
 ## Donations
 
