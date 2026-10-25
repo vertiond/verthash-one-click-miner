@@ -12,7 +12,8 @@
         <p class="settings-row">
           {{ $t("settings.language") }}:
           <select name="language" v-model="language" @change="changeLanguage">
-            <option value="">{{ $t("settings.language_system") }}</option>
+            <!-- In the system's language, so the way back is readable from any other -->
+            <option value="">{{ $t("settings.language_system", systemLocale) }}</option>
             <option v-for="option in languages" v-bind:value="option.code" v-bind:key="option.code">
                 {{ option.name }}
             </option>
@@ -116,6 +117,7 @@ export default {
       loaded: false,
       language: "",
       languages: [],
+      systemLocale: "en",
     };
   },
   computed: {

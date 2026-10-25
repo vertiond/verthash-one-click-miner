@@ -28,7 +28,8 @@ export function loadSettings() {
     b.Address(),
     b.GetPayoutAddresses(),
     b.GetLanguages(),
-    b.GetLanguage()
+    b.GetLanguage(),
+    b.GetSystemLocale()
   ])
     .then(function(r) {
       s.closedSourceMiner = r[0];
@@ -45,6 +46,7 @@ export function loadSettings() {
       s.savedAddresses = r[11];
       s.languages = r[12];
       s.language = r[13];
+      s.systemLocale = r[14];
       // These two depend on the selected pool and payout
       return Promise.all([
         b.GetPayouts(s.poolID),

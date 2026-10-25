@@ -54,3 +54,25 @@ func TestPickedLanguage(t *testing.T) {
 		t.Errorf("GetLanguage() after picking the system language = %q, want \"\"", got)
 	}
 }
+
+func TestSystemLocaleIgnoresPickedLanguage(t *testing.T) {
+	db, err := buntdb.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	m := &Backend{settings: db}
+
+	system := m.GetSystemLocale()
+	if !isAvailableLanguage(system) {
+		t.Errorf("GetSystemLocale() = %q, not an available language", system)
+	}
+	picked := "de"
+	if system == "de" {
+		picked = "fr"
+	}
+	m.SetLanguage(picked)
+	if got := m.GetSystemLocale(); got != system {
+		t.Errorf("GetSystemLocale() after picking %s = %q, want %q", picked, got, system)
+	}
+}

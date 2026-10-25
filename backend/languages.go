@@ -132,6 +132,12 @@ func (m *Backend) GetLocale() string {
 	return systemLocale()
 }
 
+// GetSystemLocale returns the available language closest to the system's,
+// whatever language is picked
+func (m *Backend) GetSystemLocale() string {
+	return systemLocale()
+}
+
 func systemLocale() string {
 	userLanguage, err := jibber_jabber.DetectIETF()
 	if err != nil {
