@@ -73,7 +73,7 @@
     },
     "tabbar" : {
         "wallet" : "Portefeuille",
-        "send_coins" : "Envoyer de la cryptomonnaie (DOGE)",
+        "send_coins" : "Envoyer des pièces (DOGE)",
         "settings" : "Paramètres"
     },
     "tracking": { 

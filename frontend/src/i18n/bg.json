@@ -76,7 +76,7 @@
         "save_n_restart" : "Запазване и Рестартиране",
         "pool": "Минен басейн",
         "payout": "Изплащане",
-        "customAddress": "Адрес за получаване на изплащането",
+        "customAddress": "Адрес за изплащане",
         "address_activation": "Копирайте адреса и активирайте адреса",
         "doge_only": "САМО DOGE",
         "mine_verthash_paid_doge": "Копаене: Verthash, Изплащане в: Dogecoin",

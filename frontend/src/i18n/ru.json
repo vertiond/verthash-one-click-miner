@@ -86,7 +86,7 @@
     },
     "tabbar" : {
         "wallet" : "Кошелёк",
-        "send_coins" : "Отправить криптовалюту (DOGE)",
+        "send_coins" : "Отправить монеты (DOGE)",
         "settings" : "Настройки"
     },
     "tracking": { 

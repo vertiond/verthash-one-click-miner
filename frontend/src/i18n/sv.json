@@ -76,7 +76,7 @@
     "save_n_restart": "Spara & starta om",
     "pool": "Mining pool",
     "payout": "Utbetalning",
-    "customAddress": "Adress för att ta emot utbetalning",
+    "customAddress": "Utbetalningsadress",
     "address_activation": "Kopiera adress och aktivera adress",
     "doge_only": "ENDAST DOGE",
     "mine_verthash_paid_doge": "Mina: Verthash, Utbetalas i: Dogecoin",

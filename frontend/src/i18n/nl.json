@@ -75,7 +75,7 @@
         "save_n_restart" : "Opslaan & Herstarten",
         "pool": "Mining pool",
         "payout": "Uitbetaling",
-        "customAddress": "Adres om uitbetaling te ontvangen",
+        "customAddress": "Uitbetalingsadres",
         "address_activation": "Kopieer adres en activeer adres",
         "doge_only": "ALLEEN DOGE",
         "mine_verthash_paid_doge": "Minen: Verthash, Uitbetaald in: Dogecoin",

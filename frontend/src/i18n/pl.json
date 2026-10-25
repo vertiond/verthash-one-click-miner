@@ -75,7 +75,7 @@
         "save_n_restart" : "Zapisz i Wznów",
         "pool" : "Kopalnia",
         "payout" : "Wypłata",
-        "customAddress" : "Adres do otrzymywania wypłat",
+        "customAddress" : "Adres do wypłat",
         "address_activation" : "Kopiuj adres i aktywuj adres",
         "doge_only" : "TYLKO DOGE",
         "mine_verthash_paid_doge" : "Kop: Verthash, Wypłata w: Dogecoin",

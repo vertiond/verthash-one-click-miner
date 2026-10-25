@@ -57,14 +57,15 @@ div.tabBar {
   padding: 0px;
 }
 
-/* Wide enough for the longest tab name (French) on one line */
+/* Each tab gets 220px, wide enough for the longest tab name (Norwegian's
+   Send coins) on one line */
 div.tabs {
-  width: 600px;
+  width: 660px;
   position: absolute;
   left: 50%;
   top: 50%;
   height: 20px;
-  margin-left: -300px;
+  margin-left: -330px;
   margin-top: -10px;
   padding: 0px;
 }

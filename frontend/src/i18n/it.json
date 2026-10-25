@@ -76,7 +76,7 @@
         "save_n_restart" : "Salva e Riavvia",
         "pool" : "Pool di mining",
         "payout" : "Pagamento",
-        "customAddress" : "Indirizzo per ricevere i pagamenti",
+        "customAddress" : "Indirizzo di pagamento",
         "address_activation" : "Copia l'indirizzo e attiva l'indirizzo",
         "doge_only" : "SOLO DOGE",
         "mine_verthash_paid_doge" : "Mina: Verthash, Pagato in: Dogecoin",
