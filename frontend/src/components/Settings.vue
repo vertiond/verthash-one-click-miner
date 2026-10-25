@@ -8,6 +8,16 @@
           <br />
           <span class="subtext">{{ $t("settings.enable_integrated_sub") }}</span>
         </p>
+        <!-- Label and list on one line, so the column fits in every language -->
+        <p class="settings-row">
+          {{ $t("settings.language") }}:
+          <select name="language" v-model="language" @change="changeLanguage">
+            <option value="">{{ $t("settings.language_system") }}</option>
+            <option v-for="option in languages" v-bind:value="option.code" v-bind:key="option.code">
+                {{ option.name }}
+            </option>
+          </select>
+        </p>
         <p v-if="!poolDogeOnly" style="text-align: left">
           {{ $t("settings.payout") }}:
           <br />
@@ -30,16 +40,6 @@
           {{ $t("settings.doge_only") }}
           <br><a class="link" @click="copyAndActivate">{{ $t('settings.address_activation') }}</a>
           {{ $t("settings.mine_verthash_paid_doge") }}
-        </p>
-        <!-- Label and list on one line, so the column fits in every language -->
-        <p class="settings-row">
-          {{ $t("settings.language") }}:
-          <select name="language" v-model="language" @change="changeLanguage">
-            <option value="">{{ $t("settings.language_system") }}</option>
-            <option v-for="option in languages" v-bind:value="option.code" v-bind:key="option.code">
-                {{ option.name }}
-            </option>
-          </select>
         </p>
       </div>
       <div class="col-settings-sub" v-bind:style="{ visibility: loaded ? 'visible' : 'hidden' }">
