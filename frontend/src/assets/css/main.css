@@ -93,6 +93,12 @@ div.col-settings-sub {
   min-width: 0;
 }
 
+/* Less space between the settings than the browser's 1em, so the left column
+   fits with the payout address and the language list in every language */
+div.col-settings-sub p {
+  margin: 10px 0px;
+}
+
 /* A label with its list on the same line */
 p.settings-row {
   display: flex;
