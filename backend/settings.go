@@ -395,6 +395,10 @@ func (m *Backend) ActivationInformation(poolID int) {
 // DogeOnlyPoolName returns the name of a pool other than the active one that
 // pays out to the built-in Dogecoin wallet, or "" when there is none.
 func (m *Backend) DogeOnlyPoolName() string {
+	// A second copy that only shows the "already running" message has no pool
+	if m.pool == nil {
+		return ""
+	}
 	for _, p := range pools.GetPools(m.GetTestnet()) {
 		if p.GetID() != m.pool.GetID() && pools.IsDogeOnly(p) {
 			return p.GetName()

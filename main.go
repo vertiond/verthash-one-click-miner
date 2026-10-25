@@ -119,24 +119,31 @@ func main() {
 		panic(err)
 	}
 	networks.SetNetwork(backend.GetTestnet())
-	backend.ResolveEndpointsInBackground()
-	go func() {
-		backend.ResolveBackendServers()
-		backend.BackendServerSelector()
-	}()
-	//ping.GetSelectedNode(backend.GetTestnet())
 
-	backend.ResetWalletAddress()
-	backend.ResolvePools()
-	backend.ResetPool()
-	backend.ResetCustomAddress()
-	backend.ResetPayout()
+	// A second copy only shows the "already running" message. It has no
+	// settings database open, so it must not do any of the start-up work.
+	if !alreadyRunning {
+		backend.ResolveEndpointsInBackground()
+		go func() {
+			backend.ResolveBackendServers()
+			backend.BackendServerSelector()
+		}()
+		//ping.GetSelectedNode(backend.GetTestnet())
+
+		backend.ResetWalletAddress()
+		backend.ResolvePools()
+		backend.ResetPool()
+		backend.ResetCustomAddress()
+		backend.ResetPayout()
+	}
 	app.Bind(backend)
 	err = app.Run()
 	if err != nil {
 		logging.Errorf("Error running app: %v", err)
 	}
-	backend.StopMining()
+	if !alreadyRunning {
+		backend.StopMining()
+	}
 
 	tracking.Track(tracking.TrackingRequest{
 		Category: "Lifecycle",
