@@ -11,3 +11,7 @@ verthash-ocm.exe
 .dev.vars
 .dev.vars.*
 .wrangler/
+# contrib/guix/guix-build
+guix-build-*/
+guix-cache/
+!contrib/guix/windows/wails.exe.manifest
