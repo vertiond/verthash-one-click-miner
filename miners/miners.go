@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/vertcoin-project/one-click-miner-vnext/logging"
@@ -83,6 +84,7 @@ type BinaryRunner struct {
 	rapidFails       int
 	usedArgs         BinaryArguments
 	freshlyInstalled bool // Install just ran (in the checks) and Start has not used it yet
+	stopRequested    atomic.Bool
 }
 
 func (b *BinaryRunner) logPrefix() string {
@@ -95,6 +97,8 @@ func (b *BinaryRunner) Stop() error {
 		// not started (yet)
 		return nil
 	}
+	// The miner exits non-zero when it is killed; that is not a failure.
+	b.stopRequested.Store(true)
 	// Windows doesn't support Interrupt
 	if runtime.GOOS == "windows" {
 		_ = b.cmd.Process.Signal(os.Kill)
@@ -272,15 +276,25 @@ func (b *BinaryRunner) launch(params []string, wait bool) error {
 	}
 	if wait {
 		b.running = true
+		b.stopRequested.Store(false)
 		go func() {
 			err := b.cmd.Wait()
-			if err != nil {
+			if minerExitIsError(err, b.stopRequested.Load()) {
 				logging.Errorf("Error in miner: %v", err)
+			} else {
+				logging.Infof("%sMiner stopped", b.logPrefix())
 			}
 			b.running = false
 		}()
 	}
 	return nil
+}
+
+// minerExitIsError reports whether a miner's exit is worth an error: it failed
+// and nobody asked it to stop. On Windows Stop kills the miner, which then
+// exits with status 1.
+func minerExitIsError(err error, stopRequested bool) bool {
+	return err != nil && !stopRequested
 }
 
 func (b *BinaryRunner) unpack() error {

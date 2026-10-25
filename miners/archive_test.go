@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -130,5 +131,18 @@ func TestEnsureInstalledUsesFreshInstallOnce(t *testing.T) {
 	}
 	if err := b.ensureInstalled(); err == nil {
 		t.Error("a later start skipped Install")
+	}
+}
+
+func TestMinerExitIsError(t *testing.T) {
+	failed := errors.New("exit status 1")
+	if minerExitIsError(nil, false) || minerExitIsError(nil, true) {
+		t.Error("a clean exit was reported as an error")
+	}
+	if minerExitIsError(failed, true) {
+		t.Error("an exit after a requested stop was reported as an error")
+	}
+	if !minerExitIsError(failed, false) {
+		t.Error("an unexpected exit was not reported as an error")
 	}
 }
