@@ -24,7 +24,7 @@ same commit.
 | variable | meaning |
 |---|---|
 | `HOSTS` | `x86_64-linux-gnu`, `x86_64-w64-mingw32`, or both (the default) |
-| `VERSION` | e.g. `2.1.6`: stamped into the binary as `2.1.6-g<commit>` and used in the zip names. Unset, the binary keeps the source's dev version and the zips are named after the commit |
+| `VERSION` | e.g. `2.1.6`: stamped into the binary as `2.1.6-g<commit>` and used in the zip names. Unset, it is the tag on HEAD (`git describe --exact-match --tags`). Set it empty (`VERSION=`), or build an untagged commit, and the binary keeps the source's dev version and the zips are named after the commit |
 | `JOBS` | parallel jobs, default `nproc` |
 | `CACHE_PATH` | where Go modules and npm packages are kept, default `./guix-cache` |
 
@@ -61,3 +61,27 @@ search path; `libexec/strip-rpath.sh` removes that argument from the Linux link.
 unchanged, and `guix-build` pins the same Guix commit Bitcoin Core v32.0 does
 (`c5eee333`), so a machine that has built Bitcoin Core v32 or Vertcoin Core's
 32.x branch already has them.
+
+## Signing a release
+
+```
+RELEASE_DIR=/mnt/c/Users/<you>/Downloads ./contrib/guix/guix-sign
+```
+
+`guix-sign` checks every output of HEAD's build against its `SHA256SUMS.part`,
+joins those into `manifest-<version>.txt` (the zips and the bare binaries, as
+for 2.1.5) and signs it with a detached signature, `manifest-<version>.txt.sig`.
+It refuses outputs built under another name, so build a tag with that tag's
+version. From WSL it signs with Windows' `gpg.exe` (Gpg4win) unless WSL's own
+gpg holds a secret key. `RELEASE_DIR` also copies the zips, manifest and
+signature there, ready to attach to the GitHub release.
+
+| variable | meaning |
+|---|---|
+| `VERSION` | the version it was built as, by default the tag on HEAD |
+| `GPG` | gpg to sign with |
+| `SIGNER` | key ID to sign with, by default gpg's default key |
+| `RELEASE_DIR` | where to copy the release assets |
+
+Anyone can check a release with `gpg --verify manifest-<version>.txt.sig` and
+`sha256sum --check --ignore-missing manifest-<version>.txt`.
