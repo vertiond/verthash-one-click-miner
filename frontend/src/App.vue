@@ -49,6 +49,13 @@ export default {
         self.switchToChecks();
       });
     });
+    // Vertcoin Core stopped under a full-mode node: run the checks again so the
+    // node comes back in light mode.
+    window.wails.Events.On("nodeLightFallback", () => {
+      window.backend.Backend.StopMining().then(() => {
+        self.switchToChecks();
+      });
+    });
   },
   methods: {
     stopMining: function() {

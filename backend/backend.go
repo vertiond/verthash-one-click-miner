@@ -47,6 +47,9 @@ type Backend struct {
 	nodeNeedsStart bool // node was built (or rebuilt) and StartNode must start it
 	nodeShutdown   bool // OCM is quitting; never start a node again
 	nodeRetry      chan bool
+	// forceLight: Vertcoin Core went away while our full-mode node used it, so
+	// the node runs in light mode for the rest of this session.
+	forceLight bool
 
 	lastBackendDiff float64      // last difficulty from the backend /info; 0 = never reached
 	lastNodeState   atomic.Value // string: the node's state at the last mining-loop status poll

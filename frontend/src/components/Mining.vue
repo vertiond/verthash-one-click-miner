@@ -95,6 +95,7 @@
         <span style="opacity: 1">{{$t('mining.active_pool')}}: {{activePool}} <span v-if="poolFee != '0.0%'">({{$t('mining.pool_fee')}}: {{poolFee}})</span></span>
         <span class="coreNode" v-if="nodeMode.mode === 'full' && nodeMode.coreResponding">&#10003; {{ $t('mining.core_node_in_use') }}</span>
         <span class="coreNode down" v-if="nodeMode.mode === 'full' && !nodeMode.coreResponding">{{ $t('mining.core_node_not_responding') }}</span>
+        <span class="coreNode down" v-if="nodeMode.mode === 'light' && nodeMode.coreStopped">{{ $t('mining.core_node_stopped') }}</span>
         <br><a class="link" @click="payoutInformation">{{ $t('mining.payout_information') }}</a>
       </p>
       
@@ -153,7 +154,7 @@ export default {
       clockNotice: {show: false, minutes: 0, ahead: false},
       clockNoticeDismissed: false,
       rpcNoticeTimer: null,
-      nodeMode: {mode: "", coreResponding: false},
+      nodeMode: {mode: "", coreResponding: false, coreStopped: false},
     };
   },
   beforeDestroy() {

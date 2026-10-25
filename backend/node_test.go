@@ -936,3 +936,109 @@ func TestWaitNodeReadyEmitsPeers(t *testing.T) {
 		t.Errorf("peer count not emitted before the syncing state: %s", got)
 	}
 }
+
+// fullModeCoreGoneEnv sets up our own full-mode node whose status polls say
+// waiting_rpc, with a clock the test moves.
+func fullModeCoreGoneEnv(t *testing.T) (m *Backend, e *emitted, ns *networkState, now *time.Time, state *string, coreUp *bool) {
+	t.Helper()
+	stubNodeEnv(t)
+	oldHasBackend, oldClock := hasBackend, clockNow
+	t.Cleanup(func() { hasBackend, clockNow = oldHasBackend, oldClock })
+	hasBackend = func() bool { return false }
+	at := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
+	clockNow = func() time.Time { return at }
+	st, up := "waiting_rpc", false
+	getStatus = func(string, string) (*p2poolgo.Status, error) {
+		return &p2poolgo.Status{State: st, Version: "v"}, nil
+	}
+	coreRunning = func() bool { return up }
+	e = &emitted{}
+	m = testBackend(e)
+	m.node = &fakeNode{running: true, cfg: p2poolgo.Config{Address: "Vaddr1", Detection: p2poolgo.Detection{Mode: p2poolgo.ModeFull}}}
+	m.detection = p2poolgo.Detection{Mode: p2poolgo.ModeFull}
+	return m, e, &networkState{}, &at, &st, &up
+}
+
+func emittedCount(e *emitted, name string) int {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return countEvents(e.events, name)
+}
+
+func TestFullModeCoreGoneFallsBackToLightAfterGrace(t *testing.T) {
+	m, e, ns, now, _, _ := fullModeCoreGoneEnv(t)
+	m.networkNumbers(0, ns)
+	*now = now.Add(90 * time.Second)
+	m.networkNumbers(0, ns)
+	if emittedCount(e, "nodeLightFallback") != 0 || m.forceLight {
+		t.Fatal("fell back before the 2-minute grace period")
+	}
+	*now = now.Add(31 * time.Second)
+	m.networkNumbers(0, ns)
+	*now = now.Add(30 * time.Second)
+	m.networkNumbers(0, ns)
+	if got := emittedCount(e, "nodeLightFallback"); got != 1 || !m.forceLight {
+		t.Fatalf("nodeLightFallback sent %d times, forceLight=%v; want once, true", got, m.forceLight)
+	}
+}
+
+func TestFullModeCoreRestartingDoesNotFallBack(t *testing.T) {
+	m, e, ns, now, _, coreUp := fullModeCoreGoneEnv(t)
+	*coreUp = true // Core's process is back and still starting up
+	m.networkNumbers(0, ns)
+	*now = now.Add(5 * time.Minute)
+	m.networkNumbers(0, ns)
+	if emittedCount(e, "nodeLightFallback") != 0 {
+		t.Fatal("fell back while a Core process was running")
+	}
+}
+
+func TestFullModeCoreBackResetsTheGrace(t *testing.T) {
+	m, e, ns, now, state, _ := fullModeCoreGoneEnv(t)
+	m.networkNumbers(0, ns)
+	*now = now.Add(100 * time.Second)
+	*state = "ready" // Core came back before the grace period ran out
+	m.networkNumbers(0, ns)
+	*state = "waiting_rpc"
+	*now = now.Add(100 * time.Second)
+	m.networkNumbers(0, ns)
+	if emittedCount(e, "nodeLightFallback") != 0 {
+		t.Fatal("the grace period didn't start over after Core recovered")
+	}
+}
+
+func TestPrepareNodeAfterFallbackBuildsLightNode(t *testing.T) {
+	env := stubNodeEnv(t)
+	detectCore = func() p2poolgo.Detection {
+		return p2poolgo.Detection{Mode: p2poolgo.ModeFull, CookiePath: "/x/.cookie", RPCPort: 5888, ConfPath: "/x/vertcoin.conf"}
+	}
+	m := testBackend(&emitted{})
+	full := &fakeNode{running: true, cfg: p2poolgo.Config{Address: "Vaddr1", Detection: p2poolgo.Detection{Mode: p2poolgo.ModeFull}}}
+	m.node = full
+	m.detection = full.cfg.Detection
+	m.forceLight = true
+	if err := m.PrepareNode(); err != nil {
+		t.Fatal(err)
+	}
+	if full.stops != 1 {
+		t.Errorf("full-mode node stopped %d times, want 1", full.stops)
+	}
+	if len(env.runnersBuilt) != 1 {
+		t.Fatalf("built %d runners, want 1", len(env.runnersBuilt))
+	}
+	det := env.runnersBuilt[0].cfg.Detection
+	if det.Mode != p2poolgo.ModeLight || det.CookiePath != "" || det.RPCUser != "" || det.RPCPass != "" {
+		t.Errorf("new node's detection = %+v, want light mode without RPC credentials", det)
+	}
+}
+
+func TestGetNodeModeAfterFallback(t *testing.T) {
+	stubNodeEnv(t)
+	m := testBackend(&emitted{})
+	m.node = &fakeNode{}
+	m.detection = p2poolgo.Detection{Mode: p2poolgo.ModeLight}
+	m.forceLight = true
+	if got := m.GetNodeMode(); got != (NodeMode{Mode: "light", CoreStopped: true}) {
+		t.Errorf("GetNodeMode = %+v", got)
+	}
+}

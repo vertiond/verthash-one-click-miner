@@ -54,6 +54,7 @@
         "active_pool" : "Active pool",
         "core_node_in_use" : "using your Vertcoin Core",
         "core_node_not_responding" : "Vertcoin Core not responding",
+        "core_node_stopped" : "Vertcoin Core stopped, mining in light mode",
         "pool_fee" : "fee",
         "copy_address" : "Copy your wallet address",
         "payout_information" : "View payout information"

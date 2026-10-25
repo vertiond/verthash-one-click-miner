@@ -94,8 +94,12 @@ var (
 )
 
 const (
-	existingNodeGap     = 3 * time.Second
-	nodeStatusEvery     = 30  // mining-loop cycles (seconds)
+	existingNodeGap = 3 * time.Second
+	nodeStatusEvery = 30 // mining-loop cycles (seconds)
+	// coreGoneGrace is how long our full-mode node may wait for a Vertcoin Core
+	// that is no longer running before OCM restarts it in light mode. It
+	// covers a quick restart of Core.
+	coreGoneGrace       = 2 * time.Minute
 	adoptedDeadPolls    = 3   // failed status polls in a row before an adopted node counts as gone
 	backendRefreshEvery = 600 // mining-loop cycles (seconds)
 )
@@ -184,7 +188,8 @@ func (m *Backend) PrepareNode() error {
 		m.nodeMu.Unlock()
 		return err
 	}
-	if !m.adopted && m.node != nil && m.node.Running() && m.node.Config().Address == addr {
+	fallingBack := m.forceLight && m.node != nil && m.node.Config().Detection.Mode == p2poolgo.ModeFull
+	if !m.adopted && m.node != nil && m.node.Running() && m.node.Config().Address == addr && !fallingBack {
 		m.nodeMu.Unlock()
 		return nil // healthy, nothing to install or restart
 	}
@@ -215,6 +220,14 @@ func (m *Backend) PrepareNode() error {
 		return err
 	}
 	det := detectCore()
+	m.nodeMu.Lock()
+	forceLight := m.forceLight
+	m.nodeMu.Unlock()
+	if forceLight {
+		// Core went away earlier in this session, so stay in light mode even
+		// if it is back; the next OCM start uses it again.
+		det = p2poolgo.Detection{Mode: p2poolgo.ModeLight, RPCPort: det.RPCPort, ConfPath: det.ConfPath}
+	}
 	dataDir := nodeDataDir()
 	if err := os.MkdirAll(dataDir, 0700); err != nil {
 		return fmt.Errorf("Unable to create the P2Pool-Go data directory: %v", err)
@@ -420,6 +433,38 @@ func (m *Backend) watchAdoptedNodeGone(ns *networkState) {
 	m.emitEvent("nodeRapidFail")
 }
 
+// watchFullModeCoreGone restarts our node in light mode when it has used
+// Vertcoin Core (full mode) and Core has been gone for coreGoneGrace: the node
+// reports waiting_rpc and no Core process runs. It marks the session
+// light-only and asks the frontend to run the checks again, which rebuild the
+// node; only the checks start and stop the node.
+func (m *Backend) watchFullModeCoreGone(ns *networkState, st *p2poolgo.Status) {
+	if ns.lightFallbackSent {
+		return
+	}
+	m.nodeMu.Lock()
+	ownFull := !m.adopted && m.node != nil && m.detection.Mode == p2poolgo.ModeFull && !m.forceLight
+	m.nodeMu.Unlock()
+	if !ownFull || st == nil || st.State != "waiting_rpc" || coreRunning() {
+		ns.coreGoneSince = time.Time{}
+		return
+	}
+	now := clockNow()
+	if ns.coreGoneSince.IsZero() {
+		ns.coreGoneSince = now
+		return
+	}
+	if now.Sub(ns.coreGoneSince) < coreGoneGrace {
+		return
+	}
+	ns.lightFallbackSent = true
+	m.nodeMu.Lock()
+	m.forceLight = true
+	m.nodeMu.Unlock()
+	logging.Warnf("Vertcoin Core stopped; restarting P2Pool-Go in light mode")
+	m.emitEvent("nodeLightFallback")
+}
+
 // RetryNode asks WaitNodeReady to restart the node. Bound to the frontend.
 func (m *Backend) RetryNode() {
 	select {
@@ -468,13 +513,14 @@ func (m *Backend) RevealCoreConf() {
 type NodeMode struct {
 	Mode           string `json:"mode"`           // "full", "light", "adopted" or "" before checks
 	CoreResponding bool   `json:"coreResponding"` // full mode: the node last reported Core as reachable
+	CoreStopped    bool   `json:"coreStopped"`    // light mode because Core stopped during this session
 }
 
 // GetNodeMode reports whether our node mines through the local Vertcoin
 // Core node. Bound to the frontend.
 func (m *Backend) GetNodeMode() NodeMode {
 	m.nodeMu.Lock()
-	adopted, owned, mode := m.adopted, m.node != nil, m.detection.Mode
+	adopted, owned, mode, forceLight := m.adopted, m.node != nil, m.detection.Mode, m.forceLight
 	m.nodeMu.Unlock()
 	switch {
 	case adopted:
@@ -485,7 +531,7 @@ func (m *Backend) GetNodeMode() NodeMode {
 		state, _ := m.lastNodeState.Load().(string)
 		return NodeMode{Mode: "full", CoreResponding: state != "waiting_rpc"}
 	default:
-		return NodeMode{Mode: "light"}
+		return NodeMode{Mode: "light", CoreStopped: forceLight}
 	}
 }
 
@@ -511,6 +557,9 @@ type networkState struct {
 	backendStale bool
 	nodeFails    int  // failed status polls in a row
 	deadReported bool // nodeRapidFail sent for a gone adopted node
+
+	coreGoneSince     time.Time // first poll that found Core gone while in full mode
+	lightFallbackSent bool      // nodeLightFallback sent
 }
 
 // networkNumbers returns the difficulty and tip height for the mining screen
@@ -528,6 +577,7 @@ func (m *Backend) networkNumbers(cycle int, ns *networkState) (float64, int64) {
 		}
 		ns.node = st
 		m.watchAdoptedNodeGone(ns)
+		m.watchFullModeCoreGone(ns, st)
 	}
 	if cycle%backendRefreshEvery == 0 {
 		ns.backendStale = true
