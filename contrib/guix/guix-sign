@@ -9,8 +9,9 @@
 #   VERSION     the version the outputs were built as (default: the tag on HEAD,
 #               as guix-build uses). With no tag on HEAD, the commit.
 #   GPG         gpg to sign with (default: gpg if it holds a secret key, else
-#               gpg.exe, so that from WSL it signs with the Windows keyring)
-#   SIGNER      key to sign with (default: gpg's default key)
+#               Windows' GnuPG or Gpg4win from WSL, else gpg.exe on PATH)
+#   SIGNER      key to sign with (default: git's user.signingkey, the key the
+#               tags are signed with; unset, gpg's default key)
 #   RELEASE_DIR also copy the zips, the manifest and its signature here, such as
 #               /mnt/c/Users/<you>/Downloads, ready to attach to the release
 export LC_ALL=C
@@ -22,11 +23,16 @@ COMMIT="$(git rev-parse HEAD)"
 SHORT="${COMMIT:0:12}"
 VERSION="${VERSION-$(git describe --exact-match --tags HEAD 2>/dev/null || true)}"
 NAME="${VERSION:-${SHORT}}"
-OUTDIR_BASE="$PWD/guix-build-${SHORT}/output"
+BUILD_BASE="$PWD/guix-build-${NAME}"
+OUTDIR_BASE="${BUILD_BASE}/output"
 
 err() { echo "ERR: $*" >&2; exit 1; }
 
-[ -d "$OUTDIR_BASE" ] || err "no outputs for ${SHORT} in ${OUTDIR_BASE}; run contrib/guix/guix-build first"
+[ -d "$OUTDIR_BASE" ] || err "no outputs for ${NAME} in ${OUTDIR_BASE}; run contrib/guix/guix-build first"
+# The folder is named after the version, so check it was built from HEAD and
+# not from an earlier commit with the same tag
+[ -e "${BUILD_BASE}/dist-archive/verthash-ocm-${SHORT}.tar" ] \
+    || err "${BUILD_BASE} was not built from HEAD (${SHORT}); remove it and rerun guix-build"
 shopt -s nullglob
 parts=( "$OUTDIR_BASE"/*/SHA256SUMS.part )
 shopt -u nullglob
@@ -52,13 +58,20 @@ cat "${parts[@]}" > "$MANIFEST"
 echo "== ${MANIFEST}"
 cat "$MANIFEST"
 
+SIGNER="${SIGNER-$(git config --get user.signingkey || true)}"
+
 if [ -z "${GPG:-}" ]; then
     if command -v gpg >/dev/null && gpg --list-secret-keys 2>/dev/null | grep -q '^sec'; then
         GPG=gpg
-    elif command -v gpg.exe >/dev/null; then
-        GPG=gpg.exe
     else
-        err "no gpg with a secret key found; set GPG"
+        # The gpg.exe on WSL's PATH is usually Git for Windows' own, which has
+        # its own, usually empty, keyring; look for GnuPG's first
+        for exe in "/mnt/c/Program Files/GnuPG/bin/gpg.exe" \
+                   "/mnt/c/Program Files (x86)/GnuPG/bin/gpg.exe" \
+                   "$(command -v gpg.exe || true)"; do
+            if [ -n "$exe" ] && [ -x "$exe" ]; then GPG="$exe"; break; fi
+        done
+        [ -n "${GPG:-}" ] || err "no gpg with a secret key found; set GPG"
     fi
 fi
 

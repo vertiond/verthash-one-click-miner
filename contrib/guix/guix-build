@@ -40,7 +40,8 @@ SHORT="${COMMIT:0:12}"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git log -1 --format=%ct HEAD)}"
 NAME="${VERSION:-${SHORT}}"
 
-BUILD_BASE="$PWD/guix-build-${SHORT}"
+# Named like the zips, as Bitcoin Core does: the version, else the commit
+BUILD_BASE="$PWD/guix-build-${NAME}"
 DIST_BASE="${BUILD_BASE}/dist-archive"
 OUTDIR_BASE="${BUILD_BASE}/output"
 DISTSRC_BASE="${BUILD_BASE}/distsrc"

@@ -17,7 +17,8 @@ build runs in a container with no network and nothing from the host.
 ./contrib/guix/guix-build
 ```
 
-Outputs land in `guix-build-<commit>/output/<host>/`: the zip, the bare binary
+Outputs land in `guix-build-<version>/output/<host>/` (the tag, or the commit
+when HEAD has no tag): the zip, the bare binary
 and a `SHA256SUMS.part`. Compare those hashes with someone else's build of the
 same commit.
 
@@ -72,15 +73,16 @@ RELEASE_DIR=/mnt/c/Users/<you>/Downloads ./contrib/guix/guix-sign
 joins those into `manifest-<version>.txt` (the zips and the bare binaries, as
 for 2.1.5) and signs it with a detached signature, `manifest-<version>.txt.sig`.
 It refuses outputs built under another name, so build a tag with that tag's
-version. From WSL it signs with Windows' `gpg.exe` (Gpg4win) unless WSL's own
-gpg holds a secret key. `RELEASE_DIR` also copies the zips, manifest and
+version. From WSL it signs with Windows' GnuPG (`C:\Program Files\GnuPG` or
+Gpg4win's) unless WSL's own gpg holds a secret key, and with git's
+`user.signingkey` if set, the key the tags are signed with. `RELEASE_DIR` also copies the zips, manifest and
 signature there, ready to attach to the GitHub release.
 
 | variable | meaning |
 |---|---|
 | `VERSION` | the version it was built as, by default the tag on HEAD |
 | `GPG` | gpg to sign with |
-| `SIGNER` | key ID to sign with, by default gpg's default key |
+| `SIGNER` | key ID to sign with, by default git's `user.signingkey`, else gpg's default key |
 | `RELEASE_DIR` | where to copy the release assets |
 
 Anyone can check a release with `gpg --verify manifest-<version>.txt.sig` and
