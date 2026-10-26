@@ -1,0 +1,112 @@
+name: guix
+
+# Runs contrib/guix/guix-build on GitHub's runners, one job per platform, as
+# Feather Wallet does. The zips should match a local Guix build of the same
+# commit byte for byte; the hashes are in the run's summary to compare.
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-guix:
+    runs-on: ubuntu-24.04
+    # The cross toolchains in manifest.scm are built from source on a cold run
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        host:
+          - x86_64-linux-gnu
+          - x86_64-w64-mingw32
+    name: ${{ matrix.host }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+      # https://github.com/actions/checkout/issues/1467
+      # guix-build names the build after the tag on HEAD
+      - name: git fetch tags
+        run: git fetch --tags --force
+      - name: remove bundled packages
+        # Frees disk space for /gnu/store, and keeps the installer's
+        # /usr/local/bin/guix from clashing with anything preinstalled
+        run: sudo rm -rf /usr/local
+      # The Go modules and npm packages guix-build fetches, kept between runs.
+      # guix-build checks everything in it against go.sum and
+      # frontend/package-lock.json, so the cache can't change the output.
+      - name: sources cache
+        uses: actions/cache@v5
+        with:
+          path: guix-cache
+          key: guix-sources-${{ hashFiles('go.sum', 'frontend/package-lock.json') }}
+      - name: install dependencies
+        run: sudo apt-get update; sudo apt-get -y install git ca-certificates apparmor-utils
+      - name: apparmor workaround
+        # https://bugs.launchpad.net/ubuntu/+source/guix/+bug/2064115
+        # Ubuntu 24.04 blocks unprivileged user namespaces, which
+        # guix shell --container needs
+        run: |
+          sudo tee /etc/apparmor.d/guix << EOF
+          abi <abi/3.0>,
+          include <tunables/global>
+          profile guix /gnu/store/{*-guix-command,*/bin/guix-daemon,*/bin/guix,*/bin/guile} flags=(unconfined) {
+            userns,
+            include if exists <local/guix>
+          }
+          EOF
+          sudo /etc/init.d/apparmor reload
+          sudo aa-enforce guix || true
+          sudo apt-get -y purge apparmor
+      - name: install guix
+        run: |
+          set -exo pipefail
+
+          export ARCHIVE="guix-binary-1.5.0.x86_64-linux.tar.xz"
+          export ARCHIVE_HASH=aa41025489c5061543e9c48873eaa829b900b2da75d40f9648913622f5f47817
+
+          wget --tries=5 --waitretry=10 --no-verbose https://mirrors.ocf.berkeley.edu/gnu/guix/${ARCHIVE} -O /tmp/${ARCHIVE}
+          echo "${ARCHIVE_HASH}  /tmp/${ARCHIVE}" | sha256sum -c -
+
+          # The installer Feather uses, pinned: it installs non-interactively
+          # from a local binary tarball
+          curl -fsSL https://raw.githubusercontent.com/monero-project/guix/7fd75725c5daf9d3bdfd9122dcdb37f650493d18/etc/guix-install.sh -o /tmp/guix-install.sh
+          chmod +x /tmp/guix-install.sh
+
+          { yes "" 2>/dev/null || true; } | sudo env GUIX_BINARY_FILE_NAME="/tmp/${ARCHIVE}" /tmp/guix-install.sh
+          source /etc/profile.d/zzz-guix.sh
+          /usr/local/bin/guix --version
+      - name: build
+        run: HOSTS="${{ matrix.host }}" ./contrib/guix/guix-build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.host }}
+          path: guix-build-*/output/${{ matrix.host }}/*
+          if-no-files-found: error
+
+  hashes:
+    runs-on: ubuntu-24.04
+    needs: [build-guix]
+    steps:
+      # One folder per artifact, named after the host
+      - uses: actions/download-artifact@v8
+      - name: print hashes
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat x86_64-linux-gnu/SHA256SUMS.part x86_64-w64-mingw32/SHA256SUMS.part | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
