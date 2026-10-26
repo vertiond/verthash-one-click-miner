@@ -24,12 +24,7 @@ func NewP2Pool() *P2Pool {
 	return &P2Pool{}
 }
 
-func (p *P2Pool) GetPayouts(testnet bool) []payouts.Payout {
-	if testnet {
-		return []payouts.Payout{
-			payouts.VTC(),
-		}
-	}
+func (p *P2Pool) GetPayouts() []payouts.Payout {
 	return []payouts.Payout{
 	}
 }

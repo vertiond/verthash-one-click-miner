@@ -7,7 +7,7 @@ import (
 )
 
 func TestExplorerTxURLPointsAtDogechain(t *testing.T) {
-	networks.SetNetwork(false)
+	networks.SetNetwork()
 	txid := "cfb6b8d5ff5a2b3d0c9321db11ea90e96bfd0ea6fe6f5bc06e3e8c6f29a714cd"
 	want := "https://dogechain.com/tx/" + txid
 	if got := explorerTxURL(txid); got != want {

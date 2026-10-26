@@ -101,7 +101,6 @@ export default {
       avgearn: "0.00 VTC",
       netHash: "",
       gpu: "",
-      testnet: false,
       wallet: "",
       balance: "0.00000000",
       balanceImmature: "0.00000000",
@@ -127,9 +126,6 @@ export default {
       }
       self.spinner = newSpinner;
     }, 1000);
-    window.backend.Backend.GetTestnet().then(result => {
-      self.testnet = result;
-    });
     window.setInterval(() => {
       window.backend.Backend.GetPoolName().then(result => {
         self.activePool = result;

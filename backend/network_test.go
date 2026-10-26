@@ -13,7 +13,7 @@ func TestNetworkIgnoredForPayoutWithoutNetworks(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	m := &Backend{settings: db, payout: payouts.VTC()}
+	m := &Backend{settings: db, payout: payouts.NewConfiguredPayout(payouts.Config{ID: payouts.VTCID, Name: "Vertcoin", Ticker: "VTC"})}
 
 	m.SetNetwork("TRC20")
 	if got := m.getStringSetting("network"); got != "" {

@@ -157,18 +157,14 @@ func TestSetNetworkKeepsResolvedBackendList(t *testing.T) {
 	})
 
 	resolved := []string{"https://resolved.example/"}
-	networks.SetNetwork(false)
+	networks.SetNetwork()
 	networks.SetBackendServers(resolved)
 	if !reflect.DeepEqual(networks.Active.BackendServers, resolved) {
 		t.Fatalf("mainnet list = %v, want %v", networks.Active.BackendServers, resolved)
 	}
 
-	networks.SetNetwork(true)
-	if len(networks.Active.BackendServers) != 0 {
-		t.Fatalf("testnet list = %v, want empty", networks.Active.BackendServers)
-	}
-	networks.SetNetwork(false)
+	networks.SetNetwork()
 	if !reflect.DeepEqual(networks.Active.BackendServers, resolved) {
-		t.Fatalf("mainnet list after switching back = %v, want %v", networks.Active.BackendServers, resolved)
+		t.Fatalf("list after SetNetwork = %v, want %v", networks.Active.BackendServers, resolved)
 	}
 }

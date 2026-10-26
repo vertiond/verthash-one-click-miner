@@ -36,12 +36,7 @@ func withAddress(template, addr string) string {
 
 // GetPayouts returns the pool's payout currencies that are on the payout list,
 // in the pool's order.
-func (p *ConfiguredPool) GetPayouts(testnet bool) []payouts.Payout {
-	if testnet {
-		return []payouts.Payout{
-			payouts.VTC(),
-		}
-	}
+func (p *ConfiguredPool) GetPayouts() []payouts.Payout {
 	list := make([]payouts.Payout, 0, len(p.Config.Payouts))
 	for _, ticker := range p.Config.Payouts {
 		if payout, ok := payouts.ByTicker(ticker); ok {

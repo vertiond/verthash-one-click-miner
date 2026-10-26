@@ -92,12 +92,9 @@ func TestConfiguredPoolPayouts(t *testing.T) {
 		{ID: 23, Name: "Tether", Ticker: "USDT", Networks: []string{"TRC20"}},
 	})
 
-	got := NewConfiguredPool(Config{Payouts: []string{"USDT", "GONE", "DOGE"}}).GetPayouts(false)
+	got := NewConfiguredPool(Config{Payouts: []string{"USDT", "GONE", "DOGE"}}).GetPayouts()
 	if len(got) != 2 || got[0].GetID() != 23 || got[1].GetTicker() != "DOGE" || got[0].GetNetworks()[0] != "TRC20" {
 		t.Fatalf("payouts = %+v", got)
-	}
-	if got := NewConfiguredPool(Config{}).GetPayouts(true); len(got) != 1 || got[0].GetTicker() != "VTC" {
-		t.Fatalf("testnet payouts = %+v", got)
 	}
 }
 
@@ -105,16 +102,16 @@ func TestDefaultPools(t *testing.T) {
 	t.Cleanup(func() { SetConfigs(DefaultConfigs) })
 	SetConfigs(DefaultConfigs)
 
-	if !HasPool(7, false) || !HasPool(6, false) || HasPool(5, false) {
+	if !HasPool(7) || !HasPool(6) || HasPool(5) {
 		t.Fatalf("expected Zpool (7) and HashCryptos (6) only")
 	}
-	if IsDogeOnly(GetPool(7, false)) || !IsDogeOnly(GetPool(6, false)) {
+	if IsDogeOnly(GetPool(7)) || !IsDogeOnly(GetPool(6)) {
 		t.Fatalf("only HashCryptos should be DOGE only")
 	}
-	if GetPool(5, false).GetID() != 7 {
+	if GetPool(5).GetID() != 7 {
 		t.Fatalf("an unknown pool should fall back to the first one")
 	}
-	if GetPool(7, false) != GetPool(7, false) {
+	if GetPool(7) != GetPool(7) {
 		t.Fatalf("GetPools should keep the same pool so its shortage cache lasts")
 	}
 }

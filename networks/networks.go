@@ -7,8 +7,6 @@ type Network struct {
 	Base58P2SHVersion  byte
 	ExplorerTxURL      string
 	Bech32Prefix       string
-	P2ProxyStratum     string
-	P2ProxyURL         string
 	WalletDB           string
 	OCMBackend         string
 	BackendServers     []string
@@ -26,7 +24,6 @@ var DefaultBlockbookURLs = []string{
 var (
 	networkMu            sync.Mutex
 	mainnetBlockbookURLs = DefaultBlockbookURLs
-	testnetActive        bool
 	endpointsResolved    = closedChan()
 )
 
@@ -56,8 +53,8 @@ func WaitForEndpoints() {
 	<-c
 }
 
-// SetBlockbookURLs replaces the mainnet Blockbook list. It also applies to
-// Active when the mainnet is selected. An empty list is ignored.
+// SetBlockbookURLs replaces the mainnet Blockbook list and applies it to
+// Active. An empty list is ignored.
 func SetBlockbookURLs(urls []string) {
 	if len(urls) == 0 {
 		return
@@ -65,9 +62,7 @@ func SetBlockbookURLs(urls []string) {
 	networkMu.Lock()
 	defer networkMu.Unlock()
 	mainnetBlockbookURLs = urls
-	if !testnetActive {
-		Active.BlockbookURLs = urls
-	}
+	Active.BlockbookURLs = urls
 }
 
 // DefaultBackendServers is the mainnet backend list used when neither
@@ -78,42 +73,25 @@ var DefaultBackendServers = []string{
 
 var mainnetBackendServers = DefaultBackendServers
 
-// SetBackendServers replaces the mainnet backend list. It also applies to
-// Active when the mainnet is selected.
+// SetBackendServers replaces the mainnet backend list and applies it to
+// Active.
 func SetBackendServers(servers []string) {
 	networkMu.Lock()
 	defer networkMu.Unlock()
 	mainnetBackendServers = servers
-	if !testnetActive {
-		Active.BackendServers = servers
-	}
+	Active.BackendServers = servers
 }
 
-func SetNetwork(testnet bool) {
+func SetNetwork() {
 	networkMu.Lock()
 	defer networkMu.Unlock()
-	testnetActive = testnet
-	if testnet {
-		Active = Network{
-			Base58P2PKHVersion: 74,
-			Base58P2SHVersion:  196,
-			ExplorerTxURL:      "https://dogechain.com/tx/",
-			Bech32Prefix:       "tvtc",
-			P2ProxyStratum:     "stratum+tcp://p2proxy-testnet.gertjaap.org:9171",
-			P2ProxyURL:         "https://p2proxy-testnet.gertjaap.org/",
-			WalletDB:           "wallet-testnet.db",
-		}
-	} else {
-		Active = Network{
-			Base58P2PKHVersion: 30,
-			Base58P2SHVersion:  22,
-			ExplorerTxURL:      "https://dogechain.com/tx/",
-			Bech32Prefix:       "vtc",
-			P2ProxyStratum:     "stratum+tcp://p2proxy.vertcoin.org:9171",
-			P2ProxyURL:         "https://p2proxy.vertcoin.org/",
-			WalletDB:           "wallet-testnet.db",
-			BlockbookURLs:      mainnetBlockbookURLs,
-			BackendServers:     mainnetBackendServers,
-		}
+	Active = Network{
+		Base58P2PKHVersion: 30,
+		Base58P2SHVersion:  22,
+		ExplorerTxURL:      "https://dogechain.com/tx/",
+		Bech32Prefix:       "vtc",
+		WalletDB:           "wallet-testnet.db", // The mainnet wallet has always used this name; renaming it would hide existing wallets
+		BlockbookURLs:      mainnetBlockbookURLs,
+		BackendServers:     mainnetBackendServers,
 	}
 }

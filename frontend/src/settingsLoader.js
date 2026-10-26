@@ -15,10 +15,8 @@ export function loadSettings() {
   var b = window.backend.Backend;
   var s = {};
   return Promise.all([
-    b.GetClosedSource(),
     b.GetAutoStart(),
     b.GetDebugging(),
-    b.GetTestnet(),
     b.GetEnableIntegrated(),
     b.GetPools(),
     b.GetPool(),
@@ -32,21 +30,19 @@ export function loadSettings() {
     b.GetSystemLocale()
   ])
     .then(function(r) {
-      s.closedSourceMiner = r[0];
-      s.autoStart = r[1];
-      s.debugging = r[2];
-      s.testnet = r[3];
-      s.enableIntegrated = r[4];
-      s.pools = r[5];
-      s.poolID = r[6];
-      s.payoutID = r[7];
-      s.network = r[8];
-      s.customAddress = r[9];
-      s.address = r[10];
-      s.savedAddresses = r[11];
-      s.languages = r[12];
-      s.language = r[13];
-      s.systemLocale = r[14];
+      s.autoStart = r[0];
+      s.debugging = r[1];
+      s.enableIntegrated = r[2];
+      s.pools = r[3];
+      s.poolID = r[4];
+      s.payoutID = r[5];
+      s.network = r[6];
+      s.customAddress = r[7];
+      s.address = r[8];
+      s.savedAddresses = r[9];
+      s.languages = r[10];
+      s.language = r[11];
+      s.systemLocale = r[12];
       // These two depend on the selected pool and payout
       return Promise.all([
         b.GetPayouts(s.poolID),

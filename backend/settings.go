@@ -10,7 +10,6 @@ import (
 
 	"github.com/tidwall/buntdb"
 	"github.com/vertiond/verthash-one-click-miner/logging"
-	"github.com/vertiond/verthash-one-click-miner/networks"
 	"github.com/vertiond/verthash-one-click-miner/payouts"
 	"github.com/vertiond/verthash-one-click-miner/pools"
 	"github.com/vertiond/verthash-one-click-miner/tracking"
@@ -95,27 +94,24 @@ func (m *Backend) setStringSetting(name string, value string) {
 
 func (m *Backend) GetPool() int {
 	pool := m.getIntSetting("pool")
-	if pool != 0 && !m.GetTestnet() && !pools.HasPool(pool, false) {
+	if pool != 0 && !pools.HasPool(pool) {
 		// The saved pool was removed from the pool list, so use the default.
 		logging.Warnf("Pool %d is no longer available, using the default pool\n", pool)
 		pool = 0
 	}
 	if pool == 0 {
-		if m.GetTestnet() {
-			return 2 // Default P2Pool on testnet
-		}
 		// // Default to a random pool
 		// rand.Seed(time.Now().UnixNano())
-		// pools := pools.GetPools(m.GetTestnet())
+		// pools := pools.GetPools()
 		// pool := pools[rand.Intn(len(pools))].GetID()
 		// // Save this setting immediately so that we don't get
 		// // a different random pool in future calls to GetPool().
 		// m.setIntSetting("pool", pool)
 		// return pool
-		if pools.HasPool(7, false) {
+		if pools.HasPool(7) {
 			return 7 // Default zpool
 		}
-		return pools.GetPools(false)[0].GetID()
+		return pools.GetPools()[0].GetID()
 	}
 	return pool
 }
@@ -146,7 +142,7 @@ type PoolChoice struct {
 
 func (m *Backend) GetPools() []PoolChoice {
 	pc := make([]PoolChoice, 0)
-	for _, p := range pools.GetPools(m.GetTestnet()) {
+	for _, p := range pools.GetPools() {
 		pc = append(pc, PoolChoice{
 			ID:       p.GetID(),
 			Name:     fmt.Sprintf("%s (%0.2f%% fee)", p.GetName(), p.GetFee()),
@@ -159,10 +155,7 @@ func (m *Backend) GetPools() []PoolChoice {
 func (m *Backend) GetPayout() int {
 	payout := m.getIntSetting("payout")
 	if payout == 0 {
-		if m.GetTestnet() {
-			return payouts.VTCID // Default Vertcoin on testnet
-		}
-		return payouts.DOGEID // Default Dogecoin on mainnet
+		return payouts.DOGEID // Default Dogecoin
 	}
 	return payout
 }
@@ -185,9 +178,9 @@ type PayoutChoice struct {
 
 func (m *Backend) GetPayouts(selectedPoolID int) []PayoutChoice {
 	pc := make([]PayoutChoice, 0)
-	selectedPool := pools.GetPool(selectedPoolID, m.GetTestnet())
+	selectedPool := pools.GetPool(selectedPoolID)
 	logging.Debugf("Selected pool: %s\n", selectedPool.GetName())
-	for _, p := range selectedPool.GetPayouts(m.GetTestnet()) {
+	for _, p := range selectedPool.GetPayouts() {
 		pc = append(pc, PayoutChoice{
 			ID:       p.GetID(),
 			Name: p.GetDisplayName(),
@@ -197,8 +190,8 @@ func (m *Backend) GetPayouts(selectedPoolID int) []PayoutChoice {
 }
 
 func (m *Backend) GetKickbackPayoutID(selectedPoolID int, selectedPayoutID int) int {
-	selectedPool := pools.GetPool(selectedPoolID, m.GetTestnet())
-	selectedPayout := pools.GetPayout(selectedPool, selectedPayoutID, m.GetTestnet())
+	selectedPool := pools.GetPool(selectedPoolID)
+	selectedPayout := pools.GetPayout(selectedPool, selectedPayoutID)
 	return selectedPayout.GetID()
 }
 
@@ -310,8 +303,8 @@ type NetworkChoice struct {
 
 func (m *Backend) GetNetworks(selectedPoolID int, selectedPayoutID int) []NetworkChoice {
 	nc := make([]NetworkChoice, 0)
-	selectedPool := pools.GetPool(selectedPoolID, m.GetTestnet())
-	selectedPayout := pools.GetPayout(selectedPool, selectedPayoutID, m.GetTestnet())
+	selectedPool := pools.GetPool(selectedPoolID)
+	selectedPayout := pools.GetPayout(selectedPool, selectedPayoutID)
 	logging.Debugf("Selected payout: %s\n", selectedPayout.GetDisplayName())
 	for _, n := range selectedPayout.GetNetworks() {
 		nc = append(nc, NetworkChoice{
@@ -337,45 +330,6 @@ func (m *Backend) ChainNetworkApplicableToPayout() bool {
 	return network_in_payout
 }
 
-func (m *Backend) GetTestnet() bool {
-	return false // Testnet is not necessary - return false
-	//return m.getSetting("testnet")
-}
-
-func (m *Backend) SetTestnet(newTestnet bool) {
-	if m.GetTestnet() != newTestnet {
-		logging.Infof("Setting testnet to [%b]\n", newTestnet)
-		m.setSetting("testnet", newTestnet)
-
-		logging.Infof("Setting network to testnet=%b\n", newTestnet)
-		networks.SetNetwork(newTestnet)
-
-		logging.Infof("Calling WalletInitialized\n")
-		m.WalletInitialized()
-		logging.Infof("Done!")
-	}
-}
-
-func (m *Backend) GetSkipVerthashExtendedVerify() bool {
-	return false // Verification is fast and chain split is possible if datafile is wrong - return false
-	//return m.getSetting("skipverthashverify")
-}
-
-func (m *Backend) SetSkipVerthashExtendedVerify(newVerthashVerify bool) {
-	logging.Infof("Setting skip verthash verify to [%b]\n", newVerthashVerify)
-	m.setSetting("skipverthashverify", newVerthashVerify)
-}
-
-func (m *Backend) GetClosedSource() bool {
-	return false // No closed source Verthash miners - return false
-	//return m.getSetting("closedsource")
-}
-
-func (m *Backend) SetClosedSource(newClosedSource bool) {
-	logging.Infof("Setting closed source to [%b]\n", newClosedSource)
-	m.setSetting("closedsource", newClosedSource)
-}
-
 func (m *Backend) GetDebugging() bool {
 	return m.getSetting("debugging")
 }
@@ -396,7 +350,7 @@ func (m *Backend) SetAutoStart(newAutoStart bool) {
 // ActivationInformation opens the page where the wallet address is activated
 // for the given pool, if it has one.
 func (m *Backend) ActivationInformation(poolID int) {
-	pool := pools.GetPool(poolID, m.GetTestnet())
+	pool := pools.GetPool(poolID)
 	if r, ok := pool.(pools.DogeOnlyReporter); ok && r.ActivationURL() != "" {
 		util.OpenBrowser(r.ActivationURL())
 	}
@@ -409,7 +363,7 @@ func (m *Backend) DogeOnlyPoolName() string {
 	if m.pool == nil {
 		return ""
 	}
-	for _, p := range pools.GetPools(m.GetTestnet()) {
+	for _, p := range pools.GetPools() {
 		if p.GetID() != m.pool.GetID() && pools.IsDogeOnly(p) {
 			return p.GetName()
 		}
@@ -419,14 +373,4 @@ func (m *Backend) DogeOnlyPoolName() string {
 
 func (m *Backend) GetVersion() string {
 	return tracking.GetVersion()
-}
-
-func (m *Backend) PrerequisiteProxyLoop() {
-	for pi := range m.prerequisiteInstall {
-		send := "0"
-		if pi {
-			send = "1"
-		}
-		m.runtime.Events.Emit("prerequisiteInstall", send)
-	}
 }

@@ -29,7 +29,7 @@ func TestMonitoringWorkerChecksTheServersTheAppUses(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	SetNetwork(false)
+	SetNetwork()
 
 	for name, want := range map[string][]string{
 		"BLOCKBOOK_URLS": append([]string{}, Active.BlockbookURLs...),

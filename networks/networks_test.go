@@ -9,9 +9,9 @@ import (
 func TestSetBlockbookURLs(t *testing.T) {
 	t.Cleanup(func() {
 		SetBlockbookURLs(DefaultBlockbookURLs)
-		SetNetwork(false)
+		SetNetwork()
 	})
-	SetNetwork(false)
+	SetNetwork()
 
 	SetBlockbookURLs(nil)
 	if !reflect.DeepEqual(Active.BlockbookURLs, DefaultBlockbookURLs) {
@@ -24,13 +24,9 @@ func TestSetBlockbookURLs(t *testing.T) {
 		t.Fatalf("Active.BlockbookURLs = %v, want %v", Active.BlockbookURLs, remote)
 	}
 
-	SetNetwork(true)
-	if len(Active.BlockbookURLs) != 0 {
-		t.Fatalf("testnet got the mainnet Blockbook servers %v", Active.BlockbookURLs)
-	}
-	SetNetwork(false)
+	SetNetwork()
 	if !reflect.DeepEqual(Active.BlockbookURLs, remote) {
-		t.Fatalf("switching back to mainnet lost the remote list: %v", Active.BlockbookURLs)
+		t.Fatalf("SetNetwork lost the remote list: %v", Active.BlockbookURLs)
 	}
 }
 

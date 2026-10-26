@@ -9,7 +9,6 @@ import (
 	"github.com/go-ping/ping"
 
 	"github.com/vertiond/verthash-one-click-miner/logging"
-	"github.com/vertiond/verthash-one-click-miner/networks"
 	"github.com/vertiond/verthash-one-click-miner/util"
 )
 
@@ -43,15 +42,8 @@ type Nodes struct {
 
 var Selected SelectedNode
 
-func GetSelectedNode(testnet bool) {
-	if testnet {
-		Selected = SelectedNode{
-			P2PoolStratum: networks.Active.P2ProxyStratum,
-			P2PoolURL:     networks.Active.P2ProxyURL,
-		}
-	} else {
-		selector()
-	}
+func GetSelectedNode() {
+	selector()
 }
 
 func selector() {

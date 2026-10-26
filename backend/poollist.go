@@ -144,7 +144,7 @@ func validPayoutConfigs(configs []payouts.Config) []payouts.Config {
 	return valid
 }
 
-// IDs 1 and 2 belong to P2Proxy and P2Pool.
+// ID 1 was the testnet P2Proxy pool and ID 2 is P2Pool.
 const firstConfiguredPoolID = 3
 
 // validPoolConfigs drops invalid entries and repeated IDs. A pool's payouts

@@ -7,7 +7,7 @@ import (
 )
 
 type Pool interface {
-	GetPayouts(testnet bool) []payouts.Payout
+	GetPayouts() []payouts.Payout
 	GetPendingPayout(addr string) uint64
 	GetStratumUrl() string
 	GetPassword(payoutTicker string, network string) string
@@ -116,12 +116,7 @@ func SetConfigs(configs []Config) {
 	configuredPools = map[int]*ConfiguredPool{}
 }
 
-func GetPools(testnet bool) []Pool {
-	// 	if testnet {
-	// 		return []Pool{
-	// 			NewP2Proxy(),
-	// 		}
-	// 	}
+func GetPools() []Pool {
 	configsMu.Lock()
 	defer configsMu.Unlock()
 	pools := make([]Pool, 0, len(mainnetConfigs))
@@ -137,8 +132,8 @@ func GetPools(testnet bool) []Pool {
 	return pools
 }
 
-func GetPool(poolID int, testnet bool) Pool {
-	pools := GetPools(testnet)
+func GetPool(poolID int) Pool {
+	pools := GetPools()
 	for _, p := range pools {
 		if p.GetID() == poolID {
 			return p
@@ -148,8 +143,8 @@ func GetPool(poolID int, testnet bool) Pool {
 }
 
 // HasPool reports whether the pool with this ID is on the current list.
-func HasPool(poolID int, testnet bool) bool {
-	for _, p := range GetPools(testnet) {
+func HasPool(poolID int) bool {
+	for _, p := range GetPools() {
 		if p.GetID() == poolID {
 			return true
 		}
@@ -157,8 +152,8 @@ func HasPool(poolID int, testnet bool) bool {
 	return false
 }
 
-func GetPayout(pool Pool, payoutID int, testnet bool) payouts.Payout {
-	payouts := pool.GetPayouts(testnet)
+func GetPayout(pool Pool, payoutID int) payouts.Payout {
+	payouts := pool.GetPayouts()
 	for _, p := range payouts {
 		if p.GetID() == payoutID {
 			return p

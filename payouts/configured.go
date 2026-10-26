@@ -113,8 +113,3 @@ func DOGE() Payout {
 	}
 	return NewConfiguredPayout(Config{ID: DOGEID, Name: "Verthash OCM Dogecoin Wallet", Ticker: "DOGE"})
 }
-
-// VTC is the only payout on testnet.
-func VTC() Payout {
-	return NewConfiguredPayout(Config{ID: VTCID, Name: "Vertcoin", Ticker: "VTC"})
-}
