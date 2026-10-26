@@ -4,15 +4,12 @@ name: guix
 # Feather Wallet does. The zips should match a local Guix build of the same
 # commit byte for byte; the hashes are in the run's summary to compare.
 
+# Only tags and manual runs: each job builds the cross toolchains from source,
+# which can take hours of the 6-hour job limit
 on:
   push:
-    branches:
-      - '**'
     tags:
       - '*'
-  pull_request:
-    branches:
-      - master
   workflow_dispatch:
 
 permissions:
