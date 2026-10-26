@@ -92,8 +92,8 @@ func SyncTar(archive, unpackPath string) error {
 	return removeOthers(unpackPath, keep)
 }
 
-// archiveTarget is where an archive entry goes under unpackPath, refusing
-// entries that would land outside it (ZipSlip, http://bit.ly/2MsjAWE).
+// archiveTarget is where an archive entry goes under unpackPath. It refuses
+// entries whose names, like ../../x.exe, would land outside it (Zip Slip).
 func archiveTarget(unpackPath, name string) (string, error) {
 	target := filepath.Join(unpackPath, name)
 	if !strings.HasPrefix(target, filepath.Clean(unpackPath)+string(os.PathSeparator)) {
