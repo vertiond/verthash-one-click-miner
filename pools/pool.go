@@ -11,12 +11,7 @@ type Pool interface {
 	OpenBrowserPayoutInfo(addr string)
 }
 
-func GetPools(addr string, testnet bool) []Pool {
-	if testnet {
-		return []Pool{
-			NewP2Proxy(addr),
-		}
-	}
+func GetPools(addr string) []Pool {
 	return []Pool{
 		NewZergpool(addr),
 		NewSuprnova(addr),
@@ -26,8 +21,8 @@ func GetPools(addr string, testnet bool) []Pool {
 	}
 }
 
-func GetPool(pool int, addr string, testnet bool) Pool {
-	pools := GetPools(addr, testnet)
+func GetPool(pool int, addr string) Pool {
+	pools := GetPools(addr)
 	for _, p := range pools {
 		if p.GetID() == pool {
 			return p

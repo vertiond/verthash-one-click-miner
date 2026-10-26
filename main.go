@@ -98,7 +98,7 @@ func main() {
 		logging.Errorf("Error creating Backend: %s", err.Error())
 		panic(err)
 	}
-	networks.SetNetwork(backend.GetTestnet())
+	networks.SetNetwork()
 
 	go backend.BackendServerSelector()
 	go backend.SelectP2PoolNode()
