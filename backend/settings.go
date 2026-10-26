@@ -295,6 +295,10 @@ func (m *Backend) GetNetwork() string {
 }
 
 func (m *Backend) SetNetwork(network string) {
+	// Only payouts that list chain networks (like USDT) have one to save
+	if len(m.payout.GetNetworks()) == 0 {
+		return
+	}
 	logging.Infof("Setting custom payout network to [%s]\n", network)
 	m.network = network
 	m.setStringSetting("network", network)

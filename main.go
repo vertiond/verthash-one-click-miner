@@ -135,6 +135,7 @@ func main() {
 		backend.ResetPool()
 		backend.ResetCustomAddress()
 		backend.ResetPayout()
+		backend.ResetNetwork()
 	}
 	app.Bind(backend)
 	err = app.Run()
