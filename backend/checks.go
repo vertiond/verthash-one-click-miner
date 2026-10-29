@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	verthash "github.com/gertjaap/verthash-go"
+	verthash "github.com/vertcoin-project/verthash-go"
 	"github.com/vertiond/verthash-one-click-miner/logging"
 	"github.com/vertiond/verthash-one-click-miner/miners"
 	"github.com/vertiond/verthash-one-click-miner/networks"

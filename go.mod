@@ -8,13 +8,13 @@ require (
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 	github.com/btcsuite/fastsha256 v0.0.0-20160815193821-637e65642941
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
-	github.com/gertjaap/verthash-go v0.0.0-20210205201258-234a3a9698d1
 	github.com/go-ping/ping v0.0.0-20210402232549-1726e5ede5b6
 	github.com/marcsauter/single v0.0.0-20181104081128-f8bf46f26ec0
 	github.com/tidwall/buntdb v1.2.10
+	github.com/vertcoin-project/verthash-go v1.0.0
 	github.com/wailsapp/wails v1.16.9
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/text v0.3.6
+	golang.org/x/crypto v0.20.0
+	golang.org/x/text v0.14.0
 )
 
 require (
@@ -45,8 +45,8 @@ require (
 	github.com/tidwall/rtred v0.1.2 // indirect
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
 	golang.org/x/image v0.0.0-20210607152325-775e3b0c77b9 // indirect
-	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
-	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
+	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
