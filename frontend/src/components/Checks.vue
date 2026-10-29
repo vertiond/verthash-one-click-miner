@@ -6,7 +6,7 @@
       <div class="pinned">
       <p>{{checkStatus === null ? $t("checks.checking_mining_software") : (checkStatus === 'Failed' ? 'Failed' : $t("checks." + checkStatus)) }}</p>
       <div class="below">
-      <div class="verthashProgress" v-if="verthashProgress !== 0">
+      <div class="verthashProgress" v-if="checkStatus === 'verthash' && verthashProgress !== 0">
         <div class="progressBar">
           <div class="progress" v-bind:style="{width: verthashProgress + '%'}">&nbsp;</div>
         </div>
