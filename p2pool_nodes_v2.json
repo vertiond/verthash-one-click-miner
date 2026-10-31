@@ -1,0 +1,42 @@
+[
+	{
+		"Hostname": "mindcraftblocks.com",
+		"Stratum":  "stratum+tcp://mindcraftblocks.com:9171",
+		"URL":      "http://mindcraftblocks.com:9171/"
+	},
+	{
+		"Hostname": "vtc-fl.javerity.com",
+		"Stratum":  "stratum+tcp://vtc-fl.javerity.com:9171",
+		"URL":      "http://vtc-fl.javerity.com:9171/"
+	},
+	{
+		"Hostname": "p2p-spb.xyz",
+		"Stratum":  "stratum+tcp://p2p-spb.xyz:9171",
+		"URL":      "http://p2p-spb.xyz:9171/"
+	},
+	{
+		"Hostname": "boofpool.ddns.net",
+		"Stratum":  "stratum+tcp://boofpool.ddns.net:9171",
+		"URL":      "http://boofpool.ddns.net:9171/"
+	},
+	{
+		"Hostname": "vtc-brn.webhop.me",
+		"Stratum":  "stratum+tcp://vtc-brn.webhop.me:9171",
+		"URL":      "http://vtc-brn.webhop.me:9171/"
+	},
+	{
+		"Hostname": "31.25.241.224",
+		"Stratum":  "stratum+tcp://31.25.241.224:9171",
+		"URL":      "http://31.25.241.224:9171/"
+	},
+	{
+		"Hostname": "66.151.242.154",
+		"Stratum":  "stratum+tcp://66.151.242.154:9171",
+		"URL":      "http://66.151.242.154:9171/"
+	},
+	{
+		"Hostname": "83.221.211.116",
+		"Stratum":  "stratum+tcp://83.221.211.116:9171",
+		"URL":      "http://83.221.211.116:9171/"
+	}
+]
