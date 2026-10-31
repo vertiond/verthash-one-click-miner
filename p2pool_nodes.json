@@ -10,39 +10,9 @@
 		"URL":      "http://vtc-fl.javerity.com:9171/"
 	},
 	{
-		"Hostname": "vtc-ca.javerity.com",
-		"Stratum":  "stratum+tcp://vtc-ca.javerity.com:9171",
-		"URL":      "http://vtc-ca.javerity.com:9171/"
-	},
-	{
-		"Hostname": "p2p-usa.xyz",
-		"Stratum":  "stratum+tcp://p2p-usa.xyz:9171",
-		"URL":      "http://p2p-usa.xyz:9171/"
-	},
-	{
-		"Hostname": "p2p-ekb.xyz",
-		"Stratum":  "stratum+tcp://p2p-ekb.xyz:9171",
-		"URL":      "http://p2p-ekb.xyz:9171/"
-	},
-	{
-		"Hostname": "asia.p2p-spb.xyz",
-		"Stratum":  "stratum+tcp://asia.p2p-spb.xyz:9171",
-		"URL":      "http://asia.p2p-spb.xyz:9171/"
-	},
-	{
 		"Hostname": "p2p-spb.xyz",
 		"Stratum":  "stratum+tcp://p2p-spb.xyz:9171",
 		"URL":      "http://p2p-spb.xyz:9171/"
-	},
-	{
-		"Hostname": "p2p-south.xyz",
-		"Stratum":  "stratum+tcp://p2p-south.xyz:9171",
-		"URL":      "http://p2p-south.xyz:9171/"
-	},
-	{
-		"Hostname": "siberia.mine.nu",
-		"Stratum":  "stratum+tcp://siberia.mine.nu:9171",
-		"URL":      "http://siberia.mine.nu:9171/"
 	},
 	{
 		"Hostname": "boofpool.ddns.net",
@@ -55,8 +25,18 @@
 		"URL":      "http://vtc-brn.webhop.me:9171/"
 	},
 	{
-		"Hostname": "159.223.184.20",
-		"Stratum":  "stratum+tcp://159.223.184.20:9171",
-		"URL":      "http://159.223.184.20:9171/static/"
+		"Hostname": "31.25.241.224",
+		"Stratum":  "stratum+tcp://31.25.241.224:9171",
+		"URL":      "http://31.25.241.224:9171/"
+	},
+	{
+		"Hostname": "66.151.242.154",
+		"Stratum":  "stratum+tcp://66.151.242.154:9171",
+		"URL":      "http://66.151.242.154:9171/"
+	},
+	{
+		"Hostname": "83.221.211.116",
+		"Stratum":  "stratum+tcp://83.221.211.116:9171",
+		"URL":      "http://83.221.211.116:9171/"
 	}
 ]
