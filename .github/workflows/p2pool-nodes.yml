@@ -1,0 +1,165 @@
+# Scans the legacy P2Pool and p2pool-go networks with p2pool-scanner-go and
+# opens one pull request proposing changes to the node lists OCM picks from.
+# p2pool_nodes.json (read by releases without the payout check) only ever
+# gets legacy nodes; p2pool_nodes_v2.json gets both networks.
+#
+# The scanner is outside code, so it runs in its own job without write
+# access. Only its JSON output reaches the job that can open pull requests.
+name: P2Pool node lists
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      scanner_repo:
+        description: Repository to build p2pool-scanner-go from
+      scanner_ref:
+        description: Commit, branch or tag of the scanner
+
+permissions: {}
+
+concurrency:
+  group: p2pool-nodes
+
+env:
+  BRANCH: p2pool-nodes/update
+  # Until the scanner changes are merged into KforG/p2pool-scanner-go, build
+  # the vertiond fork at a reviewed commit. Repository variables
+  # SCANNER_REPO / SCANNER_REF override this, and dispatch inputs override both.
+  SCANNER_REPO: ${{ inputs.scanner_repo || vars.SCANNER_REPO || 'vertiond/p2pool-scanner-go' }}
+  SCANNER_REF: ${{ inputs.scanner_ref || vars.SCANNER_REF || '4a9441622d085e6acc108816ac770d3436a400db' }}
+  P2POOL_GO_BOOTSTRAP: /dns4/p2poolvtc.com/tcp/9348/p2p/12D3KooWNiQ2TSXEhFgZrsJuuk9xxNheph8b23pK4RHaPSQFNDwU
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Check out the scanner
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: ${{ env.SCANNER_REPO }}
+          ref: ${{ env.SCANNER_REF }}
+          path: scanner
+          persist-credentials: false
+
+      - name: Build the scanner
+        working-directory: scanner
+        run: go build -o "$RUNNER_TEMP/scanner" .
+
+      - name: Write the scanner config
+        run: |
+          # Legacy bootstrap nodes are the listed legacy nodes (web port 9171).
+          list=p2pool_nodes_v2.json
+          [ -f "$list" ] || list=p2pool_nodes.json
+          jq --arg go "$P2POOL_GO_BOOTSTRAP" '{
+            BootstrapNodes: [.[].URL | capture("^https?://(?<hp>[^/]+)").hp | select(endswith(":9171"))],
+            Port: "9171",
+            RescanTime: 0,
+            GeoLocation: {AcessKey: ""},
+            P2PoolGo: {BootstrapPeers: [$go], WebPort: "9172"}
+          }' "$list" > "$RUNNER_TEMP/scanner-config.json"
+          cat "$RUNNER_TEMP/scanner-config.json"
+
+      - name: Scan
+        working-directory: ${{ runner.temp }}
+        run: ./scanner -once -config scanner-config.json -out scan.json -timeout 10m
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: scan
+          path: ${{ runner.temp }}/scan.json
+          retention-days: 7
+
+  propose:
+    needs: scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      # create-pull-request targets the branch the workflow runs on.
+      BASE: ${{ github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: stable
+          cache: false
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: scan
+          path: ${{ runner.temp }}
+
+      - name: Work out the list changes
+        id: report
+        run: |
+          (cd .github/p2pool-nodes && go build -o "$RUNNER_TEMP/p2pool-nodes" .)
+          "$RUNNER_TEMP/p2pool-nodes" -scan "$RUNNER_TEMP/scan.json" \
+            -legacy p2pool_nodes.json -v2 p2pool_nodes_v2.json -body "$RUNNER_TEMP/pr-body.md"
+          cat "$RUNNER_TEMP/pr-body.md" >> "$GITHUB_STEP_SUMMARY"
+
+      # A reviewer may have edited the open pull request, for example to swap
+      # an IP for a domain. Don't overwrite that; comment with the new scan.
+      # Only an open pull request counts: a merged or closed one's branch is
+      # reset by the next proposal.
+      - name: Check the open pull request
+        id: pr
+        run: |
+          open=$(gh pr list --head "$BRANCH" --base "$BASE" --state open --json number --jq length)
+          echo "open=$([ "$open" != 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          if [ "$open" != 0 ] && git fetch origin "$BRANCH"; then
+            git log --format='%an <%ae>' "origin/$BASE..FETCH_HEAD" | sort -u
+            others=$(git log --format='%ae' "origin/$BASE..FETCH_HEAD" \
+              | grep -v -F '41898282+github-actions[bot]@users.noreply.github.com' || true)
+            if [ -n "$others" ]; then
+              echo "edited=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Comment with the new scan
+        if: steps.report.outputs.changed == 'true' && steps.pr.outputs.edited == 'true'
+        run: gh pr comment "$BRANCH" --body-file "$RUNNER_TEMP/pr-body.md"
+
+      - name: Close the pull request if the lists are already right
+        if: steps.report.outputs.changed == 'false' && steps.pr.outputs.open == 'true' && steps.pr.outputs.edited != 'true'
+        run: gh pr close "$BRANCH" --delete-branch --comment "The latest scan matches $BASE, so these changes are no longer needed."
+
+      - name: Open or update the pull request
+        id: cpr
+        if: steps.report.outputs.changed == 'true' && steps.pr.outputs.edited != 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: ${{ env.BRANCH }}
+          base: ${{ env.BASE }}
+          title: Update P2Pool node lists
+          body-path: ${{ runner.temp }}/pr-body.md
+          commit-message: Update P2Pool node lists from the weekly scan
+          add-paths: |
+            p2pool_nodes.json
+            p2pool_nodes_v2.json
+          sign-commits: true
+          delete-branch: true
+
+      - name: Explain a refused pull request
+        if: failure() && steps.cpr.outcome == 'failure'
+        run: |
+          echo "::error::Opening the pull request was refused. Enable 'Allow GitHub Actions to create and approve pull requests' in Settings > Actions > General, or check the step log above."
