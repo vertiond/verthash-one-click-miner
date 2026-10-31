@@ -73,7 +73,8 @@ func run(scanPath, legacyPath, v2Path, bodyPath string) error {
 			return err
 		}
 	}
-	if err := os.WriteFile(bodyPath, []byte(summary(legacyPlan, v2Plan)), 0644); err != nil {
+	rdap := RDAP{Client: &http.Client{Timeout: 10 * time.Second}, Base: "https://rdap.org"}
+	if err := os.WriteFile(bodyPath, []byte(body(legacyPlan, v2Plan, rdap, time.Now().UTC(), v2Orig == nil)), 0644); err != nil {
 		return err
 	}
 	log.Printf("legacy list: %d added, %d removed; v2 list: %d added, %d removed",
@@ -88,12 +89,6 @@ func withAdded(p Plan) []Entry {
 		list = append(list, entryFor(n))
 	}
 	return list
-}
-
-// summary is a short description until the full report is written.
-func summary(legacy, v2 Plan) string {
-	return fmt.Sprintf("p2pool_nodes.json: %d added, %d removed\np2pool_nodes_v2.json: %d added, %d removed\n",
-		len(legacy.Added), len(legacy.Removed), len(v2.Added), len(v2.Removed))
 }
 
 // setOutput records a step output when running in GitHub Actions.
